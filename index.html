@@ -135,6 +135,155 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
 }
 .public-config-warning.show{display:block}
 
+
+/* ===== Mobile polish: compact, cleaner typography ===== */
+@media(max-width:640px){
+  body{font-size:13px}
+  .app{padding:10px 8px 24px}
+
+  .topbar{gap:7px;padding:2px 0 12px}
+  .brand-kicker{font-size:8.5px;letter-spacing:.14em}
+  .brand h1{margin-top:4px;font-size:24px;letter-spacing:-.035em}
+  .brand h1 em{font-size:.58em;margin-left:5px}
+  .brand p{margin-top:6px;font-size:11px;line-height:1.45}
+
+  nav.tabs{top:4px;padding:4px;gap:4px;border-radius:10px}
+  nav.tabs button{padding:8px 6px;font-size:12px;min-height:36px;border-radius:7px}
+
+  main{padding-top:16px}
+  .section-head{margin-bottom:11px;gap:8px}
+  .section-head h2{font-size:21px;letter-spacing:-.025em}
+  .section-head p{margin-top:4px;font-size:11px;line-height:1.45}
+
+  .challenge-stack{gap:10px}
+  .challenge-card{padding:12px;border-radius:14px}
+  .challenge-top{gap:9px}
+  .challenge-eyebrow{font-size:8px;letter-spacing:.1em}
+  .challenge-card h3{margin:3px 0;font-size:18px}
+  .challenge-card p{font-size:10.5px;line-height:1.5}
+
+  .challenge-grid{gap:8px;margin-top:11px}
+  .field{gap:4px}
+  label{font-size:9.5px}
+  input,select,textarea{
+    min-height:38px;
+    padding:8px 9px;
+    border-radius:8px;
+    font-size:12px;
+  }
+  textarea{min-height:68px}
+  .helper{font-size:9.5px;line-height:1.45}
+
+  .btn{
+    min-height:38px;
+    padding:8px 10px;
+    border-radius:8px;
+    font-size:12px;
+  }
+  .btn.small{min-height:31px;padding:6px 8px;font-size:10px}
+
+  .challenge-info{gap:5px;margin-top:9px}
+  .mini-stat{padding:7px 6px;border-radius:9px}
+  .mini-stat b{font-size:15px}
+  .mini-stat span{font-size:8px;line-height:1.25}
+
+  .station-picker{gap:7px;margin-top:7px}
+  .picker-group{padding:8px;border-radius:10px}
+  .picker-group-title{font-size:8px;margin-bottom:5px}
+  .picker-group-grid{gap:5px}
+  .pick{gap:5px;padding:7px 6px;border-radius:8px;font-size:9.5px;line-height:1.25}
+
+  .custom-order-wrap{margin-top:9px}
+  .custom-order-title{gap:6px;margin-bottom:5px}
+  .custom-order-title b{font-size:10px}
+  .custom-order-title span{font-size:8px;line-height:1.3;text-align:right}
+  .custom-order-list{gap:5px}
+  .order-item{grid-template-columns:27px minmax(0,1fr);gap:6px;padding:7px;border-radius:9px}
+  .drag-handle{width:25px;height:25px;font-size:12px;border-radius:6px}
+  .order-copy b{font-size:10.5px}
+  .order-copy span{font-size:8px}
+  .order-actions{gap:4px}
+  .order-btn{width:27px;height:27px;min-height:27px;font-size:11px;border-radius:6px}
+  .order-specs{gap:4px;margin-top:5px}
+  .order-spec label{font-size:7px}
+  .order-spec input{min-height:28px;padding:5px 6px;font-size:9px;border-radius:6px}
+  #startCustomBtn{width:100%;min-width:0 !important}
+
+  .card{padding:11px;border-radius:12px}
+  .wall-filter-row{margin-bottom:7px;padding:7px 8px;border-radius:9px}
+  .wall-filter-row label{font-size:8.5px}
+  .wall-filter-row select{min-height:34px;padding:6px 8px;font-size:11px}
+
+  .score-row{
+    grid-template-columns:30px minmax(0,1fr) 66px;
+    grid-template-areas:"rank main time" "rank count action";
+    gap:4px 7px;
+    min-height:70px;
+    padding:8px 3px;
+  }
+  .score-rank{font-size:13px;padding-top:1px}
+  .score-title{font-size:12px;line-height:1.25}
+  .score-meta{margin-top:2px;font-size:8px}
+  .score-content{margin-top:3px;font-size:8px}
+  .score-time{font-size:13px}
+  .score-challenges{font-size:8px}
+  .score-challenges strong{font-size:10px;margin-left:2px}
+  .score-action .btn{min-height:29px;padding:5px 7px;font-size:9px;border-radius:7px}
+  .score-rechallenge-note{font-size:9px;padding:5px 1px}
+  .score-empty{padding:24px 10px;font-size:10px}
+
+  .modal{padding:9px}
+  .modal-card{max-height:94vh;padding:12px;border-radius:14px}
+  .modal-head{gap:8px}
+  .modal-head h3{font-size:19px}
+  .modal-sub{margin-top:3px;font-size:10px}
+  .timer-box{gap:9px;margin-top:10px;padding:11px;border-radius:11px}
+  .timer-label{font-size:8px}
+  .timer{font-size:28px}
+  .progress-text{font-size:10px}
+  .session-list{gap:6px;margin-top:10px}
+  .session-item{grid-template-columns:32px minmax(0,1fr);gap:7px;padding:8px;border-radius:9px}
+  .session-index{width:27px;height:27px;font-size:10px}
+  .session-name{font-size:11px}
+  .session-detail{font-size:8.5px}
+  .check-btn{min-height:30px;padding:5px 7px;font-size:9px}
+  .session-footer{bottom:-12px;margin:12px -12px -12px;padding:10px 12px;gap:6px}
+
+  .finish-question{padding-top:4px}
+  .finish-question .big{font-size:19px}
+  .finish-question p{font-size:10px;line-height:1.5}
+  .finish-form{gap:7px;margin-top:10px}
+  .finish-summary{gap:5px;margin:10px 0}
+  .finish-summary .mini-stat b{font-size:16px}
+
+  .rules-target{gap:7px;margin:10px 0;padding:10px}
+  .rules-target-name{font-size:12px}
+  .rules-target-meta{font-size:8.5px}
+  .rules-target-time span{font-size:8px}
+  .rules-target-time b{font-size:22px}
+  .rules-list{gap:6px;margin:9px 0 4px}
+  .rules-list li{padding:7px 8px 7px 27px;font-size:9.5px;line-height:1.4}
+  .rules-list li::before{left:9px;top:7px}
+  .rules-warning{margin-top:8px;padding:8px 9px;font-size:9px}
+  .failure-icon{font-size:30px}
+  .failure-box h3{font-size:20px}
+  .failure-box p{font-size:10px}
+  .failure-compare{gap:5px;margin:10px 0}
+  .failure-compare .mini-stat b{font-size:17px}
+
+  .footer{margin-top:23px;padding-top:13px;font-size:8.5px;line-height:1.45}
+  .toast{right:10px;bottom:10px;max-width:calc(100vw - 20px);padding:9px 10px;font-size:10px}
+}
+
+@media(max-width:380px){
+  .brand h1{font-size:22px}
+  .section-head h2{font-size:20px}
+  .picker-group-grid{grid-template-columns:1fr 1fr}
+  .score-row{grid-template-columns:27px minmax(0,1fr) 60px;gap:4px 5px}
+  .score-title{font-size:11.5px}
+  .score-time{font-size:12px}
+}
+
 </style>
 </head>
 <body>
