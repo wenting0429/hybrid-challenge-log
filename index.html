@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0d14">
+<title>HYROX TRAINING LOG</title>
+<style>
+:root{
+  --bg:#090c12;--panel:#111721;--panel2:#0d121b;--line:#293445;
+  --text:#f4f7f9;--muted:#8e9bad;--cyan:#70ded8;--cyan2:#45c9c2;
+  --coral:#ff7657;--green:#6bd6a3;--amber:#efc96f;--danger:#ff758c;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;background:radial-gradient(circle at 16% -10%,rgba(112,222,216,.10),transparent 30%),radial-gradient(circle at 100% 8%,rgba(255,118,87,.08),transparent 28%),linear-gradient(180deg,#080b11,#0b1018 55%,#090c12)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.app{width:min(1120px,100%);margin:0 auto;padding:20px 18px 42px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:5px 0 19px}
+.brand-kicker{color:var(--cyan);font-size:10px;letter-spacing:.17em;font-weight:900}
+.brand h1{margin:6px 0 0;font-size:33px;line-height:1;letter-spacing:-.045em}.brand h1 em{font-style:normal;color:var(--coral);font-size:.63em;margin-left:7px;letter-spacing:.01em}.brand p{margin:9px 0 0;color:#aeb9c7;font-size:13px}
+.status-wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.status-pill{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#101620;border-radius:999px;padding:8px 10px;color:#c9d2de;font-size:12px}.status-dot{width:8px;height:8px;border-radius:50%;background:var(--amber)}.status-pill.cloud .status-dot{background:var(--green)}
+.btn{border:1px solid #344053;background:#171e29;color:#fff;border-radius:10px;padding:10px 13px;min-height:42px;font-weight:850;transition:.14s ease}.btn:hover{border-color:#536177;transform:translateY(-1px)}.btn.primary{background:linear-gradient(135deg,#2a8e89,#44cbc4);border-color:#4bd4cd;color:#071012}.btn.coral{background:linear-gradient(135deg,#ff7657,#f0536d);border-color:#ff8c74}.btn.danger{color:#ffb0bd;border-color:#633340;background:#21131a}.btn.ghost{background:transparent}.btn.small{min-height:34px;padding:7px 10px;font-size:12px}
+nav.tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;position:sticky;top:8px;z-index:20;background:#0e131b;border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:0 12px 34px rgba(0,0,0,.24)}nav.tabs button{border:0;background:transparent;color:#9ca8b8;padding:11px;border-radius:8px;font-weight:850}nav.tabs button.active{background:#18212d;color:#fff;box-shadow:inset 0 -3px 0 var(--cyan)}
+main{padding-top:24px}.page{display:none}.page.active{display:block}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin-bottom:16px}.section-head h2{margin:0;font-size:30px;letter-spacing:-.035em}.section-head p{margin:6px 0 0;color:var(--muted);font-size:13px}
+.challenge-stack{display:grid;gap:15px}.challenge-card{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(18,24,35,.98),rgba(13,18,27,.98));border:1px solid var(--line);border-radius:17px;padding:18px;box-shadow:0 18px 55px rgba(0,0,0,.24)}.challenge-card::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-130px;top:-135px;background:radial-gradient(circle,rgba(112,222,216,.12),transparent 68%);pointer-events:none}.challenge-card.custom::after{background:radial-gradient(circle,rgba(255,118,87,.10),transparent 68%)}
+.challenge-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.challenge-eyebrow{font-size:10px;color:var(--cyan);font-weight:900;letter-spacing:.12em}.challenge-card.custom .challenge-eyebrow{color:#ffad98}.challenge-card h3{margin:4px 0 4px;font-size:23px;letter-spacing:-.025em}.challenge-card p{margin:0;color:#9aa6b6;font-size:12px;line-height:1.6}.challenge-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label{font-size:11px;color:#8f9bad;font-weight:800}input,select,textarea{width:100%;min-height:42px;padding:10px 11px;border:1px solid #303b4d;background:#0b1018;color:#f5f7f9;border-radius:10px;outline:none}textarea{min-height:76px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:#3ca8a3;box-shadow:0 0 0 3px rgba(69,201,194,.08)}
+.challenge-info{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.mini-stat{border:1px solid #253142;background:#0d131c;border-radius:11px;padding:10px}.mini-stat b{display:block;font-size:18px;letter-spacing:-.035em}.mini-stat span{display:block;margin-top:2px;color:#7f8c9d;font-size:9px}
+.station-picker{display:grid;gap:10px;margin-top:10px}.picker-group{border:1px solid #263244;background:#0b1119;border-radius:12px;padding:10px}.picker-group-title{font-size:9px;letter-spacing:.12em;color:#78879a;font-weight:900;margin-bottom:7px;text-transform:uppercase}.picker-group-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.pick{display:flex;align-items:center;gap:7px;padding:9px;border:1px solid #2b3546;background:#0d131c;border-radius:10px;color:#aeb7c5;font-size:11px;min-width:0}.pick span{min-width:0}.pick.add-pick{width:100%;text-align:left;justify-content:flex-start;cursor:pointer}.pick.add-pick:hover{border-color:#3ca8a3;background:rgba(60,168,163,.10);color:#d9f7f4}.pick.add-pick span::first-letter{color:var(--cyan)}
+.custom-order-wrap{margin-top:12px}.custom-order-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}.custom-order-title b{font-size:11px;color:#aeb8c6}.custom-order-title span{font-size:10px;color:#738094}.custom-order-list{display:grid;gap:7px}.order-item{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:8px;padding:8px 9px;border:1px solid #2b3648;background:#0b1119;border-radius:10px;touch-action:none}.order-item.dragging{opacity:.45;border-color:#52cfc8}.drag-handle{width:28px;height:28px;display:grid;place-items:center;border-radius:7px;background:#161f2b;color:#7f8b9d;font-size:14px;cursor:grab;user-select:none}.order-copy b{display:block;font-size:12px}.order-copy span{display:block;margin-top:2px;color:#798698;font-size:9px}.order-actions{display:flex;gap:5px}.order-btn{width:30px;height:30px;min-height:30px;padding:0;border:1px solid #344053;background:#151c27;color:#aeb8c6;border-radius:7px;font-weight:900}.order-btn:disabled{opacity:.25;cursor:not-allowed}.order-empty{padding:11px;border:1px dashed #303b4d;border-radius:10px;color:#788597;font-size:10px;text-align:center}
+.challenge-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+.card{background:linear-gradient(180deg,rgba(18,24,35,.97),rgba(13,18,27,.97));border:1px solid var(--line);border-radius:15px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.22)}
+.filters{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;margin-bottom:12px}.results-list{display:grid;gap:10px}.result-card{border:1px solid #293445;background:linear-gradient(180deg,#101720,#0d131c);border-radius:14px;padding:13px}.result-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.result-user{font-size:16px;font-weight:950}.result-meta{font-size:11px;color:#8793a5;margin-top:3px}.result-challenge-title{font-size:17px;font-weight:950;letter-spacing:-.02em;margin-top:8px;color:#f2f5f8}.result-time{font-size:22px;font-weight:950;letter-spacing:-.04em;white-space:nowrap}.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.badge{font-size:10px;font-weight:850;color:#cbd5e3;border:1px solid #334054;background:#151d29;border-radius:999px;padding:5px 8px}.badge.cyan{color:#aaf1ed;border-color:#2e6462;background:#0e2222}.badge.coral{color:#ffc2b4;border-color:#684139;background:#241512}.result-content{margin-top:11px;padding:10px;border:1px solid #263345;background:#0b1119;border-radius:11px}.result-content-label{font-size:9px;letter-spacing:.11em;color:#748297;font-weight:900;margin-bottom:7px}.content-flow{display:flex;gap:6px;flex-wrap:wrap}.content-step{font-size:10px;line-height:1.35;color:#c9d3df;border:1px solid #324054;background:#141c27;border-radius:8px;padding:6px 8px}.content-step b{color:#7de1db;margin-right:4px}.result-note{font-size:12px;color:#aeb7c4;margin-top:10px;line-height:1.5}.encourage-line{margin-top:10px;padding:8px 10px;border-left:2px solid rgba(112,222,216,.58);background:rgba(112,222,216,.045);border-radius:0 8px 8px 0;color:#9eb9b7;font-size:10px;line-height:1.5}.result-actions{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px}.challenge-count{font-size:10px;color:#8390a3;font-weight:800}.challenge-count strong{color:#d6e0eb;font-size:12px}.empty{padding:34px 16px;text-align:center;color:#8591a2;border:1px dashed #344052;border-radius:14px}
+.footer{margin-top:32px;padding-top:18px;border-top:1px solid #242e3e;color:#788496;font-size:10px;line-height:1.55}
+.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.74);z-index:70;padding:18px}.modal.open{display:grid}.modal-card{width:min(800px,100%);max-height:92vh;overflow:auto;background:#111722;border:1px solid #313c4e;border-radius:18px;padding:17px;box-shadow:0 30px 90px rgba(0,0,0,.55)}.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.modal-head h3{margin:0;font-size:23px}.modal-sub{margin-top:5px;color:#8e9aac;font-size:12px}.timer-box{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-top:14px;padding:15px;background:linear-gradient(110deg,#111927,#1e1519);border:1px solid #334052;border-radius:14px}.timer-label{font-size:10px;color:#8d99aa;font-weight:850;letter-spacing:.08em}.timer{font-size:39px;font-weight:950;letter-spacing:-.045em;font-variant-numeric:tabular-nums}.progress-text{font-size:13px;font-weight:850;color:#b8c3d0;text-align:right}.session-list{display:grid;gap:8px;margin-top:14px}.session-item{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:10px 11px;border:1px solid #2a3546;background:#0d131c;border-radius:11px}.session-item.done{border-color:#2d6653;background:#0f1c18}.session-index{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;background:#1a2230;color:#8f9cad;font-weight:900}.session-item.done .session-index{background:#193128;color:#91ebc3}.session-name{font-size:13px;font-weight:850}.session-detail{font-size:10px;color:#8190a2;margin-top:2px}.check-btn{min-height:35px;padding:7px 10px;font-size:11px}.session-footer{position:sticky;bottom:-17px;margin:16px -17px -17px;padding:13px 17px;background:rgba(17,23,34,.96);border-top:1px solid #303b4d;backdrop-filter:blur(10px);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.session-footer .btn[disabled]{opacity:.35;cursor:not-allowed;transform:none}
+.finish-question{text-align:center;padding:8px 4px 2px}.finish-question .big{font-size:23px;font-weight:950;letter-spacing:-.03em}.finish-question p{color:#929eae;font-size:12px;line-height:1.6}.finish-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.finish-form .full{grid-column:1/-1}.finish-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.finish-summary .mini-stat b{font-size:20px}
+.code{white-space:pre-wrap;word-break:break-word;background:#090e15;border:1px solid #273142;border-radius:10px;padding:10px;font:11px ui-monospace,monospace;color:#aeb8c7}.helper{font-size:11px;color:#7f8a9b;line-height:1.55}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.toast{position:fixed;right:18px;bottom:18px;display:none;z-index:90;background:#eef8f6;color:#12211f;border-left:4px solid var(--cyan2);border-radius:10px;padding:11px 13px;font-weight:850;font-size:12px;box-shadow:0 16px 45px rgba(0,0,0,.3)}.toast.show{display:block}
+@media(max-width:760px){.topbar{flex-direction:column;gap:11px}.status-wrap{justify-content:flex-start}.brand h1{font-size:28px}.challenge-grid{grid-template-columns:1fr}.challenge-info{grid-template-columns:repeat(3,1fr)}.picker-group-grid{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr}.finish-form{grid-template-columns:1fr}.finish-form .full{grid-column:auto}}
+@media(max-width:520px){.app{padding:12px 10px 30px}.section-head h2{font-size:25px}.challenge-card{padding:14px}.challenge-top{flex-direction:column}.challenge-info{gap:6px}.mini-stat{padding:8px}.mini-stat b{font-size:16px}.timer{font-size:32px}.session-item{grid-template-columns:38px 1fr}.session-item .check-btn{grid-column:2}.finish-summary{grid-template-columns:1fr 1fr 1fr}.result-time{font-size:19px}}
+
+/* custom challenge item specifications */
+.order-copy{min-width:0}
+.order-specs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}
+.order-spec{display:grid;gap:3px;min-width:0}
+.order-spec label{font-size:8px;color:#738094;font-weight:850;letter-spacing:.02em}
+.order-spec input{min-height:31px;padding:6px 7px;border-radius:7px;font-size:10px;background:#0a0f16}
+@media(max-width:640px){
+  .order-item{grid-template-columns:30px minmax(0,1fr);align-items:start}
+  .order-actions{grid-column:2;justify-content:flex-end}
+  .order-specs{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* wall highlights */
+.wall-leaderboard{margin-bottom:14px}
+.wall-leaderboard-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:9px}
+.wall-leaderboard-head h3{margin:0;font-size:15px;letter-spacing:-.01em}
+.wall-leaderboard-head span{font-size:9px;color:#758397;letter-spacing:.08em;font-weight:850}
+.leader-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.leader-card{position:relative;overflow:hidden;border:1px solid #304054;background:linear-gradient(135deg,rgba(20,32,43,.96),rgba(12,17,25,.97));border-radius:13px;padding:12px}
+.leader-card.hot{background:linear-gradient(135deg,rgba(43,26,24,.88),rgba(13,17,24,.97));border-color:#4b3735}
+.leader-kicker{font-size:9px;font-weight:950;letter-spacing:.11em;color:#78ded8}
+.leader-card.hot .leader-kicker{color:#ff9d85}
+.leader-title{font-size:16px;font-weight:950;margin-top:5px;line-height:1.2}
+.leader-meta{font-size:10px;color:#8996a7;margin-top:5px}
+.leader-main{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-top:10px}
+.leader-value{font-size:24px;font-weight:950;letter-spacing:-.045em}
+.leader-sub{font-size:9px;color:#758297;margin-top:1px}
+.leader-empty{padding:13px;color:#748194;font-size:10px;border:1px dashed #344052;border-radius:10px}
+@media(max-width:640px){.leader-grid{grid-template-columns:1fr}.leader-value{font-size:22px}}
+
+
+/* ===== Simplified score wall ===== */
+.wall-leaderboard,.filters{display:none !important}
+.wall-filter-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:9px 11px;border:1px solid #273141;background:#0e141d;border-radius:11px}
+.wall-filter-row label{color:#8593a7;font-size:10px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
+.wall-filter-row select{flex:0 1 320px;min-height:38px;padding:7px 10px;background:#0a1017}
+.score-board{display:grid;gap:0;border-top:1px solid #263142}
+.score-row{--rank-color:#f3f6f8;display:grid;grid-template-columns:48px minmax(0,1fr) 92px 105px 104px;gap:12px;align-items:center;min-height:72px;padding:10px;border-bottom:1px solid #263142;background:transparent}
+.score-row:hover{background:rgba(255,255,255,.018)}
+.score-rank{font-size:17px;font-weight:950;letter-spacing:-.03em;color:#788598;font-variant-numeric:tabular-nums}
+.score-main{min-width:0}
+.score-title{color:#edf2f7;font-size:14px;font-weight:900;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-meta{margin-top:3px;color:#7f8c9f;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-content{margin-top:4px;color:#9aa6b7;font-size:9px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-time{text-align:right;color:#edf2f7;font-size:16px;font-weight:950;font-variant-numeric:tabular-nums;white-space:nowrap}
+.score-challenges{text-align:right;color:#7f8c9f;font-size:9px;line-height:1.25;white-space:nowrap}
+.score-challenges strong{display:block;color:#cbd4df;font-size:13px}
+.score-challenges-hidden{visibility:hidden}
+.challenge-result-row .score-title{color:#9fe8e3}
+.score-action{text-align:right}.score-action .btn{width:100%;white-space:nowrap}
+.score-row.rank-1{--rank-color:#ffd166}.score-row.rank-2{--rank-color:#62e7e1}.score-row.rank-3{--rank-color:#ff7c93}.score-row.rank-4{--rank-color:#b999ff}.score-row.rank-5{--rank-color:#7ee787}
+.score-row.rank-top .score-rank,.score-row.rank-top .score-title,.score-row.rank-top .score-time{color:var(--rank-color)}
+.score-empty{padding:34px 14px;text-align:center;color:#8491a3;border-bottom:1px solid #263142}
+@media(max-width:760px){
+  .wall-filter-row{align-items:stretch}.wall-filter-row select{flex:1;min-width:0}
+  .score-row{grid-template-columns:38px minmax(0,1fr) 74px;grid-template-areas:"rank main time" "rank count action";gap:6px 9px;padding:10px 6px;min-height:82px}
+  .score-rank{grid-area:rank;align-self:start;padding-top:2px}.score-main{grid-area:main}.score-time{grid-area:time;font-size:14px}
+  .score-challenges{grid-area:count;text-align:left}.score-challenges strong{display:inline;font-size:11px;margin-left:3px}.score-action{grid-area:action}
+  .score-action .btn{width:auto;min-height:32px;padding:6px 8px;font-size:10px}
+}
+
+
+/* simple wall sorting + head-to-head challenge rules */
+.wall-sort-note{margin:-2px 2px 10px;color:#7e8b9e;font-size:10px;line-height:1.45}
+.rules-target{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:15px 0;padding:13px 14px;border:1px solid #344255;background:linear-gradient(120deg,#101822,#17131a);border-radius:13px}
+.rules-target-name{font-size:15px;font-weight:950;color:#eef3f7;line-height:1.3}
+.rules-target-meta{margin-top:4px;font-size:10px;color:#8794a6}
+.rules-target-time{text-align:right}
+.rules-target-time span{display:block;font-size:9px;color:#7f8c9e;font-weight:850;letter-spacing:.08em}
+.rules-target-time b{display:block;margin-top:2px;font-size:28px;letter-spacing:-.04em;color:#72ded8;font-variant-numeric:tabular-nums}
+.rules-list{display:grid;gap:8px;margin:13px 0 5px;padding:0;list-style:none}
+.rules-list li{position:relative;padding:9px 10px 9px 31px;border:1px solid #2a3546;background:#0d131c;border-radius:10px;color:#aab5c3;font-size:11px;line-height:1.5}
+.rules-list li::before{content:"✓";position:absolute;left:11px;top:9px;color:#6dd6a5;font-weight:950}
+.rules-warning{margin-top:12px;padding:10px 11px;border-left:3px solid #ff7657;background:rgba(255,118,87,.06);border-radius:0 9px 9px 0;color:#d6aaa0;font-size:10px;line-height:1.5}
+.failure-box{text-align:center;padding:8px 4px 2px}
+.failure-icon{font-size:38px;line-height:1}
+.failure-box h3{margin:9px 0 5px;font-size:25px}
+.failure-box p{margin:0;color:#9aa6b6;font-size:12px;line-height:1.6}
+.failure-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}
+.failure-compare .mini-stat b{font-size:22px}
+@media(max-width:520px){
+  .rules-target{grid-template-columns:1fr}.rules-target-time{text-align:left}
+  .failure-compare{grid-template-columns:1fr 1fr}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-kicker">COMMUNITY CHALLENGE TRACKER</div>
+      <h1>HYROX <em>TRAINING LOG</em></h1>
+      <p>挑戰自己，完成後再決定要不要把成績放上牆。</p>
+    </div>
+    <div class="status-wrap">
+      <div class="status-pill" id="dataStatus"><span class="status-dot"></span><span id="dataStatusText">Local Demo</span></div>
+      <button class="btn small ghost" id="setupBtn">雲端設定</button>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="active" data-tab="challenge">挑戰自我</button>
+    <button data-tab="wall">成績牆</button>
+  </nav>
+
+  <main>
+    <section id="challenge" class="page active">
+      <div class="section-head">
+        <div><h2>挑戰自我</h2><p>選一個標準挑戰，或自己定義今天要完成的內容。</p></div>
+      </div>
+
+      <div class="challenge-stack">
+        <div class="challenge-card standard">
+          <div class="challenge-top">
+            <div>
+              <div class="challenge-eyebrow">STANDARD CHALLENGE</div>
+              <h3>標準挑戰</h3>
+              <p>完整 HYROX：8 × 1 km 跑步，穿插 8 個官方工作站。</p>
+            </div>
+            <button class="btn primary" id="startStandardBtn">開始</button>
+          </div>
+          <div class="challenge-grid">
+            <div class="field"><label>挑戰組別</label><select id="standardDivision"><option>Women Open</option><option>Men Open</option><option>Mixed Doubles</option></select></div>
+            <div class="field"><label>挑戰名稱</label><input id="standardName" value="Full HYROX Simulation"></div>
+          </div>
+          <div class="challenge-info">
+            <div class="mini-stat"><b>8 km</b><span>跑步</span></div>
+            <div class="mini-stat"><b>8</b><span>工作站</span></div>
+            <div class="mini-stat"><b>16</b><span>總項目</span></div>
+          </div>
+        </div>
+
+        <div class="challenge-card custom">
+          <div class="challenge-top">
+            <div>
+              <div class="challenge-eyebrow">CUSTOM CHALLENGE</div>
+              <h3>自訂挑戰</h3>
+              <p>自己編排跑步與各種訓練項目，並可為每一項指定重量、次數與距離。</p>
+            </div>
+          </div>
+          <div class="challenge-grid">
+            <div class="field"><label>挑戰名稱（預設自動產生，可自行修改）</label><input id="customName" placeholder="自訂挑戰 YYYYMMDD-HHMMSS-SSS"></div>
+            <div class="field"><label>新增跑步預設距離（m）</label><div style="display:grid;grid-template-columns:1fr auto;gap:7px"><input id="customRun" type="number" min="0" step="100" value="500"><button type="button" class="btn small" id="addRunBtn">＋ 加入跑步</button></div></div>
+            <div class="field full"><label>加入訓練項目（每個項目都可重複）</label><div class="helper" style="margin-top:-2px">點一次加入一次；同一項目可以加入很多次。跑步也可以用上方「＋ 加入跑步」重複安排，加入後再自行拖曳排序。</div><div class="station-picker" id="stationPicker"></div></div>
+            <div class="field full custom-order-wrap">
+              <div class="custom-order-title"><b>挑戰順序</b><span>拖曳／↑ ↓ 排序；＋ 可複製；× 可刪除</span></div>
+              <div class="custom-order-list" id="customOrderList"></div>
+              <div style="margin-top:12px;display:flex;justify-content:flex-end">
+                <button class="btn coral" id="startCustomBtn" style="min-width:160px">挑戰開始</button>
+              </div>
+            </div>
+          </div>
+          <div class="challenge-info">
+            <div class="mini-stat"><b id="customRunPreview">0.5 km</b><span>跑步總距離</span></div>
+            <div class="mini-stat"><b id="customStationPreview">0</b><span>訓練項目</span></div>
+            <div class="mini-stat"><b id="customItemPreview">1</b><span>總項目</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="wall" class="page">
+      <div class="section-head">
+        <div>
+          <h2>成績牆</h2>
+          <p>排序規則簡化：全部看最新；自訂看最常被挑戰；標準看最快。</p>
+        </div>
+        <button class="btn small" id="refreshBtn">重新整理</button>
+      </div>
+      <div class="wall-filter-row">
+        <label for="wallCategory">顯示</label>
+        <select id="wallCategory">
+          <option value="all">全部</option>
+          <option value="custom">自訂挑戰</option>
+          <option value="standard-women">標準挑戰｜女子</option>
+          <option value="standard-men">標準挑戰｜男子</option>
+          <option value="standard-mixed">標準挑戰｜Mixed Doubles</option>
+        </select>
+      </div>
+      <div class="wall-sort-note" id="wallSortNote">全部：最新登錄的成績排在前面。</div>
+      <div class="score-board" id="resultsList"></div>
+    </section>
+  </main>
+  <div class="footer">HYROX TRAINING LOG 是非官方社群訓練工具；HYROX 標準僅作訓練比較基準。Local Demo 的成績只存在目前瀏覽器；接上 Supabase 後即可讓不同使用者共用同一面成績牆。</div>
+</div>
+
+
+<div class="modal" id="challengeRulesModal">
+  <div class="modal-card" style="width:min(600px,100%)">
+    <div class="modal-head">
+      <div>
+        <h3>發起挑戰</h3>
+        <div class="modal-sub">開始前先確認遊戲規則。</div>
+      </div>
+      <button class="btn small ghost" id="closeRulesBtn">關閉</button>
+    </div>
+    <div class="rules-target">
+      <div>
+        <div class="rules-target-name" id="rulesChallengeName">Challenge</div>
+        <div class="rules-target-meta" id="rulesChallengeMeta">—</div>
+      </div>
+      <div class="rules-target-time">
+        <span>目標時間</span>
+        <b id="rulesTargetTime">—</b>
+      </div>
+    </div>
+    <ul class="rules-list">
+      <li>挑戰內容與原紀錄相同，必須完成全部項目。</li>
+      <li>你的完成時間必須小於或等於原紀錄時間，才算挑戰成功。</li>
+      <li>挑戰成功後，才可以選擇把本次成績登錄到成績牆。</li>
+      <li>超過目標時間即為挑戰失敗，本次成績不能登錄。</li>
+    </ul>
+    <div class="rules-warning">按下「挑戰開始」後，就會記為一次「被挑戰」。</div>
+    <div class="actions" style="justify-content:flex-end">
+      <button class="btn" id="cancelRulesBtn">取消</button>
+      <button class="btn primary" id="confirmWallChallengeBtn">挑戰開始</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="challengeFailureModal">
+  <div class="modal-card" style="width:min(480px,100%)">
+    <div class="failure-box">
+      <div class="failure-icon">×</div>
+      <h3>挑戰失敗</h3>
+      <p>你完成了所有項目，但超過這次挑戰的目標時間。依遊戲規則，本次成績不能登錄到成績牆。</p>
+      <div class="failure-compare">
+        <div class="mini-stat"><b id="failureYourTime">—</b><span>你的時間</span></div>
+        <div class="mini-stat"><b id="failureTargetTime">—</b><span>目標時間</span></div>
+      </div>
+      <button class="btn primary" id="closeFailureBtn">知道了</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="trainingModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><h3 id="sessionTitle">Challenge</h3><div class="modal-sub" id="sessionMeta"></div></div>
+      <button class="btn small ghost" id="closeSessionBtn">關閉</button>
+    </div>
+    <div class="timer-box">
+      <div><div class="timer-label">TOTAL TIME</div><div class="timer" id="sessionTimer">00:00</div></div>
+      <div><div class="timer-label">PROGRESS</div><div class="progress-text" id="sessionProgress">0 / 0</div></div>
+    </div>
+    <div class="session-list" id="sessionList"></div>
+    <div class="session-footer">
+      <button class="btn" id="pauseBtn">暫停</button>
+      <button class="btn danger" id="abandonBtn">放棄挑戰</button>
+      <button class="btn primary" id="finishChallengeBtn" disabled>完成挑戰</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="finishModal">
+  <div class="modal-card" style="width:min(620px,100%)">
+    <div class="finish-question">
+      <div class="big">是否將本次訓練登錄到成績牆？</div>
+      <p>你可以直接略過；只有你選擇登錄的挑戰才會出現在成績牆。</p>
+    </div>
+    <div class="finish-summary">
+      <div class="mini-stat"><b id="finishTime">—</b><span>完成時間</span></div>
+      <div class="mini-stat"><b id="finishType">—</b><span>挑戰類型</span></div>
+      <div class="mini-stat"><b id="finishItems">—</b><span>完成項目</span></div>
+    </div>
+    <div class="finish-form">
+      <div class="field full" id="finishChallengeNameWrap" style="display:none"><label>挑戰名稱（可在登錄前修改）</label><input id="finishChallengeName" maxlength="60" placeholder="例如 Core & Sled Challenge"></div>
+      <div class="field full"><label>選手暱稱</label><input id="finishNickname" placeholder="例如 咪咪"></div>
+      <div class="field full"><label>備註（可留空）</label><textarea id="finishNotes" placeholder="今天的感覺、策略、哪一站最卡……"></textarea></div>
+    </div>
+    <div class="actions" style="justify-content:center">
+      <button class="btn" id="skipLogBtn">這次不登錄</button>
+      <button class="btn primary" id="saveLogBtn">登錄到成績牆</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="setupModal">
+  <div class="modal-card" style="width:min(680px,100%)">
+    <div class="modal-head"><h3>雲端設定</h3><button class="btn small" id="closeSetup">關閉</button></div>
+    <p class="helper">要讓不同使用者看到彼此的成績，需要 Supabase。先執行 ZIP 裡的 <code>supabase-setup.sql</code>，再貼入 Project URL 與 Publishable key。</p>
+    <div class="challenge-grid">
+      <div class="field full"><label>Supabase Project URL</label><input id="supabaseUrl" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field full"><label>Supabase Publishable key</label><textarea id="supabaseKey" style="min-height:110px" placeholder="eyJhbGciOi..."></textarea></div>
+    </div>
+    <div class="actions"><button class="btn primary" id="saveCloudConfig">儲存並測試</button><button class="btn" id="clearCloudConfig">回到 Local Demo</button></div>
+    <h3 style="margin-top:20px">資料表</h3><div class="code">training_results</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const TABLE='training_results',EVENT_TABLE='challenge_events',LOCAL_KEY='hyroxChallengeWall_v2',EVENT_LOCAL_KEY='hyroxChallengeEvents_v1',CONFIG_KEY='hyroxTrainingLog_cloudConfig_v1';
+const STATIONS=['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Row','Farmers Carry','Sandbag Lunges','Wall Balls'];
+const CUSTOM_EXERCISES=[
+  {name:'SkiErg',cat:'HYROX'},
+  {name:'Sled Push',cat:'HYROX'},
+  {name:'Sled Pull',cat:'HYROX'},
+  {name:'Burpee Broad Jump',cat:'HYROX'},
+  {name:'Row',cat:'HYROX'},
+  {name:'Farmers Carry',cat:'HYROX'},
+  {name:'Sandbag Lunges',cat:'HYROX'},
+  {name:'Wall Balls',cat:'HYROX'},
+  {name:'Kettlebell Thruster',cat:'Kettlebell'},
+  {name:'Kettlebell Swing',cat:'Kettlebell'},
+  {name:'Kettlebell Goblet Squat',cat:'Kettlebell'},
+  {name:'Kettlebell Deadlift',cat:'Kettlebell'},
+  {name:'Kettlebell Clean',cat:'Kettlebell'},
+  {name:'Kettlebell Push Press',cat:'Kettlebell'},
+  {name:'Dumbbell Thruster',cat:'Strength'},
+  {name:'Dumbbell Walking Lunge',cat:'Strength'},
+  {name:'Dumbbell Shoulder Press',cat:'Strength'},
+  {name:'Dumbbell Row',cat:'Strength'},
+  {name:'Front Squat',cat:'Strength'},
+  {name:'Back Squat',cat:'Strength'},
+  {name:'Deadlift',cat:'Strength'},
+  {name:'Romanian Deadlift',cat:'Strength'},
+  {name:'Walking Lunges',cat:'Strength'},
+  {name:'Box Step-Up',cat:'Strength'},
+  {name:'Burpee',cat:'Conditioning'},
+  {name:'Push-Up',cat:'Conditioning'},
+  {name:'Bear Crawl',cat:'Conditioning'},
+  {name:'Battle Rope',cat:'Conditioning'},
+  {name:'BikeErg',cat:'Conditioning'},
+  {name:'Assault Bike',cat:'Conditioning'},
+  {name:'TRX Row',cat:'Conditioning'},
+  {name:'Plank',cat:'Core'},
+  {name:'Side Plank',cat:'Core'},
+  {name:'Copenhagen Plank',cat:'Core'},
+  {name:'Dead Bug',cat:'Core'},
+  {name:'Bird Dog',cat:'Core'},
+  {name:'Hollow Body Hold',cat:'Core'},
+  {name:'Sit-Up',cat:'Core'},
+  {name:'V-Up',cat:'Core'},
+  {name:'Reverse Crunch',cat:'Core'},
+  {name:'Bicycle Crunch',cat:'Core'},
+  {name:'Russian Twist',cat:'Core'},
+  {name:'Mountain Climber',cat:'Core'},
+  {name:'Plank Shoulder Tap',cat:'Core'},
+  {name:'Plank Knee to Elbow',cat:'Core'},
+  {name:'Hanging Knee Raise',cat:'Core'},
+  {name:'Hanging Leg Raise',cat:'Core'},
+  {name:'Ab Wheel Rollout',cat:'Core'},
+  {name:'Weighted Plank',cat:'Weighted Core'},
+  {name:'Plank Dumbbell Drag',cat:'Weighted Core'},
+  {name:'Weighted Sit-Up',cat:'Weighted Core'},
+  {name:'Weighted Russian Twist',cat:'Weighted Core'},
+  {name:'Weighted Dead Bug',cat:'Weighted Core'},
+  {name:'Renegade Row',cat:'Weighted Core'},
+  {name:'Kettlebell Halo',cat:'Weighted Core'},
+  {name:'Turkish Get-Up',cat:'Weighted Core'},
+  {name:'Suitcase Carry',cat:'Weighted Core'},
+  {name:'Overhead Carry',cat:'Weighted Core'},
+  {name:'Front Rack Carry',cat:'Weighted Core'},
+  {name:'Farmer March',cat:'Weighted Core'},
+  {name:'Dumbbell Side Bend',cat:'Weighted Core'},
+  {name:'Cable Crunch',cat:'Weighted Core'},
+  {name:'Pallof Press',cat:'Weighted Core'},
+  {name:'Pallof Press Hold',cat:'Weighted Core'},
+  {name:'Cable Wood Chop',cat:'Weighted Core'},
+  {name:'Kneeling Cable Wood Chop',cat:'Weighted Core'},
+  {name:'Landmine Rotation',cat:'Weighted Core'}
+];
+const DETAILS={
+ 'SkiErg':{'Women Open':'1000 m','Men Open':'1000 m','Mixed Doubles':'1000 m'},
+ 'Sled Push':{'Women Open':'50 m · 102 kg','Men Open':'50 m · 152 kg','Mixed Doubles':'50 m · 152 kg'},
+ 'Sled Pull':{'Women Open':'50 m · 78 kg','Men Open':'50 m · 103 kg','Mixed Doubles':'50 m · 103 kg'},
+ 'Burpee Broad Jump':{'Women Open':'80 m','Men Open':'80 m','Mixed Doubles':'80 m'},
+ 'Row':{'Women Open':'1000 m','Men Open':'1000 m','Mixed Doubles':'1000 m'},
+ 'Farmers Carry':{'Women Open':'200 m · 2×16 kg','Men Open':'200 m · 2×24 kg','Mixed Doubles':'200 m · 2×24 kg'},
+ 'Sandbag Lunges':{'Women Open':'100 m · 10 kg','Men Open':'100 m · 20 kg','Mixed Doubles':'100 m · 20 kg'},
+ 'Wall Balls':{'Women Open':'100 · 4 kg','Men Open':'100 · 6 kg','Mixed Doubles':'100 · 6 kg'}
+};
+const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
+let cloudConfig=loadCloudConfig(),allResults=[],challengeEvents=[],session=null,ticker=null,finishedSession=null,pendingWallChallenge=null,customOrder=[{id:uid(),name:'Run',distance:500,weight:'',reps:''}];
+function uid(){return crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function europeChallengeStamp(date=new Date()){
+  const parts=new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+  }).formatToParts(date).reduce((o,p)=>{if(p.type!=='literal')o[p.type]=p.value;return o},{});
+  return `${parts.year}${parts.month}${parts.day}-${parts.hour}${parts.minute}${parts.second}-${String(date.getMilliseconds()).padStart(3,'0')}`;
+}
+function uniqueAutoCustomName(){
+  const base=`自訂挑戰 ${europeChallengeStamp()}`;
+  const used=new Set((allResults||[]).map(r=>String(r.workout_name||'').trim()).filter(Boolean));
+  if(!used.has(base))return base;
+  let n=2,name='';
+  do{name=`${base}-${String(n++).padStart(2,'0')}`}while(used.has(name));
+  return name;
+}
+function setDefaultCustomName(force=false){
+  const input=q('#customName');if(!input)return;
+  const isAuto=input.dataset.autoName==='1';
+  if(force||isAuto||!input.value.trim()||input.value.trim()==='My HYROX Challenge'){
+    input.value=uniqueAutoCustomName();
+    input.dataset.autoName='1';
+  }
+}
+
+function toast(msg){const t=q('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function fmt(sec){sec=Math.max(0,Math.round(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
+function loadCloudConfig(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'null')||{url:'',key:''}}catch{return {url:'',key:''}}}
+function isCloud(){return !!(cloudConfig.url&&cloudConfig.key)}
+function setStatus(){q('#dataStatus').classList.toggle('cloud',isCloud());q('#dataStatusText').textContent=isCloud()?'Shared Cloud':'Local Demo'}
+function loadLocal(){try{return JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch{return []}}
+function saveLocal(rows){localStorage.setItem(LOCAL_KEY,JSON.stringify(rows))}
+function loadLocalEvents(){try{return JSON.parse(localStorage.getItem(EVENT_LOCAL_KEY)||'[]')}catch{return []}}
+function saveLocalEvents(rows){localStorage.setItem(EVENT_LOCAL_KEY,JSON.stringify(rows))}
+async function api(path,opts={}){const url=cloudConfig.url.replace(/\/$/,'')+'/rest/v1/'+path;const headers={apikey:cloudConfig.key,Authorization:'Bearer '+cloudConfig.key,'Content-Type':'application/json',Prefer:'return=representation',...(opts.headers||{})};const r=await fetch(url,{...opts,headers});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):null}
+async function loadResults(){
+  try{
+    allResults=isCloud()?await api(TABLE+'?select=*&order=created_at.desc&limit=500'):loadLocal().sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+    if(isCloud()){
+      challengeEvents=[];
+    }else challengeEvents=loadLocalEvents();
+    renderWall();
+  }catch(e){console.error(e);toast('成績牆讀取失敗')}
+}
+async function addResult(row){if(isCloud()){const res=await api(TABLE,{method:'POST',body:JSON.stringify(row)});return res?.[0]||row}const rows=loadLocal();rows.unshift(row);saveLocal(rows);return row}
+async function recordChallengeEvent(sourceId){
+  const source=String(sourceId);
+  if(isCloud()){
+    const result=await api('rpc/increment_challenge_count',{method:'POST',body:JSON.stringify({p_source_result_id:source})});
+    const newCount=Number(result);
+    const row=allResults.find(r=>String(r.id)===source);
+    if(row){
+      row.challenge_count=Number.isFinite(newCount)?newCount:(Number(row.challenge_count)||0)+1;
+    }
+    return row?.challenge_count||newCount||0;
+  }
+  const ev={id:uid(),created_at:new Date().toISOString(),source_result_id:source};
+  challengeEvents.unshift(ev);
+  saveLocalEvents(challengeEvents);
+  return challengeEvents.filter(e=>String(e.source_result_id)===source).length;
+}
+function switchTab(id){qa('nav.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));qa('.page').forEach(p=>p.classList.toggle('active',p.id===id));if(id==='wall')loadResults()}
+function renderPicker(){
+  const groups=[...new Set(CUSTOM_EXERCISES.map(x=>x.cat))];
+  q('#stationPicker').innerHTML=groups.map(cat=>`<div class="picker-group"><div class="picker-group-title">${esc(cat)}</div><div class="picker-group-grid">${CUSTOM_EXERCISES.filter(x=>x.cat===cat).map(x=>`<button type="button" class="pick add-pick" data-add-exercise="${esc(x.name)}"><span>＋ ${esc(x.name)}</span></button>`).join('')}</div></div>`).join('');
+  qa('#stationPicker [data-add-exercise]').forEach(b=>b.onclick=()=>addCustomItem(b.dataset.addExercise));
+}
+function addCustomItem(name,afterId=null){
+  const defaultRun=Math.max(0,Number(q('#customRun').value)||500);
+  const item={id:uid(),name,distance:name==='Run'?defaultRun:'',weight:'',reps:''};
+  if(afterId){const i=customOrder.findIndex(x=>x.id===afterId);if(i>=0)customOrder.splice(i+1,0,item);else customOrder.push(item)}else customOrder.push(item);
+  renderCustomOrder();updateCustomPreview(false);
+}
+function removeCustomItem(id){customOrder=customOrder.filter(x=>x.id!==id);renderCustomOrder();updateCustomPreview(false)}
+function duplicateCustomItem(id){
+  const item=customOrder.find(x=>x.id===id);if(!item)return;
+  const copy={...item,id:uid()};const i=customOrder.findIndex(x=>x.id===id);customOrder.splice(i+1,0,copy);renderCustomOrder();updateCustomPreview(false);
+}
+function moveCustomItem(id,delta){
+  const i=customOrder.findIndex(x=>x.id===id),j=i+delta;if(i<0||j<0||j>=customOrder.length)return;
+  [customOrder[i],customOrder[j]]=[customOrder[j],customOrder[i]];renderCustomOrder();
+}
+function formatCustomDetail(item,fallback='自訂訓練項目'){
+  const bits=[];
+  if(item.distance!==''&&item.distance!=null&&Number(item.distance)>0)bits.push(`${Number(item.distance)} m`);
+  if(String(item.weight||'').trim())bits.push(`${String(item.weight).trim()} kg`);
+  if(item.reps!==''&&item.reps!=null&&Number(item.reps)>0)bits.push(`${Number(item.reps)} reps`);
+  return bits.length?bits.join(' · '):fallback;
+}
+function setCustomSpec(id,key,value){
+  const item=customOrder.find(x=>x.id===id);if(!item)return;
+  item[key]=value;updateCustomPreview(false);
+  const sub=q(`#customOrderList [data-order-id="${CSS.escape(id)}"] .order-copy > span`);
+  if(sub){const ex=CUSTOM_EXERCISES.find(x=>x.name===item.name);sub.textContent=formatCustomDetail(item,ex?.cat||'訓練項目')}
+}
+function renderCustomOrder(){
+  const list=q('#customOrderList');
+  if(!customOrder.length){list.innerHTML='<div class="order-empty">先用「＋ 加入跑步」或點選下方訓練項目加入挑戰。</div>';return}
+  list.innerHTML=customOrder.map((item,i)=>{
+    const ex=CUSTOM_EXERCISES.find(x=>x.name===item.name),detail=formatCustomDetail(item,ex?.cat||'訓練項目');
+    return `<div class="order-item" draggable="true" data-order-id="${esc(item.id)}"><div class="drag-handle" title="拖曳排序">☰</div><div class="order-copy"><b>${i+1}. ${esc(item.name)}</b><span>${esc(detail)}</span><div class="order-specs"><div class="order-spec"><label>距離（m）</label><input type="number" min="0" step="10" inputmode="decimal" data-spec="distance" data-spec-id="${esc(item.id)}" value="${esc(item.distance??'')}" placeholder="例如 500"></div><div class="order-spec"><label>重量（kg）</label><input type="text" inputmode="decimal" data-spec="weight" data-spec-id="${esc(item.id)}" value="${esc(item.weight??'')}" placeholder="例如 16 或 2×16"></div><div class="order-spec"><label>次數</label><input type="number" min="0" step="1" inputmode="numeric" data-spec="reps" data-spec-id="${esc(item.id)}" value="${esc(item.reps??'')}" placeholder="例如 20"></div></div></div><div class="order-actions"><button class="order-btn" data-duplicate="${esc(item.id)}" title="重複這個項目">＋</button><button class="order-btn" data-move="up" data-id="${esc(item.id)}" ${i===0?'disabled':''}>↑</button><button class="order-btn" data-move="down" data-id="${esc(item.id)}" ${i===customOrder.length-1?'disabled':''}>↓</button><button class="order-btn" data-remove="${esc(item.id)}" title="刪除">×</button></div></div>`
+  }).join('');
+  qa('#customOrderList [data-move]').forEach(b=>b.onclick=e=>{e.preventDefault();moveCustomItem(b.dataset.id,b.dataset.move==='up'?-1:1)});
+  qa('#customOrderList [data-duplicate]').forEach(b=>b.onclick=e=>{e.preventDefault();duplicateCustomItem(b.dataset.duplicate)});
+  qa('#customOrderList [data-remove]').forEach(b=>b.onclick=e=>{e.preventDefault();removeCustomItem(b.dataset.remove)});
+  qa('#customOrderList [data-spec]').forEach(inp=>{
+    inp.addEventListener('input',()=>setCustomSpec(inp.dataset.specId,inp.dataset.spec,inp.value));
+    inp.addEventListener('pointerdown',e=>e.stopPropagation());
+    inp.addEventListener('mousedown',e=>e.stopPropagation());
+  });
+  let dragged=null;
+  qa('#customOrderList .order-item').forEach(el=>{
+    el.addEventListener('dragstart',e=>{if(e.target.closest('input,button')){e.preventDefault();return}dragged=el.dataset.orderId;el.classList.add('dragging')});
+    el.addEventListener('dragend',()=>{dragged=null;el.classList.remove('dragging')});
+    el.addEventListener('dragover',e=>e.preventDefault());
+    el.addEventListener('drop',e=>{e.preventDefault();const target=el.dataset.orderId;if(!dragged||dragged===target)return;const from=customOrder.findIndex(x=>x.id===dragged),to=customOrder.findIndex(x=>x.id===target);if(from<0||to<0)return;const [moved]=customOrder.splice(from,1);customOrder.splice(to,0,moved);renderCustomOrder();updateCustomPreview(false)});
+  });
+}
+function updateCustomPreview(rerender=true){
+  const runDistance=customOrder.filter(x=>x.name==='Run').reduce((s,x)=>s+(Number(x.distance)||0),0),stations=customOrder.filter(x=>x.name!=='Run').length;
+  if(rerender)renderCustomOrder();q('#customRunPreview').textContent=(runDistance/1000).toFixed(1)+' km';q('#customStationPreview').textContent=stations;q('#customItemPreview').textContent=customOrder.length;
+}
+function standardItems(division){const out=[];STATIONS.forEach(s=>{out.push({name:'Run',detail:'1 km',distance_m:1000});out.push({name:s,detail:DETAILS[s][division]||''})});return out}
+function customItems(){return customOrder.map(item=>{const ex=CUSTOM_EXERCISES.find(x=>x.name===item.name);return {name:item.name,detail:formatCustomDetail(item,ex?.cat||'自訂訓練項目'),distance_m:Number(item.distance)||null,weight_kg:String(item.weight||'').trim()||null,reps:Number(item.reps)||null}})}
+function startSession(type){
+ const standard=type==='標準挑戰';
+ if(!standard&&q('#customName').dataset.autoName==='1')setDefaultCustomName(true);
+ const division=standard?q('#standardDivision').value:'Custom';const title=(standard?q('#standardName').value:q('#customName').value).trim()||(standard?'Full HYROX Simulation':uniqueAutoCustomName());const items=standard?standardItems(division):customItems();if(!items.length){toast('請至少設定一個挑戰項目');return}
+ session={id:uid(),challengeType:type,division,title,items:items.map((x,i)=>({...x,id:uid(),done:false,index:i+1})),startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true};
+ q('#sessionTitle').textContent=title;q('#sessionMeta').textContent=standard?division:'Custom Challenge';q('#trainingModal').classList.add('open');renderSession();startTicker();
+}
+function elapsedMs(){if(!session)return 0;const now=session.running?Date.now():(session.pausedAt||Date.now());return Math.max(0,now-session.startedAt-session.pausedTotal)}
+function startTicker(){clearInterval(ticker);ticker=setInterval(()=>{if(session)q('#sessionTimer').textContent=fmt(elapsedMs()/1000)},250)}
+function renderSession(){if(!session)return;const done=session.items.filter(x=>x.done).length;q('#sessionProgress').textContent=`${done} / ${session.items.length}`;q('#sessionTimer').textContent=fmt(elapsedMs()/1000);q('#sessionList').innerHTML=session.items.map(it=>`<div class="session-item ${it.done?'done':''}"><div class="session-index">${it.index}</div><div><div class="session-name">${esc(it.name)}</div><div class="session-detail">${esc(it.detail)}</div></div><button class="btn check-btn ${it.done?'primary':''}" data-id="${it.id}">${it.done?'已完成':'完成'}</button></div>`).join('');qa('[data-id]').forEach(b=>b.onclick=()=>{const it=session.items.find(x=>x.id===b.dataset.id);it.done=!it.done;renderSession()});q('#finishChallengeBtn').disabled=done!==session.items.length;q('#pauseBtn').textContent=session.running?'暫停':'繼續'}
+function pauseToggle(){if(!session)return;if(session.running){session.pausedAt=Date.now();session.running=false}else{session.pausedTotal+=Date.now()-session.pausedAt;session.pausedAt=null;session.running=true}renderSession()}
+function abandon(){if(!session)return;if(!confirm('確定放棄這次挑戰？本次不會登錄到成績牆。'))return;clearInterval(ticker);session=null;q('#trainingModal').classList.remove('open');toast('已放棄挑戰')}
+function finishChallenge(){
+  if(!session||session.items.some(x=>!x.done))return;
+  if(session.running){session.pausedAt=Date.now();session.running=false}
+  const completed={...session,totalSeconds:Math.round(elapsedMs()/1000)};
+  clearInterval(ticker);
+  q('#trainingModal').classList.remove('open');
+
+  if(completed.isWallChallenge&&Number(completed.targetSeconds)>0&&completed.totalSeconds>Number(completed.targetSeconds)){
+    q('#failureYourTime').textContent=fmt(completed.totalSeconds);
+    q('#failureTargetTime').textContent=fmt(completed.targetSeconds);
+    q('#challengeFailureModal').classList.add('open');
+    finishedSession=null;
+    session=null;
+    return;
+  }
+
+  finishedSession=completed;
+  q('#finishTime').textContent=fmt(finishedSession.totalSeconds);
+  q('#finishType').textContent=finishedSession.challengeType;
+  q('#finishItems').textContent=finishedSession.items.length;
+  const custom=finishedSession.challengeType==='自訂挑戰';
+  q('#finishChallengeNameWrap').style.display=custom?'grid':'none';
+  q('#finishChallengeName').value=finishedSession.title||uniqueAutoCustomName();
+  q('#finishNickname').value=localStorage.getItem('hyroxChallenge_lastNickname')||'';
+  q('#finishNotes').value='';
+  q('#finishModal').classList.add('open');
+  session=null;
+}
+function skipLog(){finishedSession=null;q('#finishModal').classList.remove('open');toast('本次挑戰未登錄')}
+async function saveLog(){
+  if(!finishedSession)return;
+  const nickname=q('#finishNickname').value.trim();
+  if(!nickname){toast('請先輸入選手暱稱');return}
+  const isCustom=finishedSession.challengeType==='自訂挑戰';
+  const editedTitle=isCustom?q('#finishChallengeName').value.trim():finishedSession.title;
+  if(isCustom&&!editedTitle){toast('請替這個自訂挑戰取一個名稱');return}
+  const baseTitle=stripChallengePrefix(editedTitle||finishedSession.title||'Challenge');
+  const finalTitle=finishedSession.isWallChallenge?`發起挑戰：${baseTitle}`:baseTitle;
+  const challengeSource=finishedSession.isWallChallenge?{
+    source_result_id:String(finishedSession.sourceResultId||''),
+    source_nickname:finishedSession.sourceNickname||'',
+    source_title:baseTitle
+  }:null;
+  const row={
+    id:uid(),created_at:new Date().toISOString(),nickname,
+    session_date:new Date().toISOString().slice(0,10),
+    division:finishedSession.division,
+    workout_type:finishedSession.challengeType,
+    workout_name:finalTitle,
+    total_seconds:finishedSession.totalSeconds,
+    run_distance_m:finishedSession.items.filter(x=>x.name==='Run').reduce((s,x)=>{
+      if(Number(x.distance_m)>0)return s+Number(x.distance_m);
+      const mm=String(x.detail||'').match(/[\d.]+/);return s+(mm?Number(mm[0])*1000:0)
+    },0),
+    stations:{
+      challenge_items:finishedSession.items.map((x,i)=>({name:x.name,detail:x.detail,order:i+1,distance_m:x.distance_m??null,weight_kg:x.weight_kg??null,reps:x.reps??null})),
+      ...(challengeSource?{challenge_source:challengeSource}:{})
+    },
+    notes:q('#finishNotes').value.trim(),completion_pct:100
+  };
+  q('#saveLogBtn').disabled=true;q('#saveLogBtn').textContent='登錄中…';
+  try{
+    await addResult(row);
+    localStorage.setItem('hyroxChallenge_lastNickname',nickname);
+    q('#finishModal').classList.remove('open');finishedSession=null;
+    toast('已登錄到成績牆');switchTab('wall')
+  }catch(e){console.error(e);toast('登錄失敗，請檢查雲端設定')}
+  q('#saveLogBtn').disabled=false;q('#saveLogBtn').textContent='登錄到成績牆'
+}
+function challengeCount(id){
+  const source=String(id);
+  if(isCloud()){
+    const row=allResults.find(r=>String(r.id)===source);
+    return Math.max(0,Number(row?.challenge_count)||0);
+  }
+  return challengeEvents.filter(e=>String(e.source_result_id)===source).length;
+}
+function stripChallengePrefix(title){return String(title||'').replace(/^(?:發起挑戰：)+/,'').trim()}
+function isChallengeResult(r){return !!(r?.stations?.challenge_source?.source_result_id)||/^發起挑戰：/.test(String(r?.workout_name||''))}
+function wallGroup(r){
+  if(r.workout_type==='自訂挑戰')return 'custom';
+  if(r.workout_type!=='標準挑戰')return 'other';
+  const d=String(r.division||'').toLowerCase();
+  if(d.includes('women'))return 'standard-women';
+  if(d.includes('men'))return 'standard-men';
+  if(d.includes('mixed'))return 'standard-mixed';
+  return 'standard-other';
+}
+function groupLabel(key){
+  return ({custom:'自訂挑戰','standard-women':'女子標準','standard-men':'男子標準','standard-mixed':'Mixed Doubles','standard-other':'標準挑戰',other:'挑戰'})[key]||'挑戰';
+}
+function groupRows(key){
+  const rows=allResults.filter(r=>wallGroup(r)===key);
+  if(key==='custom'){
+    return rows.sort((a,b)=>challengeCount(b.id)-challengeCount(a.id)||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  }
+  return rows.sort((a,b)=>(Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12)||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+}
+function filtered(){
+  const selected=q('#wallCategory')?.value||'all';
+  if(selected==='all'){
+    const rows=[...allResults].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    return {rows,ranks:new Map()};
+  }
+  const rows=groupRows(selected);
+  const ranks=new Map();
+  rows.forEach((r,i)=>ranks.set(String(r.id),{rank:i+1,key:selected}));
+  return {rows,ranks};
+}
+function updateWallSortNote(){
+  const selected=q('#wallCategory')?.value||'all';
+  const notes={
+    all:'全部：最新登錄的成績排在前面，不做跨類型排名。',
+    custom:'自訂挑戰：被挑戰次數最多的排在前面。',
+    'standard-women':'女子標準挑戰：完成時間最快的排在前面。',
+    'standard-men':'男子標準挑戰：完成時間最快的排在前面。',
+    'standard-mixed':'Mixed Doubles：完成時間最快的排在前面。'
+  };
+  q('#wallSortNote').textContent=notes[selected]||'';
+}
+function getChallengeItems(r){
+  const items=r?.stations?.challenge_items;
+  if(Array.isArray(items)&&items.length)return [...items].sort((a,b)=>(a.order||0)-(b.order||0));
+  if(r?.workout_type==='標準挑戰')return standardItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
+  return [];
+}
+function compactChallengeContent(r){
+  const items=getChallengeItems(r);
+  if(!items.length)return '';
+  if(r.workout_type==='標準挑戰')return `${r.division||'Standard'} · ${items.length} 項`;
+  const shown=items.slice(0,6).map(x=>`${x.name}${x.detail?` ${x.detail}`:''}`);
+  return shown.join(' · ')+(items.length>6?` · +${items.length-6}`:'');
+}
+function openChallengeRules(id){
+  const r=allResults.find(x=>String(x.id)===String(id));if(!r)return;
+  const sourceItems=getChallengeItems(r);
+  if(!sourceItems.length){toast('這筆舊紀錄沒有保存完整挑戰內容');return}
+  if(!(Number(r.total_seconds)>0)){toast('這筆紀錄沒有有效的目標時間，暫時無法發起挑戰');return}
+  pendingWallChallenge=r;
+  q('#rulesChallengeName').textContent=r.workout_name||'Challenge';
+  q('#rulesChallengeMeta').textContent=`${groupLabel(wallGroup(r))} · ${r.nickname||''}`;
+  q('#rulesTargetTime').textContent=fmt(r.total_seconds);
+  q('#challengeRulesModal').classList.add('open');
+}
+async function confirmWallChallenge(){
+  const r=pendingWallChallenge;if(!r)return;
+  const sourceItems=getChallengeItems(r);if(!sourceItems.length)return;
+  q('#confirmWallChallengeBtn').disabled=true;
+  q('#confirmWallChallengeBtn').textContent='準備中…';
+  try{
+    await recordChallengeEvent(r.id);
+    renderWall();
+  }catch(e){
+    console.error('challenge count update failed',e);
+    q('#confirmWallChallengeBtn').disabled=false;
+    q('#confirmWallChallengeBtn').textContent='挑戰開始';
+    toast('被挑戰次數更新失敗，請先執行新版 Supabase SQL');
+    return;
+  }
+  const challengeType=r.workout_type==='標準挑戰'?'標準挑戰':'自訂挑戰';
+  session={
+    id:uid(),challengeType,division:r.division||'Custom',title:r.workout_name||'Shared Challenge',
+    items:sourceItems.map((x,i)=>({name:x.name,detail:x.detail||'',distance_m:x.distance_m??null,weight_kg:x.weight_kg??null,reps:x.reps??null,id:uid(),done:false,index:i+1})),
+    startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true,
+    sourceNickname:r.nickname,sourceResultId:r.id,isWallChallenge:true,targetSeconds:Number(r.total_seconds)
+  };
+  pendingWallChallenge=null;
+  q('#challengeRulesModal').classList.remove('open');
+  q('#confirmWallChallengeBtn').disabled=false;
+  q('#confirmWallChallengeBtn').textContent='挑戰開始';
+  q('#sessionTitle').textContent=session.title;
+  q('#sessionMeta').textContent=`目標 ${fmt(session.targetSeconds)} · 發起 ${r.nickname} 的${challengeType==='標準挑戰'?'標準':'自訂'}挑戰`;
+  q('#trainingModal').classList.add('open');
+  renderSession();startTicker();
+}
+function closeChallengeRules(){
+  pendingWallChallenge=null;
+  q('#challengeRulesModal').classList.remove('open');
+}
+function resultRow(r,rankInfo){
+  const rank=rankInfo?.rank||0,top=rank>0&&rank<=5,items=getChallengeItems(r),count=challengeCount(r.id),label=groupLabel(rankInfo?.key||wallGroup(r)),content=compactChallengeContent(r),challengedResult=isChallengeResult(r);
+  const canChallenge=items.length&&Number(r.total_seconds)>0;
+  const action=canChallenge?`<button class="btn small primary" data-challenge-copy="${esc(r.id)}">發起挑戰</button>`:`<button class="btn small" disabled title="缺少完整挑戰內容或目標時間">發起挑戰</button>`;
+  const countBlock=challengedResult?`<div class="score-challenges score-challenges-hidden"></div>`:`<div class="score-challenges">被挑戰次數<strong>${count}</strong></div>`;
+  return `<div class="score-row ${top?`rank-top rank-${rank}`:''} ${challengedResult?'challenge-result-row':''}">
+    <div class="score-rank">${rank?`#${rank}`:''}</div>
+    <div class="score-main"><div class="score-title">${esc(r.workout_name||'Challenge')}</div><div class="score-meta">${esc(label)} · ${esc(r.nickname||'')} · ${esc(r.session_date||'')}</div>${content?`<div class="score-content">${esc(content)}</div>`:''}</div>
+    <div class="score-time">${fmt(r.total_seconds)}</div>
+    ${countBlock}
+    <div class="score-action">${action}</div>
+  </div>`;
+}
+function renderWall(){
+  updateWallSortNote();
+  const {rows,ranks}=filtered();
+  q('#resultsList').innerHTML=rows.length?rows.map(r=>resultRow(r,ranks.get(String(r.id)))).join(''):'<div class="score-empty">這個分類目前還沒有成績。完成一次挑戰，就可以留下第一筆。</div>';
+  qa('[data-challenge-copy]').forEach(b=>b.onclick=()=>openChallengeRules(b.dataset.challengeCopy));
+}
+async function testCloud(){const url=q('#supabaseUrl').value.trim(),key=q('#supabaseKey').value.trim();if(!url||!key){toast('請輸入 URL 和 Publishable key');return}const old=cloudConfig;cloudConfig={url,key};try{await api(TABLE+'?select=id&limit=1');localStorage.setItem(CONFIG_KEY,JSON.stringify(cloudConfig));setStatus();q('#setupModal').classList.remove('open');toast('雲端連線成功');loadResults()}catch(e){cloudConfig=old;console.error(e);toast('連線失敗，請檢查資料表與金鑰')}}
+renderPicker();updateCustomPreview();setDefaultCustomName(true);q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});setStatus();loadResults();
+qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardBtn').onclick=()=>startSession('標準挑戰');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#closeSessionBtn').onclick=()=>{if(session)pauseToggle();q('#trainingModal').classList.remove('open')};q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
+q('#wallCategory').addEventListener('change',renderWall);
+q('#closeRulesBtn').onclick=closeChallengeRules;
+q('#cancelRulesBtn').onclick=closeChallengeRules;
+q('#confirmWallChallengeBtn').onclick=confirmWallChallenge;
+q('#closeFailureBtn').onclick=()=>q('#challengeFailureModal').classList.remove('open');
+q('#challengeRulesModal').onclick=e=>{if(e.target===q('#challengeRulesModal'))closeChallengeRules()};
+q('#challengeFailureModal').onclick=e=>{if(e.target===q('#challengeFailureModal'))q('#challengeFailureModal').classList.remove('open')};
+q('#setupBtn').onclick=()=>{q('#supabaseUrl').value=cloudConfig.url||'';q('#supabaseKey').value=cloudConfig.key||'';q('#setupModal').classList.add('open')};q('#closeSetup').onclick=()=>q('#setupModal').classList.remove('open');q('#saveCloudConfig').onclick=testCloud;q('#clearCloudConfig').onclick=()=>{cloudConfig={url:'',key:''};localStorage.removeItem(CONFIG_KEY);setStatus();q('#setupModal').classList.remove('open');loadResults();toast('已切回 Local Demo')};
+})();
+</script>
+</body>
+</html>
