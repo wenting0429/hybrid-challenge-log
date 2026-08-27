@@ -284,6 +284,636 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
   .score-time{font-size:12px}
 }
 
+
+/* =========================================================
+   MOBILE REDESIGN V2
+   Less boxes, clearer hierarchy, normal readable type.
+   ========================================================= */
+@media (max-width:640px){
+  :root{
+    --mobile-surface:#101720;
+    --mobile-surface-2:#0c121a;
+    --mobile-border:#253142;
+  }
+
+  body{
+    font-size:14px;
+    background:#080c12;
+  }
+
+  .app{
+    width:100%;
+    padding:14px 14px calc(28px + env(safe-area-inset-bottom));
+  }
+
+  /* Brand: one quiet line instead of a large hero header */
+  .topbar{
+    display:block;
+    padding:2px 2px 14px;
+  }
+  .brand-kicker,
+  .brand p{
+    display:none;
+  }
+  .brand h1{
+    margin:0;
+    font-size:20px;
+    line-height:1.1;
+    letter-spacing:-.035em;
+    font-weight:900;
+  }
+  .brand h1 em{
+    font-size:1em;
+    margin-left:4px;
+    letter-spacing:-.02em;
+    color:var(--coral);
+  }
+
+  /* Cleaner segmented navigation */
+  nav.tabs{
+    position:sticky;
+    top:6px;
+    z-index:30;
+    padding:3px;
+    gap:3px;
+    border-radius:12px;
+    background:rgba(13,19,28,.94);
+    border:1px solid #202b3a;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);
+    backdrop-filter:blur(12px);
+  }
+  nav.tabs button{
+    min-height:38px;
+    padding:8px 10px;
+    border-radius:9px;
+    font-size:13px;
+    font-weight:800;
+  }
+  nav.tabs button.active{
+    background:#1a2634;
+    box-shadow:none;
+    color:#fff;
+  }
+
+  main{padding-top:20px}
+
+  .section-head{
+    display:block;
+    margin:0 2px 14px;
+  }
+  .section-head h2{
+    font-size:24px;
+    line-height:1.15;
+    letter-spacing:-.035em;
+  }
+  .section-head p{
+    display:none;
+  }
+
+  /* Main challenge cards */
+  .challenge-stack{gap:14px}
+  .challenge-card{
+    padding:16px;
+    border-radius:18px;
+    border:1px solid var(--mobile-border);
+    background:var(--mobile-surface);
+    box-shadow:none;
+  }
+  .challenge-card::after{display:none}
+  .challenge-top{display:block}
+  .challenge-eyebrow{
+    display:none;
+  }
+  .challenge-card h3{
+    margin:0;
+    font-size:19px;
+    line-height:1.2;
+    letter-spacing:-.025em;
+  }
+  .challenge-card p{
+    display:none;
+  }
+
+  .challenge-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin-top:15px;
+  }
+  .field,
+  .field.full{
+    grid-column:auto;
+    gap:6px;
+  }
+  label{
+    font-size:11px;
+    line-height:1.35;
+    color:#9ba7b6;
+    font-weight:700;
+  }
+  input,select,textarea{
+    min-height:44px;
+    padding:10px 12px;
+    font-size:14px;
+    line-height:1.3;
+    border-radius:11px;
+    border:1px solid #2b3748;
+    background:#0a1017;
+  }
+  textarea{min-height:86px}
+  .helper{
+    font-size:11px;
+    line-height:1.5;
+    color:#778596;
+  }
+
+  .btn{
+    min-height:44px;
+    padding:10px 14px;
+    border-radius:11px;
+    font-size:13px;
+    font-weight:850;
+  }
+  .btn.small{
+    min-height:36px;
+    padding:7px 10px;
+    font-size:12px;
+  }
+
+  /* Stats should read like metadata, not three extra cards */
+  .challenge-info{
+    display:flex;
+    gap:0;
+    margin-top:14px;
+    padding:11px 0 0;
+    border-top:1px solid #222d3c;
+  }
+  .challenge-info .mini-stat{
+    flex:1;
+    min-width:0;
+    padding:0 10px;
+    border:0;
+    border-right:1px solid #222d3c;
+    border-radius:0;
+    background:transparent;
+  }
+  .challenge-info .mini-stat:first-child{padding-left:0}
+  .challenge-info .mini-stat:last-child{
+    padding-right:0;
+    border-right:0;
+  }
+  .challenge-info .mini-stat b{
+    font-size:16px;
+    line-height:1.15;
+  }
+  .challenge-info .mini-stat span{
+    margin-top:3px;
+    font-size:10px;
+    line-height:1.25;
+  }
+  .standard-start-mobile{
+    width:100%;
+    margin-top:14px;
+    background:linear-gradient(135deg,#2b9690,#4fd2ca);
+  }
+
+  /* Custom run add row */
+  #customRun + .btn,
+  #addRunBtn{
+    white-space:nowrap;
+  }
+
+  /* Exercise picker: remove nested card-on-card look */
+  .station-picker{
+    display:grid;
+    gap:13px;
+    margin-top:9px;
+  }
+  .picker-group{
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+  }
+  .picker-group-title{
+    margin:0 0 7px;
+    font-size:10px;
+    line-height:1;
+    letter-spacing:.08em;
+    color:#728094;
+    font-weight:850;
+    text-transform:uppercase;
+  }
+  .picker-group-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+  .pick{
+    width:auto;
+    min-height:36px;
+    padding:8px 10px;
+    border-radius:999px;
+    border:1px solid #2a3748;
+    background:#0c131c;
+    color:#cbd4df;
+    font-size:12px;
+    line-height:1;
+    font-weight:700;
+  }
+  .pick:active{
+    background:#16232f;
+    border-color:#3a5c63;
+  }
+
+  /* Order editor: one clear card per movement */
+  .custom-order-wrap{
+    margin-top:3px;
+  }
+  .custom-order-title{
+    display:block;
+    margin-bottom:8px;
+  }
+  .custom-order-title b{
+    display:block;
+    font-size:13px;
+    color:#e5ebf1;
+  }
+  .custom-order-title span{
+    display:block;
+    margin-top:3px;
+    font-size:10px;
+    line-height:1.4;
+    color:#728094;
+    text-align:left;
+  }
+  .custom-order-list{
+    gap:8px;
+  }
+  .order-empty{
+    padding:17px 12px;
+    border-radius:12px;
+    font-size:11px;
+    line-height:1.5;
+  }
+  .order-item{
+    position:relative;
+    display:grid;
+    grid-template-columns:28px minmax(0,1fr);
+    gap:8px;
+    align-items:start;
+    padding:11px;
+    border-radius:13px;
+    border:1px solid #283548;
+    background:#0b1119;
+    touch-action:auto;
+  }
+  .drag-handle{
+    width:28px;
+    height:28px;
+    border-radius:8px;
+    background:#151f2c;
+    font-size:13px;
+  }
+  .order-copy b{
+    font-size:13px;
+    line-height:1.25;
+  }
+  .order-copy > span{
+    margin-top:3px;
+    font-size:10px;
+    line-height:1.3;
+  }
+  .order-specs{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    margin-top:9px;
+  }
+  .order-spec{
+    min-width:0;
+  }
+  .order-spec label{
+    display:block;
+    margin-bottom:4px;
+    font-size:9px;
+    line-height:1.1;
+    white-space:nowrap;
+  }
+  .order-spec input{
+    width:100%;
+    min-width:0;
+    min-height:36px;
+    padding:7px 7px;
+    font-size:12px;
+    border-radius:8px;
+  }
+  .order-actions{
+    grid-column:2;
+    display:flex;
+    justify-content:flex-end;
+    gap:5px;
+    margin-top:7px;
+  }
+  .order-btn{
+    width:31px;
+    height:31px;
+    min-height:31px;
+    border-radius:8px;
+    font-size:12px;
+  }
+  #startCustomBtn{
+    width:100%;
+    min-width:0 !important;
+    min-height:48px;
+    margin-top:2px;
+    font-size:14px;
+    background:linear-gradient(135deg,#f16c50,#ec526a);
+  }
+
+  /* Score wall */
+  #wall .section-head{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    align-items:center;
+  }
+  #wall .section-head .btn{
+    min-height:34px;
+    padding:6px 9px;
+    font-size:11px;
+  }
+  .wall-filter-row{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    gap:9px;
+    align-items:center;
+    margin:0 0 8px;
+    padding:10px 11px;
+    border:1px solid #223043;
+    border-radius:12px;
+    background:#0d141d;
+  }
+  .wall-filter-row label{
+    margin:0;
+    font-size:11px;
+  }
+  .wall-filter-row select{
+    width:100%;
+    min-height:38px;
+    padding:7px 9px;
+    font-size:13px;
+  }
+  .wall-sort-note{
+    margin:0 2px 11px;
+    font-size:10px;
+    line-height:1.4;
+    color:#6f7e91;
+  }
+  .score-board{
+    display:grid;
+    gap:8px;
+  }
+  .score-row{
+    display:grid;
+    grid-template-columns:30px minmax(0,1fr) auto;
+    grid-template-areas:
+      "rank main time"
+      ". main time"
+      ". count action";
+    gap:5px 9px;
+    min-height:0;
+    padding:12px;
+    border:1px solid #223043;
+    border-radius:14px;
+    background:#0d141d;
+  }
+  .score-row:hover{background:#0d141d}
+  .score-rank{
+    grid-area:rank;
+    align-self:start;
+    padding:2px 0 0;
+    font-size:13px;
+    line-height:1.2;
+  }
+  .score-main{grid-area:main}
+  .score-title{
+    font-size:13px;
+    line-height:1.3;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+  }
+  .score-meta{
+    margin-top:4px;
+    font-size:10px;
+    line-height:1.35;
+    white-space:normal;
+    overflow:visible;
+  }
+  .score-content{
+    margin-top:4px;
+    font-size:10px;
+    line-height:1.4;
+    white-space:normal;
+    overflow:visible;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .score-time{
+    grid-area:time;
+    align-self:start;
+    padding-top:1px;
+    font-size:15px;
+    line-height:1.2;
+  }
+  .score-challenges{
+    grid-area:count;
+    align-self:end;
+    text-align:left;
+    font-size:10px;
+    line-height:1.2;
+  }
+  .score-challenges strong{
+    display:inline;
+    margin-left:4px;
+    font-size:12px;
+  }
+  .score-action{
+    grid-area:action;
+    align-self:end;
+  }
+  .score-action .btn{
+    width:auto;
+    min-height:34px;
+    padding:7px 10px;
+    font-size:11px;
+    border-radius:9px;
+  }
+  .score-rechallenge-note{
+    font-size:10px;
+    padding:7px 0;
+    text-align:right;
+  }
+  .score-empty{
+    padding:28px 14px;
+    border:1px dashed #293648;
+    border-radius:14px;
+    font-size:12px;
+    line-height:1.5;
+  }
+
+  /* Top 5: vivid but not rainbowing the whole card */
+  .score-row.rank-top .score-title,
+  .score-row.rank-top .score-rank,
+  .score-row.rank-top .score-time{
+    color:var(--rank-color);
+  }
+
+  /* Mobile modals = bottom sheets; training = full-screen */
+  .modal{
+    align-items:end;
+    padding:0;
+  }
+  .modal-card{
+    width:100% !important;
+    max-width:none;
+    max-height:88dvh;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius:22px 22px 0 0;
+    border-left:0;
+    border-right:0;
+    border-bottom:0;
+  }
+  .modal-head h3{
+    font-size:20px;
+    line-height:1.2;
+  }
+  .modal-sub{
+    margin-top:4px;
+    font-size:11px;
+    line-height:1.4;
+  }
+
+  #trainingModal{
+    align-items:stretch;
+  }
+  #trainingModal .modal-card{
+    height:100dvh;
+    max-height:100dvh;
+    border-radius:0;
+    padding-top:calc(14px + env(safe-area-inset-top));
+  }
+  .timer-box{
+    padding:12px;
+    border-radius:13px;
+  }
+  .timer-label{font-size:9px}
+  .timer{font-size:30px}
+  .progress-text{font-size:12px}
+  .session-list{gap:7px}
+  .session-item{
+    grid-template-columns:34px minmax(0,1fr) auto;
+    gap:8px;
+    padding:10px;
+    border-radius:11px;
+  }
+  .session-index{
+    width:30px;
+    height:30px;
+    font-size:11px;
+  }
+  .session-name{font-size:13px}
+  .session-detail{font-size:10px}
+  .check-btn{
+    min-height:34px;
+    padding:6px 9px;
+    font-size:11px;
+  }
+  .session-footer{
+    margin:14px -16px calc(-18px - env(safe-area-inset-bottom));
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    gap:7px;
+    background:rgba(10,15,22,.96);
+  }
+
+  .finish-question .big{font-size:20px}
+  .finish-question p{font-size:11px;line-height:1.5}
+  .finish-summary{
+    gap:0;
+    padding:11px 0;
+    border-top:1px solid #223043;
+    border-bottom:1px solid #223043;
+  }
+  .finish-summary .mini-stat{
+    border:0;
+    background:transparent;
+    border-right:1px solid #223043;
+    border-radius:0;
+  }
+  .finish-summary .mini-stat:last-child{border-right:0}
+  .finish-summary .mini-stat b{font-size:16px}
+  .finish-summary .mini-stat span{font-size:9px}
+
+  .rules-target{
+    grid-template-columns:1fr auto;
+    gap:10px;
+    margin:12px 0;
+    padding:12px;
+    border-radius:13px;
+  }
+  .rules-target-name{font-size:13px}
+  .rules-target-meta{font-size:10px}
+  .rules-target-time{text-align:right}
+  .rules-target-time span{font-size:9px}
+  .rules-target-time b{font-size:22px}
+  .rules-list{
+    gap:7px;
+    margin:10px 0 4px;
+  }
+  .rules-list li{
+    padding:9px 10px 9px 31px;
+    font-size:11px;
+    line-height:1.45;
+  }
+  .rules-warning{
+    margin-top:10px;
+    padding:9px 10px;
+    font-size:10px;
+  }
+
+  .footer{
+    margin-top:26px;
+    padding-top:15px;
+    font-size:10px;
+    line-height:1.5;
+    color:#687689;
+  }
+  .toast{
+    right:12px;
+    bottom:12px;
+    max-width:calc(100vw - 24px);
+    padding:10px 12px;
+    font-size:11px;
+  }
+}
+
+@media (max-width:380px){
+  .app{padding-left:11px;padding-right:11px}
+  .brand h1{font-size:19px}
+  .section-head h2{font-size:22px}
+  .order-specs{gap:4px}
+  .order-spec input{font-size:11px;padding-left:5px;padding-right:5px}
+  .score-row{
+    grid-template-columns:27px minmax(0,1fr) auto;
+    padding:11px 10px;
+  }
+  .score-title{font-size:12.5px}
+  .score-time{font-size:14px}
+}
+
 </style>
 </head>
 <body>
@@ -316,7 +946,6 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
               <h3>標準挑戰</h3>
               <p>完整 HYROX：8 × 1 km 跑步，穿插 8 個官方工作站。</p>
             </div>
-            <button class="btn primary" id="startStandardBtn">開始</button>
           </div>
           <div class="challenge-grid">
             <div class="field"><label>挑戰組別</label><select id="standardDivision"><option>Women Open</option><option>Men Open</option><option>Mixed Doubles</option></select></div>
@@ -327,6 +956,7 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
             <div class="mini-stat"><b>8</b><span>工作站</span></div>
             <div class="mini-stat"><b>16</b><span>總項目</span></div>
           </div>
+          <button class="btn primary standard-start-mobile" id="startStandardBtn">挑戰開始</button>
         </div>
 
         <div class="challenge-card custom">
