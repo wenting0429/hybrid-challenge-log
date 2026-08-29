@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d14">
-<title>HYROX TRAINING LOG</title>
+<title>HYBRID CHALLENGE LOG</title>
 <style>
 :root{
   --bg:#090c12;--panel:#111721;--panel2:#0d121b;--line:#293445;
@@ -914,15 +914,833 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
   .score-time{font-size:14px}
 }
 
+
+/* ===== Remove repeated page headings; active tab is the page label ===== */
+.wall-toolbar{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  margin:0 0 12px;
+}
+nav.tabs button.active{
+  color:#fff;
+  background:#1a2634;
+  box-shadow:inset 0 -3px 0 var(--cyan);
+}
+@media(max-width:640px){
+  main{padding-top:14px}
+  .wall-toolbar{margin:0 0 9px}
+  .wall-toolbar .btn{min-height:34px;padding:6px 10px;font-size:11px}
+  nav.tabs button.active{
+    background:#1a2634;
+    color:#fff;
+    box-shadow:inset 0 -2px 0 var(--cyan);
+  }
+}
+
+
+.race-template-note{margin-top:10px;padding:9px 10px;border:1px solid rgba(114,222,216,.14);background:rgba(114,222,216,.035);border-radius:10px;color:#8392a4}
+@media(max-width:640px){
+  .race-template-note{font-size:10px;line-height:1.45;margin-top:10px;padding:8px 9px}
+}
+
+
+
+
+
+
+/* ===== Daily challenge pre-workout overview ===== */
+.daily-preview{
+  margin-top:14px;
+  border:1px solid #2a3648;
+  border-radius:14px;
+  background:#0b1119;
+  overflow:hidden;
+}
+.daily-preview-head{
+  padding:13px 14px 8px;
+  color:#f4f7fa;
+  font-size:15px;
+  line-height:1.4;
+  font-weight:900;
+}
+.daily-preview-equipment{
+  padding:0 14px 11px;
+  color:#8795a7;
+  font-size:10.5px;
+}
+.daily-preview-list{
+  list-style:none;
+  counter-reset:daily;
+  margin:0;
+  padding:0 14px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:22px;
+}
+.daily-preview-list li{
+  counter-increment:daily;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr);
+  grid-template-areas:"n name" "n detail";
+  gap:1px 7px;
+  padding:8px 0;
+  border-top:1px solid #1f2a39;
+  min-width:0;
+}
+.daily-preview-list li::before{
+  content:counter(daily);
+  grid-area:n;
+  align-self:start;
+  display:grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  border-radius:999px;
+  background:#15202c;
+  color:#7edfd8;
+  font-size:9px;
+  font-weight:900;
+}
+.daily-preview-list b{
+  grid-area:name;
+  min-width:0;
+  font-size:11px;
+  line-height:1.3;
+}
+.daily-preview-list span{
+  grid-area:detail;
+  color:#788698;
+  font-size:9.5px;
+  line-height:1.35;
+}
+.daily-preview-total{
+  margin-top:8px;
+  padding:11px 14px;
+  border-top:1px solid #263244;
+  background:#101821;
+  color:#b7c6d5;
+  font-size:11px;
+  font-weight:800;
+}
+@media(max-width:640px){
+  .daily-preview{margin-top:12px;border-radius:12px}
+  .daily-preview-head{padding:11px 11px 7px;font-size:13px}
+  .daily-preview-equipment{padding:0 11px 9px;font-size:9.5px}
+  .daily-preview-list{
+    grid-template-columns:1fr;
+    padding:0 11px;
+  }
+  .daily-preview-list li{padding:7px 0}
+  .daily-preview-list b{font-size:11px}
+  .daily-preview-list span{font-size:9.5px}
+  .daily-preview-total{padding:10px 11px;font-size:10.5px}
+}
+
+
+.daily-preview-desc{
+  padding:0 14px 8px;
+  color:#aab5c1;
+  font-size:11px;
+  line-height:1.55;
+}
+@media(max-width:640px){
+  .daily-preview-desc{
+    padding:0 11px 8px;
+    font-size:10px;
+    line-height:1.5;
+  }
+}
+
+
+/* ===== Challenge zone color hierarchy ===== */
+/* 經典挑戰：冷色、最像「主賽事」的視覺重心 */
+.challenge-card.standard-race{
+  border-color:rgba(104,224,215,.42);
+  background:
+    linear-gradient(135deg,rgba(73,197,190,.10),transparent 42%),
+    linear-gradient(180deg,#121c25 0%,#0e151e 100%);
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.22),
+    0 0 0 1px rgba(104,224,215,.035) inset;
+}
+.challenge-card.standard-race::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  top:0;left:0;right:0;
+  height:3px;
+  background:linear-gradient(90deg,#6fe0d8,rgba(111,224,216,.18));
+}
+.challenge-card.standard-race h3{color:#e3fffc}
+.challenge-card.standard-race label{color:#9ccbc8}
+.challenge-card.standard-race .challenge-info{
+  border-color:rgba(104,224,215,.18);
+}
+.challenge-card.standard-race .mini-stat{
+  border-color:rgba(104,224,215,.15);
+  background:rgba(9,23,28,.70);
+}
+.challenge-card.standard-race .mini-stat b{color:#d9faf7}
+
+/* 日常挑戰：暖色，與經典挑戰清楚分區但同樣被強調 */
+.challenge-card.simulation{
+  border-color:rgba(255,151,105,.42);
+  background:
+    linear-gradient(135deg,rgba(255,126,82,.10),transparent 43%),
+    linear-gradient(180deg,#1b181b 0%,#11151b 100%);
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.22),
+    0 0 0 1px rgba(255,151,105,.035) inset;
+}
+.challenge-card.simulation::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  top:0;left:0;right:0;
+  height:3px;
+  background:linear-gradient(90deg,#ff966e,rgba(255,150,110,.18));
+}
+.challenge-card.simulation h3{color:#fff0e9}
+.challenge-card.simulation label{color:#d3a593}
+.challenge-card.simulation .daily-preview{
+  border-color:rgba(255,151,105,.20);
+  background:rgba(15,15,19,.72);
+}
+.challenge-card.simulation .daily-preview-head{color:#fff1eb}
+.challenge-card.simulation .daily-preview-total{
+  border-color:rgba(255,151,105,.18);
+  background:rgba(39,22,20,.45);
+  color:#dfb5a6;
+}
+.challenge-card.simulation .daily-preview-list li::before{
+  background:rgba(255,126,82,.11);
+  color:#ffab89;
+}
+
+/* 自訂挑戰：刻意淡化，不像 disabled，仍保持可操作性 */
+.challenge-card.custom{
+  border-color:#26313d;
+  background:linear-gradient(180deg,rgba(15,20,28,.88),rgba(11,16,23,.90));
+  box-shadow:none;
+}
+.challenge-card.custom::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,#465262,rgba(70,82,98,.08));
+}
+.challenge-card.custom h3{
+  color:#b7c0ca;
+  font-weight:780;
+}
+.challenge-card.custom p,
+.challenge-card.custom .helper{color:#74808e}
+.challenge-card.custom label{color:#7d8997}
+.challenge-card.custom input,
+.challenge-card.custom select,
+.challenge-card.custom textarea{
+  border-color:#28323f;
+  background:#0a0f16;
+  color:#c5ccd5;
+}
+.challenge-card.custom .picker-group{
+  border-color:#222c38;
+  background:#0a0f16;
+}
+.challenge-card.custom .challenge-info{
+  border-color:#222c38;
+}
+.challenge-card.custom .mini-stat{
+  border-color:#222c38;
+  background:#0a1017;
+}
+.challenge-card.custom .mini-stat b{color:#b9c1cc}
+.challenge-card.custom .btn.coral{
+  background:#1b2530;
+  border-color:#344152;
+  color:#b7c0cc;
+  box-shadow:none;
+}
+.challenge-card.custom .btn.coral:hover{
+  background:#222e3b;
+  border-color:#455466;
+}
+
+/* 手機版：維持相同三區色彩層級 */
+@media(max-width:640px){
+  .challenge-card.standard-race{
+    border-color:rgba(104,224,215,.38);
+    background:
+      linear-gradient(145deg,rgba(73,197,190,.08),transparent 45%),
+      #101820;
+  }
+  .challenge-card.simulation{
+    border-color:rgba(255,151,105,.38);
+    background:
+      linear-gradient(145deg,rgba(255,126,82,.08),transparent 45%),
+      #171519;
+  }
+  .challenge-card.custom{
+    border-color:#232d39;
+    background:#0d131b;
+  }
+}
+
+
+#challengeRulesModal,
+#challengeFailureModal{display:none!important}
+
+
+/* ===== Score wall: two fixed ranking zones ===== */
+#wall{
+  display:none;
+}
+#wall.active{
+  display:block;
+}
+.wall-zone{
+  position:relative;
+  margin-bottom:18px;
+  padding:16px;
+  border-radius:16px;
+  overflow:hidden;
+}
+.wall-zone-classic{
+  border:1px solid rgba(104,224,215,.34);
+  background:
+    linear-gradient(135deg,rgba(73,197,190,.075),transparent 42%),
+    #0d151d;
+}
+.wall-zone-daily{
+  border:1px solid rgba(255,151,105,.30);
+  background:
+    linear-gradient(135deg,rgba(255,126,82,.065),transparent 42%),
+    #111419;
+}
+.wall-zone-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.wall-zone-kicker{
+  margin-bottom:4px;
+  color:#738297;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.13em;
+}
+.wall-zone-head h3{
+  margin:0;
+  font-size:20px;
+  line-height:1.15;
+}
+.wall-zone-classic .wall-zone-head h3{color:#e1fffc}
+.wall-zone-daily .wall-zone-head h3{color:#fff0e9}
+.wall-zone-head p{
+  margin:6px 0 0;
+  max-width:700px;
+  color:#79889a;
+  font-size:10.5px;
+  line-height:1.5;
+}
+.classic-ranking-block{
+  margin-top:12px;
+}
+.classic-ranking-block + .classic-ranking-block{
+  margin-top:18px;
+}
+.classic-ranking-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 2px 7px;
+}
+.classic-ranking-head h4{
+  margin:0;
+  color:#b9d9d6;
+  font-size:12px;
+  font-weight:900;
+}
+.classic-ranking-head span{
+  color:#667688;
+  font-size:9.5px;
+}
+.wall-zone .score-board{
+  border-top:0;
+  gap:7px;
+}
+.wall-zone .score-row{
+  grid-template-columns:50px minmax(0,1fr) 90px;
+  grid-template-areas:"rank main time";
+  min-height:70px;
+  padding:11px 12px;
+  border:1px solid rgba(58,73,91,.64);
+  border-radius:12px;
+  background:rgba(8,13,20,.68);
+}
+.wall-zone .score-row:hover{
+  background:rgba(10,17,25,.85);
+}
+.wall-zone .score-rank{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  font-size:14px;
+}
+.wall-zone .medal-rank{
+  font-size:25px;
+  filter:saturate(.95);
+}
+.wall-zone .score-main{
+  min-width:0;
+}
+.wall-zone .score-title{
+  font-size:12.5px;
+}
+.wall-zone .score-meta{
+  margin-top:3px;
+}
+.wall-zone .score-content{
+  margin-top:3px;
+  -webkit-line-clamp:1;
+}
+.wall-zone .score-time{
+  justify-self:end;
+  align-self:center;
+  font-size:15px;
+}
+.daily-score-row{
+  grid-template-columns:54px minmax(0,1fr) 90px!important;
+}
+.daily-difficulty{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  color:#ff9b75;
+  font-size:20px;
+  font-weight:950;
+  letter-spacing:-.04em;
+}
+.daily-difficulty span{
+  margin-left:1px;
+  color:#7f716e;
+  font-size:9px;
+  font-weight:800;
+}
+.compact-empty{
+  padding:15px 10px;
+  border:1px dashed #2a3646;
+  border-radius:10px;
+  background:rgba(7,12,18,.38);
+}
+
+@media(max-width:640px){
+  .wall-zone{
+    margin-bottom:13px;
+    padding:12px 10px;
+    border-radius:14px;
+  }
+  .wall-zone-head{
+    margin-bottom:10px;
+  }
+  .wall-zone-head h3{
+    font-size:17px;
+  }
+  .wall-zone-head p{
+    margin-top:4px;
+    font-size:9.5px;
+  }
+  .classic-ranking-block + .classic-ranking-block{
+    margin-top:14px;
+  }
+  .wall-zone .score-row,
+  .daily-score-row{
+    grid-template-columns:38px minmax(0,1fr) 68px!important;
+    grid-template-areas:"rank main time";
+    gap:7px;
+    padding:10px 8px;
+    min-height:67px;
+  }
+  .wall-zone .medal-rank{
+    font-size:21px;
+  }
+  .wall-zone .score-title{
+    font-size:11.5px;
+  }
+  .wall-zone .score-meta,
+  .wall-zone .score-content{
+    font-size:9px;
+  }
+  .wall-zone .score-time{
+    font-size:13px;
+  }
+  .daily-difficulty{
+    font-size:17px;
+  }
+}
+
+
+/* ===== Score wall v2: athlete left, rank in the middle, type-based colors ===== */
+
+/* Four-column score row */
+.wall-zone .score-row{
+  grid-template-columns:112px minmax(0,1fr) 58px 90px!important;
+  grid-template-areas:"athlete main rank time"!important;
+  gap:10px!important;
+  align-items:center;
+}
+
+/* Challenger / user name takes the old medal position */
+.score-athlete{
+  grid-area:athlete;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11.5px;
+  font-weight:850;
+  letter-spacing:.01em;
+  color:#d4dce5;
+}
+
+/* Rank number sits between challenge and completion time */
+.score-rank-number{
+  grid-area:rank;
+  justify-self:center;
+  align-self:center;
+  min-width:42px;
+  text-align:center;
+  font-size:30px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.055em;
+  font-variant-numeric:tabular-nums;
+  color:#f4f7fa;
+  text-shadow:0 1px 14px rgba(255,255,255,.06);
+}
+.score-time{
+  grid-area:time;
+}
+
+/* No row changes color because of rank */
+.wall-zone .classic-score-row,
+.wall-zone .classic-score-row.rank-top,
+.wall-zone .classic-score-row.rank-1,
+.wall-zone .classic-score-row.rank-2,
+.wall-zone .classic-score-row.rank-3{
+  box-shadow:none!important;
+}
+
+/* Classic categories:
+   same category = same palette, independent of finishing position */
+.wall-zone .classic-score-row.classic-women{
+  border-color:rgba(255,132,156,.30)!important;
+  background:
+    linear-gradient(90deg,rgba(255,111,143,.085),transparent 36%),
+    rgba(15,13,19,.78)!important;
+}
+.wall-zone .classic-score-row.classic-women .score-athlete,
+.wall-zone .classic-score-row.classic-women .score-rank-number{
+  color:#ffb2c2;
+}
+
+.wall-zone .classic-score-row.classic-men{
+  border-color:rgba(94,183,255,.30)!important;
+  background:
+    linear-gradient(90deg,rgba(79,164,255,.085),transparent 36%),
+    rgba(10,16,23,.78)!important;
+}
+.wall-zone .classic-score-row.classic-men .score-athlete,
+.wall-zone .classic-score-row.classic-men .score-rank-number{
+  color:#9bd4ff;
+}
+
+.wall-zone .classic-score-row.classic-mixed{
+  border-color:rgba(178,137,255,.30)!important;
+  background:
+    linear-gradient(90deg,rgba(163,115,255,.085),transparent 36%),
+    rgba(14,12,22,.78)!important;
+}
+.wall-zone .classic-score-row.classic-mixed .score-athlete,
+.wall-zone .classic-score-row.classic-mixed .score-rank-number{
+  color:#cdb4ff;
+}
+
+/* Daily challenges:
+   each challenge template has a stable accent.
+   Rows of the same template always look the same. */
+.daily-score-row .daily-difficulty{
+  grid-area:rank;
+  justify-self:center;
+}
+
+.daily-easyHybrid{
+  border-color:rgba(117,192,153,.26)!important;
+  background:linear-gradient(90deg,rgba(89,168,128,.06),transparent 34%),rgba(9,15,18,.76)!important;
+}
+.daily-coreTraining{
+  border-color:rgba(106,183,210,.26)!important;
+  background:linear-gradient(90deg,rgba(78,155,184,.06),transparent 34%),rgba(9,14,19,.76)!important;
+}
+.daily-engineBuilder{
+  border-color:rgba(126,162,212,.26)!important;
+  background:linear-gradient(90deg,rgba(91,132,189,.06),transparent 34%),rgba(10,14,20,.76)!important;
+}
+.daily-noRun{
+  border-color:rgba(147,145,214,.27)!important;
+  background:linear-gradient(90deg,rgba(116,105,194,.06),transparent 34%),rgba(12,12,21,.76)!important;
+}
+.daily-lowerBlast{
+  border-color:rgba(216,139,101,.28)!important;
+  background:linear-gradient(90deg,rgba(190,102,70,.065),transparent 34%),rgba(18,12,10,.76)!important;
+}
+.daily-balanced8{
+  border-color:rgba(231,164,89,.28)!important;
+  background:linear-gradient(90deg,rgba(209,130,60,.065),transparent 34%),rgba(19,14,9,.76)!important;
+}
+.daily-fatBurn{
+  border-color:rgba(231,118,92,.29)!important;
+  background:linear-gradient(90deg,rgba(218,91,67,.07),transparent 34%),rgba(20,11,10,.76)!important;
+}
+.daily-moverDay{
+  border-color:rgba(211,106,96,.30)!important;
+  background:linear-gradient(90deg,rgba(190,74,70,.075),transparent 34%),rgba(19,10,11,.77)!important;
+}
+.daily-aerobicMax{
+  border-color:rgba(212,92,126,.30)!important;
+  background:linear-gradient(90deg,rgba(190,65,106,.075),transparent 34%),rgba(19,9,14,.77)!important;
+}
+.daily-hellDay{
+  border-color:rgba(224,80,80,.34)!important;
+  background:linear-gradient(90deg,rgba(204,48,48,.09),transparent 36%),rgba(21,8,9,.80)!important;
+}
+
+/* Keep challenge name/content readable within its category color */
+.daily-score-row .score-athlete{
+  color:#d7dce3;
+}
+
+/* Mobile */
+@media(max-width:640px){
+  .wall-zone .score-row{
+    grid-template-columns:72px minmax(0,1fr) 36px 62px!important;
+    grid-template-areas:"athlete main rank time"!important;
+    gap:6px!important;
+  }
+  .score-athlete{
+    font-size:10px;
+  }
+  .score-rank-number{
+    min-width:30px;
+    font-size:25px;
+  }
+  .daily-difficulty{
+    font-size:16px!important;
+  }
+  .daily-difficulty span{
+    font-size:8px!important;
+  }
+}
+
+
+/* ===== Score wall v3: four independently scrollable ranking cards ===== */
+.wall-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.ranking-card{
+  min-width:0;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid #2a3646;
+  background:#0d141d;
+  box-shadow:0 14px 38px rgba(0,0,0,.18);
+}
+.ranking-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 14px 11px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.ranking-card-kicker{
+  margin-bottom:4px;
+  color:#6f7f91;
+  font-size:8.5px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.ranking-card-head h3{
+  margin:0;
+  font-size:16px;
+  line-height:1.2;
+}
+.ranking-count{
+  flex:0 0 auto;
+  margin-top:1px;
+  color:#6f7e90;
+  font-size:9.5px;
+  font-weight:800;
+}
+.ranking-scroll{
+  height:390px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding:8px;
+}
+.ranking-scroll::-webkit-scrollbar{
+  width:8px;
+}
+.ranking-scroll::-webkit-scrollbar-track{
+  background:rgba(255,255,255,.025);
+  border-radius:999px;
+}
+.ranking-scroll::-webkit-scrollbar-thumb{
+  background:#334153;
+  border-radius:999px;
+  border:2px solid #111923;
+}
+.ranking-scroll{
+  scrollbar-width:thin;
+  scrollbar-color:#334153 #111923;
+}
+
+/* Different challenge type = different stable palette */
+.ranking-women{
+  border-color:rgba(255,132,156,.31);
+  background:
+    linear-gradient(145deg,rgba(255,111,143,.06),transparent 34%),
+    #111018;
+}
+.ranking-women .ranking-card-head h3{color:#ffb7c6}
+
+.ranking-men{
+  border-color:rgba(94,183,255,.31);
+  background:
+    linear-gradient(145deg,rgba(79,164,255,.06),transparent 34%),
+    #0d141c;
+}
+.ranking-men .ranking-card-head h3{color:#a8d9ff}
+
+.ranking-mixed{
+  border-color:rgba(178,137,255,.31);
+  background:
+    linear-gradient(145deg,rgba(163,115,255,.06),transparent 34%),
+    #100f19;
+}
+.ranking-mixed .ranking-card-head h3{color:#d1bbff}
+
+.ranking-daily{
+  border-color:rgba(255,151,105,.30);
+  background:
+    linear-gradient(145deg,rgba(255,126,82,.055),transparent 34%),
+    #121318;
+}
+.ranking-daily .ranking-card-head h3{color:#ffc1aa}
+
+/* Rows inside compact cards */
+.ranking-card .score-row{
+  grid-template-columns:82px minmax(0,1fr) 42px 72px!important;
+  gap:7px!important;
+  min-height:64px;
+  margin-bottom:7px;
+  padding:9px 8px!important;
+  border-radius:10px!important;
+}
+.ranking-card .score-row:last-child{
+  margin-bottom:0;
+}
+.ranking-card .score-athlete{
+  font-size:10px;
+}
+.ranking-card .score-title{
+  font-size:11px;
+}
+.ranking-card .score-meta,
+.ranking-card .score-content{
+  font-size:8.5px;
+}
+.ranking-card .score-rank-number{
+  min-width:30px;
+  font-size:23px;
+}
+.ranking-card .score-time{
+  font-size:12px;
+}
+.ranking-card .daily-difficulty{
+  font-size:15px!important;
+}
+
+/* Fade cue at bottom so the inner scroll area feels deliberate */
+.ranking-card{
+  position:relative;
+}
+.ranking-card::after{
+  content:"";
+  position:absolute;
+  left:8px;
+  right:8px;
+  bottom:0;
+  height:16px;
+  pointer-events:none;
+  background:linear-gradient(transparent,rgba(9,13,19,.85));
+  opacity:.65;
+}
+
+@media(max-width:760px){
+  .wall-grid{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  .ranking-scroll{
+    height:320px;
+    padding:7px;
+  }
+  .ranking-card-head{
+    padding:12px 11px 10px;
+  }
+  .ranking-card-head h3{
+    font-size:15px;
+  }
+  .ranking-card .score-row{
+    grid-template-columns:68px minmax(0,1fr) 34px 60px!important;
+    gap:5px!important;
+    padding:8px 7px!important;
+    min-height:61px;
+  }
+  .ranking-card .score-athlete{
+    font-size:9.5px;
+  }
+  .ranking-card .score-title{
+    font-size:10.5px;
+  }
+  .ranking-card .score-rank-number{
+    font-size:21px;
+  }
+  .ranking-card .score-time{
+    font-size:11.5px;
+  }
+}
+
 </style>
 </head>
 <body>
 <div class="app">
   <div class="topbar">
     <div class="brand">
-      <div class="brand-kicker">COMMUNITY CHALLENGE TRACKER</div>
-      <h1>HYROX <em>TRAINING LOG</em></h1>
-      <p>挑戰自己，完成後再決定要不要把成績放上牆。</p>
+      <div class="brand-kicker">TRAIN HARDER. GET STRONGER.</div>
+      <h1>HYBRID <em>CHALLENGE LOG</em></h1>
+      <p>先練習，再參賽。</p>
     </div>
   </div>
 
@@ -934,37 +1752,73 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
   <div class="public-config-warning" id="publicConfigWarning">網站尚未完成雲端設定。正式發布前，請先設定 <code>config.js</code>。</div>
   <main>
     <section id="challenge" class="page active">
-      <div class="section-head">
-        <div><h2>挑戰自我</h2><p>選一個標準挑戰，或自己定義今天要完成的內容。</p></div>
-      </div>
 
       <div class="challenge-stack">
-        <div class="challenge-card standard">
+        <div class="challenge-card standard-race">
           <div class="challenge-top">
             <div>
-              <div class="challenge-eyebrow">STANDARD CHALLENGE</div>
-              <h3>標準挑戰</h3>
-              <p>完整 HYROX：8 × 1 km 跑步，穿插 8 個官方工作站。</p>
+              <h3>經典挑戰</h3>
+              <p>固定 8 × 1 km 跑步，穿插 8 項挑戰；分女子、男子與 Mixed 模式。</p>
             </div>
           </div>
           <div class="challenge-grid">
-            <div class="field"><label>挑戰組別</label><select id="standardDivision"><option>Women Open</option><option>Men Open</option><option>Mixed Doubles</option></select></div>
-            <div class="field"><label>挑戰名稱</label><input id="standardName" maxlength="80" value="Full HYROX Simulation"></div>
+            <div class="field full">
+              <label>挑戰模式</label>
+              <select id="standardDivision">
+                <option value="Women Open">女子</option>
+                <option value="Men Open">男子</option>
+                <option value="Mixed Doubles">Mixed</option>
+              </select>
+            </div>
           </div>
           <div class="challenge-info">
-            <div class="mini-stat"><b>8 km</b><span>跑步</span></div>
+            <div class="mini-stat"><b>8.0 km</b><span>跑步總距離</span></div>
             <div class="mini-stat"><b>8</b><span>工作站</span></div>
             <div class="mini-stat"><b>16</b><span>總項目</span></div>
           </div>
-          <button class="btn primary standard-start-mobile" id="startStandardBtn">挑戰開始</button>
+          
+          <button class="btn primary standard-start-mobile" id="startStandardRaceBtn">挑戰開始</button>
+        </div>
+
+        <div class="challenge-card simulation">
+          <div class="challenge-top">
+            <div>
+              <h3>日常挑戰</h3>
+              
+            </div>
+          </div>
+          <div class="challenge-grid">
+            <div class="field full">
+              <label>挑戰模板</label>
+              <select id="raceTemplate">
+                <option value="easyHybrid">1｜加減練一下</option>
+                <option value="coreTraining">2｜核心也要練</option>
+                <option value="engineBuilder">3｜平凡的一次訓練</option>
+                <option value="noRun">4｜今天不跑步</option>
+                <option value="lowerBlast">5｜下肢炸裂 Run</option>
+                <option value="balanced8">6｜全能 8 站</option>
+                <option value="fatBurn">7｜燃燒脂肪</option>
+                <option value="moverDay">8｜搬運工的一天</option>
+                <option value="aerobicMax">9｜有氧拉滿</option>
+                <option value="hellDay">10｜地獄日</option>
+              </select>
+            </div>
+          </div>
+          <div class="daily-preview" id="dailyPreview">
+            <div class="daily-preview-head" id="dailyPreviewHead"></div>
+            <div class="daily-preview-desc" id="dailyPreviewDesc"></div>
+            <div class="daily-preview-equipment" id="dailyPreviewEquipment"></div>
+            <ol class="daily-preview-list" id="dailyPreviewList"></ol>
+            <div class="daily-preview-total" id="dailyPreviewTotal"></div>
+          </div>
+          <button class="btn coral standard-start-mobile" id="startSimulationBtn">挑戰開始</button>
         </div>
 
         <div class="challenge-card custom">
           <div class="challenge-top">
             <div>
-              <div class="challenge-eyebrow">CUSTOM CHALLENGE</div>
               <h3>自訂挑戰</h3>
-              <p>自己編排跑步與各種訓練項目，並可為每一項指定重量、次數與距離。</p>
+              <p>自由選動作、重複加入、排序，再設定距離、重量與次數。</p>
             </div>
           </div>
           <div class="challenge-grid">
@@ -989,28 +1843,56 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
     </section>
 
     <section id="wall" class="page">
-      <div class="section-head">
-        <div>
-          <h2>成績牆</h2>
-          <p>看看大家完成了哪些挑戰，也可以從原始挑戰直接發起挑戰。</p>
-        </div>
-        <button class="btn small" id="refreshBtn">重新整理</button>
+      <div class="wall-toolbar"><button class="btn small" id="refreshBtn">重新整理</button></div>
+
+      <div class="wall-grid">
+        <section class="ranking-card ranking-women">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">CLASSIC CHALLENGE</div>
+              <h3>經典挑戰｜女子</h3>
+            </div>
+            <span class="ranking-count" id="womenCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="womenResults"></div>
+        </section>
+
+        <section class="ranking-card ranking-men">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">CLASSIC CHALLENGE</div>
+              <h3>經典挑戰｜男子</h3>
+            </div>
+            <span class="ranking-count" id="menCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="menResults"></div>
+        </section>
+
+        <section class="ranking-card ranking-mixed">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">CLASSIC CHALLENGE</div>
+              <h3>經典挑戰｜Mixed</h3>
+            </div>
+            <span class="ranking-count" id="mixedCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="mixedResults"></div>
+        </section>
+
+        <section class="ranking-card ranking-daily">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">DAILY CHALLENGES</div>
+              <h3>日常挑戰</h3>
+            </div>
+            <span class="ranking-count" id="dailyCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="dailyResults"></div>
+        </section>
       </div>
-      <div class="wall-filter-row">
-        <label for="wallCategory">顯示</label>
-        <select id="wallCategory">
-          <option value="all">全部</option>
-          <option value="custom">自訂挑戰</option>
-          <option value="standard-women">標準挑戰｜女子</option>
-          <option value="standard-men">標準挑戰｜男子</option>
-          <option value="standard-mixed">標準挑戰｜Mixed Doubles</option>
-        </select>
-      </div>
-      <div class="wall-sort-note" id="wallSortNote">全部：最新登錄的成績排在前面。</div>
-      <div class="score-board" id="resultsList"></div>
     </section>
   </main>
-  <div class="footer">HYROX TRAINING LOG 是非官方社群訓練工具；HYROX 標準僅作訓練比較基準。請勿在暱稱或備註中填寫敏感個人資料。</div>
+  <div class="footer">HYBRID CHALLENGE LOG 是獨立、非官方的混合體能訓練平台。本站挑戰內容為自行設計的訓練模板，不代表任何特定賽事或品牌。本平台與任何賽事主辦方均無隸屬、合作、贊助或認可關係。請勿在暱稱或備註中填寫敏感個人資料。</div>
 </div>
 
 <div class="modal" id="challengeRulesModal">
@@ -1109,7 +1991,7 @@ main{padding-top:24px}.page{display:none}.page.active{display:block}
 <script>
 (() => {
 const TABLE='training_results';
-const PUBLIC_CONFIG=window.HYROX_CONFIG||{};
+const PUBLIC_CONFIG=window.HYBRID_CONFIG||window.HYROX_CONFIG||{};
 const cloudConfig={
   url:String(PUBLIC_CONFIG.SUPABASE_URL||'').trim(),
   key:String(PUBLIC_CONFIG.SUPABASE_PUBLISHABLE_KEY||'').trim()
@@ -1118,14 +2000,17 @@ const CHALLENGE_COOLDOWN_KEY='hyroxChallengeCountCooldown_v1';
 const CHALLENGE_COOLDOWN_MS=60*60*1000; // same device + same source: count at most once per hour
 const STATIONS=['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Row','Farmers Carry','Sandbag Lunges','Wall Balls'];
 const CUSTOM_EXERCISES=[
-  {name:'SkiErg',cat:'HYROX'},
-  {name:'Sled Push',cat:'HYROX'},
-  {name:'Sled Pull',cat:'HYROX'},
-  {name:'Burpee Broad Jump',cat:'HYROX'},
-  {name:'Row',cat:'HYROX'},
-  {name:'Farmers Carry',cat:'HYROX'},
-  {name:'Sandbag Lunges',cat:'HYROX'},
-  {name:'Wall Balls',cat:'HYROX'},
+  {name:'SkiErg',cat:'Race Stations'},
+  {name:'Sled Push',cat:'Race Stations'},
+  {name:'Sled Pull',cat:'Race Stations'},
+  {name:'Burpee Broad Jump',cat:'Race Stations'},
+  {name:'Row',cat:'Race Stations'},
+  {name:'Farmers Carry',cat:'Race Stations'},
+  {name:'Sandbag Lunges',cat:'Race Stations'},
+  {name:'Wall Balls',cat:'Race Stations'},
+  {name:'Load Crawl',cat:'Race Stations'},
+  {name:'Strength Erg Chest',cat:'Race Stations'},
+  {name:'Weighted Lunges',cat:'Race Stations'},
   {name:'Kettlebell Thruster',cat:'Kettlebell'},
   {name:'Kettlebell Swing',cat:'Kettlebell'},
   {name:'Kettlebell Goblet Squat',cat:'Kettlebell'},
@@ -1146,6 +2031,9 @@ const CUSTOM_EXERCISES=[
   {name:'Push-Up',cat:'Conditioning'},
   {name:'Bear Crawl',cat:'Conditioning'},
   {name:'Battle Rope',cat:'Conditioning'},
+  {name:'Quick Walk',cat:'Conditioning'},
+  {name:'Heavy Walk',cat:'Conditioning'},
+  {name:'Medicine Ball Slam',cat:'Conditioning'},
   {name:'BikeErg',cat:'Conditioning'},
   {name:'Assault Bike',cat:'Conditioning'},
   {name:'TRX Row',cat:'Conditioning'},
@@ -1196,6 +2084,339 @@ const DETAILS={
  'Sandbag Lunges':{'Women Open':'100 m · 10 kg','Men Open':'100 m · 20 kg','Mixed Doubles':'100 m · 20 kg'},
  'Wall Balls':{'Women Open':'100 · 4 kg','Men Open':'100 · 6 kg','Mixed Doubles':'100 · 6 kg'}
 };
+const RACE_TEMPLATES={
+  easyHybrid:{
+    id:'easyHybrid',
+    label:'加減練一下',
+    duration:'約 30–40 分鐘',
+    intensity:1,
+    description:'低門檻活動日。不跑步，以 Quick Walk 搭配簡單全身動作，適合恢復日或只是想動一動。',
+    equipment:'壺鈴／啞鈴／自體重量',
+    total:'總 Quick Walk：2 km',
+    build(){
+      const seq=[
+        ['Quick Walk','500 m',500],
+        ['Kettlebell Swing','20 reps · 輕重量'],
+        ['Quick Walk','500 m',500],
+        ['Dumbbell Row','15 reps / side'],
+        ['Quick Walk','500 m',500],
+        ['Kettlebell Goblet Squat','20 reps'],
+        ['Quick Walk','500 m',500],
+        ['Farmers Carry','60 m · 自選重量'],
+        ['Plank','45 sec']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  coreTraining:{
+    id:'coreTraining',
+    label:'核心也要練',
+    duration:'約 55–65 分鐘',
+    intensity:2,
+    description:'核心穩定＋心肺交錯。不跑步，讓心肺／Race Station 與核心輪流出現，不會變成單純腹肌課。',
+    equipment:'SkiErg／Row／BikeErg／Sled／啞鈴',
+    total:'跑步：0 km｜核心與心肺交錯｜預計約 60 分鐘',
+    build(){
+      const seq=[
+        ['SkiErg','800 m'],
+        ['Weighted Sit-Up','25 reps'],
+        ['Sled Push','40 m · 自選重量'],
+        ['Dead Bug','20 reps / side'],
+        ['Row','800 m'],
+        ['Plank Dumbbell Drag','20 reps / side'],
+        ['Sled Pull','40 m · 自選重量'],
+        ['Weighted Russian Twist','40 reps'],
+        ['BikeErg','6 min'],
+        ['Renegade Row','12 reps / side'],
+        ['Farmers Carry','120 m · 自選重量'],
+        ['Pallof Press','15 reps / side']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  engineBuilder:{
+    id:'engineBuilder',
+    label:'平凡的一次訓練',
+    duration:'約 55–70 分鐘',
+    intensity:3,
+    description:'很普通的日常訓練。有跑、有推、有拉、有負重，但沒有任何一項特別極端。',
+    equipment:'啞鈴／壺鈴／自體重量',
+    total:'總 Run：2.4 km',
+    build(){
+      const seq=[
+        ['Run','400 m',400],
+        ['Dumbbell Thruster','20 reps'],
+        ['Run','400 m',400],
+        ['Kettlebell Swing','25 reps'],
+        ['Run','400 m',400],
+        ['Dumbbell Row','15 reps / side'],
+        ['Run','400 m',400],
+        ['Farmers Carry','100 m · 自選重量'],
+        ['Run','400 m',400],
+        ['Weighted Sit-Up','20 reps'],
+        ['Run','400 m',400],
+        ['Walking Lunges','30 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  noRun:{
+    id:'noRun',
+    label:'今天不跑步',
+    duration:'約 85–95 分鐘',
+    intensity:4,
+    description:'不跑，但照樣爆汗。用長時間 Heavy Walk 穿插全身負重動作，燃燒頑強的脂肪。',
+    equipment:'啞鈴／壺鈴／藥球／可負重步行',
+    total:'跑步：0 km｜Heavy Walk：約 64 分鐘',
+    build(){
+      const seq=[
+        ['Heavy Walk','8 min'],
+        ['Kettlebell Swing','40 reps'],
+        ['Heavy Walk','8 min'],
+        ['Dumbbell Walking Lunge','40 reps'],
+        ['Heavy Walk','8 min'],
+        ['Burpee','25 reps'],
+        ['Heavy Walk','8 min'],
+        ['Farmers Carry','160 m · 自選重量'],
+        ['Heavy Walk','8 min'],
+        ['Kettlebell Goblet Squat','30 reps'],
+        ['Heavy Walk','8 min'],
+        ['Medicine Ball Slam','40 reps'],
+        ['Heavy Walk','8 min'],
+        ['Front Rack Carry','120 m · 自選重量'],
+        ['Heavy Walk','8 min'],
+        ['Dumbbell Thruster','30 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  lowerBlast:{
+    id:'lowerBlast',
+    label:'下肢炸裂 Run',
+    duration:'約 75–90 分鐘',
+    intensity:5,
+    description:'今天的目標是把腿操爆。',
+    equipment:'Sled／Row／啞鈴或壺鈴',
+    total:'總 Run：3.5 km',
+    build(){
+      const seq=[
+        ['Run','500 m',500],
+        ['Sled Push','40 m · 自選重量'],
+        ['Run','500 m',500],
+        ['Dumbbell Walking Lunge','40 reps'],
+        ['Run','500 m',500],
+        ['Sled Pull','40 m · 自選重量'],
+        ['Run','500 m',500],
+        ['Kettlebell Goblet Squat','30 reps'],
+        ['Run','500 m',500],
+        ['Row','600 m'],
+        ['Run','500 m',500],
+        ['Heavy Farmers Carry','120 m'],
+        ['Run','500 m',500],
+        ['Weighted Lunges','60 m']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  balanced8:{
+    id:'balanced8',
+    label:'全能 8 站',
+    duration:'約 85–105 分鐘',
+    intensity:6,
+    description:'該練的大概都會練到，心肺、推、拉、carry、burpee、腿部都有，整體負荷大概比標準賽事輕一些。',
+    equipment:'SkiErg／Sled／Row／壺鈴／啞鈴',
+    total:'總 Run：6 km｜8 個工作站',
+    build(){
+      const seq=[
+        ['Run','750 m',750],
+        ['SkiErg','1000 m'],
+        ['Run','750 m',750],
+        ['Sled Push','50 m · 自選重量'],
+        ['Run','750 m',750],
+        ['Dumbbell Thruster','40 reps'],
+        ['Run','750 m',750],
+        ['Row','1000 m'],
+        ['Run','750 m',750],
+        ['Burpee Broad Jump','60 m'],
+        ['Run','750 m',750],
+        ['Farmers Carry','160 m · 自選重量'],
+        ['Run','750 m',750],
+        ['Kettlebell Swing','50 reps'],
+        ['Run','750 m',750],
+        ['Wall Balls','80 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  fatBurn:{
+    id:'fatBurn',
+    label:'燃燒脂肪',
+    duration:'約 75–90 分鐘',
+    intensity:7,
+    description:'想要瘦練這個。',
+    equipment:'BikeErg／Row／壺鈴／啞鈴／自體重量',
+    total:'總 Run：1.8 km｜Quick Walk：2.4 km｜BikeErg：8 min｜Row：600 m',
+    build(){
+      const seq=[
+        ['Quick Walk','800 m',800],
+        ['Kettlebell Swing','30 reps'],
+        ['Run','600 m',600],
+        ['Dumbbell Walking Lunge','30 reps'],
+        ['BikeErg','4 min'],
+        ['Farmers Carry','100 m'],
+        ['Run','600 m',600],
+        ['Dumbbell Thruster','20 reps'],
+        ['Quick Walk','800 m',800],
+        ['Kettlebell Goblet Squat','30 reps'],
+        ['Row','600 m'],
+        ['Burpee','20 reps'],
+        ['Run','600 m',600],
+        ['Farmers Carry','100 m'],
+        ['BikeErg','4 min'],
+        ['Weighted Sit-Up','25 reps'],
+        ['Quick Walk','800 m',800],
+        ['Wall Balls','40 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  moverDay:{
+    id:'moverDay',
+    label:'搬運工的一天',
+    duration:'約 80–100 分鐘',
+    intensity:8,
+    description:'重、慢、一直搬。跑量不高，主要靠 sled、carry、deadlift、walking lunge 和 Heavy Walk 累積負重疲勞。',
+    equipment:'Sled／BikeErg／啞鈴／壺鈴／可負重步行',
+    total:'Run：1 km｜Heavy Walk：1.6 km',
+    build(){
+      const seq=[
+        ['Heavy Walk','800 m',800],
+        ['Heavy Sled Push','50 m'],
+        ['Dumbbell Deadlift','30 reps'],
+        ['BikeErg','4 min'],
+        ['Heavy Sled Pull','50 m'],
+        ['Front Rack Carry','120 m'],
+        ['Run','500 m',500],
+        ['Kettlebell Goblet Squat','30 reps'],
+        ['Heavy Farmers Carry','160 m'],
+        ['BikeErg','4 min'],
+        ['Dumbbell Walking Lunge','80 m'],
+        ['Run','500 m',500],
+        ['Kettlebell Thruster','30 reps'],
+        ['Heavy Walk','800 m',800]
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  aerobicMax:{
+    id:'aerobicMax',
+    label:'有氧拉滿',
+    duration:'約 90–115 分鐘',
+    intensity:9,
+    description:'長時間心肺輸出。Run、SkiErg、Row 反覆交錯。',
+    equipment:'SkiErg／Row／壺鈴／啞鈴',
+    total:'總 Run：4.2 km｜SkiErg + Row：3.2 km',
+    build(){
+      const seq=[
+        ['Run','600 m',600],
+        ['SkiErg','800 m'],
+        ['Run','600 m',600],
+        ['Row','800 m'],
+        ['Run','600 m',600],
+        ['SkiErg','800 m'],
+        ['Run','600 m',600],
+        ['Row','800 m'],
+        ['Run','600 m',600],
+        ['Kettlebell Swing','40 reps'],
+        ['Run','600 m',600],
+        ['Farmers Carry','120 m'],
+        ['Run','600 m',600],
+        ['Dumbbell Thruster','30 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  hellDay:{
+    id:'hellDay',
+    label:'地獄日',
+    duration:'約 120–150 分鐘',
+    intensity:10,
+    description:'時常練這個，正式比賽一定沒問題。',
+    equipment:'SkiErg／Sled／Row／BikeErg／重負重器材',
+    total:'總 Run：8 km｜10 個高量工作站｜明確高於經典挑戰',
+    build(){
+      const seq=[
+        ['Run','1 km',1000],
+        ['SkiErg','1000 m'],
+        ['Run','1 km',1000],
+        ['Heavy Sled Push','50 m'],
+        ['Run','1 km',1000],
+        ['Heavy Sled Pull','50 m'],
+        ['Run','1 km',1000],
+        ['Burpee Broad Jump','80 m'],
+        ['Run','1 km',1000],
+        ['Row','1000 m'],
+        ['Run','1 km',1000],
+        ['Heavy Farmers Carry','200 m'],
+        ['Run','1 km',1000],
+        ['Weighted Lunges','100 m'],
+        ['Run','1 km',1000],
+        ['Wall Balls','100 reps'],
+        ['BikeErg','5 min'],
+        ['Kettlebell Thruster','40 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  // Legacy aliases keep old saved results readable after the rename.
+  heavyDay:null,
+  dualEngine:null,
+  noStop:null
+};
+RACE_TEMPLATES.heavyDay=RACE_TEMPLATES.moverDay;
+RACE_TEMPLATES.dualEngine=RACE_TEMPLATES.aerobicMax;
+RACE_TEMPLATES.noStop=RACE_TEMPLATES.fatBurn;
+
+function isStandardRaceType(type){return type==='經典挑戰'||type==='標準賽事'||type==='標準挑戰'}
+function isSimulationType(type){return type==='日常挑戰'||type==='模擬賽挑戰'||type==='賽事挑戰'}
+function isRaceChallengeType(type){return isStandardRaceType(type)||isSimulationType(type)}
+function standardRaceItems(division){
+  const out=[];
+  STATIONS.forEach(s=>{
+    out.push({name:'Run',detail:'1 km',distance_m:1000});
+    out.push({name:s,detail:DETAILS[s]?.[division]||''});
+  });
+  return out;
+}
+function standardDivisionLabel(division){
+  return division==='Women Open'?'女子':division==='Men Open'?'男子':division==='Mixed Doubles'?'Mixed':String(division||'');
+}
+function currentRaceTemplate(){return RACE_TEMPLATES[q('#raceTemplate')?.value]||RACE_TEMPLATES.lowerBlast}
+function simulationItems(templateId){
+  const t=RACE_TEMPLATES[templateId]||RACE_TEMPLATES.lowerBlast;
+  return t.build();
+}
+function updateRaceTemplateUI(){
+  const t=currentRaceTemplate();
+  const items=t.build();
+
+  q('#dailyPreviewHead').textContent=`${t.label}｜${t.duration}｜強度 ${t.intensity}/10`;
+  q('#dailyPreviewDesc').textContent=t.description||'';
+  q('#dailyPreviewEquipment').textContent=`器材：${t.equipment}`;
+  q('#dailyPreviewList').innerHTML=items.map(x=>`<li><b>${esc(x.name)}</b>${x.detail?`<span>${esc(x.detail)}</span>`:''}</li>`).join('');
+  q('#dailyPreviewTotal').textContent=t.total;
+}
+
 const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
 let allResults=[],session=null,ticker=null,finishedSession=null,pendingWallChallenge=null,customOrder=[{id:uid(),name:'Run',distance:500,weight:'',reps:''}];
 function uid(){return crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
@@ -1235,7 +2456,7 @@ function configurationMessage(){
   return '網站尚未完成雲端設定。請先在 config.js 填入 Supabase Project URL 與 Publishable key。';
 }
 async function api(path,opts={}){
-  if(!isConfigured()) throw new Error('HYROX_CONFIG_MISSING');
+  if(!isConfigured()) throw new Error('PUBLIC_CONFIG_MISSING');
   const url=cloudConfig.url.replace(/\/$/,'')+'/rest/v1/'+path;
   const headers={
     apikey:cloudConfig.key,
@@ -1250,20 +2471,25 @@ async function api(path,opts={}){
   return txt?JSON.parse(txt):null;
 }
 async function loadResults(){
-  const box=q('#resultsList');
-  if(box) box.innerHTML='<div class="score-empty">正在載入成績牆…</div>';
+  const ids=['womenResults','menResults','mixedResults','dailyResults'];
+  const loading='<div class="score-empty">正在載入成績…</div>';
+  ids.forEach(id=>{const el=q('#'+id); if(el)el.innerHTML=loading});
+
   try{
     if(!isConfigured()){
       allResults=[];
-      if(box) box.innerHTML='<div class="score-empty">網站尚未完成雲端設定，暫時無法載入成績牆。</div>';
+      const msg='<div class="score-empty">網站尚未完成雲端設定。</div>';
+      ids.forEach(id=>{const el=q('#'+id); if(el)el.innerHTML=msg});
       return;
     }
+
     allResults=await api(TABLE+'?select=*&order=created_at.desc&limit=1000');
     renderWall();
   }catch(e){
     console.error(e);
     allResults=[];
-    if(box) box.innerHTML='<div class="score-empty">成績牆暫時無法載入，請稍後再試。</div>';
+    const msg='<div class="score-empty">目前無法載入成績，請稍後再試。</div>';
+    ids.forEach(id=>{const el=q('#'+id); if(el)el.innerHTML=msg});
     toast('目前無法連線到成績牆');
   }
 }
@@ -1370,18 +2596,50 @@ function updateCustomPreview(rerender=true){
   const runDistance=customOrder.filter(x=>x.name==='Run').reduce((s,x)=>s+(Number(x.distance)||0),0),stations=customOrder.filter(x=>x.name!=='Run').length;
   if(rerender)renderCustomOrder();q('#customRunPreview').textContent=(runDistance/1000).toFixed(1)+' km';q('#customStationPreview').textContent=stations;q('#customItemPreview').textContent=customOrder.length;
 }
-function standardItems(division){const out=[];STATIONS.forEach(s=>{out.push({name:'Run',detail:'1 km',distance_m:1000});out.push({name:s,detail:DETAILS[s][division]||''})});return out}
 function customItems(){return customOrder.map(item=>{const ex=CUSTOM_EXERCISES.find(x=>x.name===item.name);return {name:item.name,detail:formatCustomDetail(item,ex?.cat||'自訂訓練項目'),distance_m:Number(item.distance)||null,weight_kg:String(item.weight||'').trim()||null,reps:Number(item.reps)||null}})}
 function startSession(type){
- const standard=type==='標準挑戰';
- if(!standard&&q('#customName').dataset.autoName==='1')setDefaultCustomName(true);
- const division=standard?q('#standardDivision').value:'Custom';
- const title=(standard?q('#standardName').value:q('#customName').value).trim()||(standard?'Full HYROX Simulation':uniqueAutoCustomName());
- if(title.length>80){toast('挑戰名稱最多 80 個字');return}
- const items=standard?standardItems(division):customItems();
- if(!items.length){toast('請至少設定一個挑戰項目');return}
- session={id:uid(),challengeType:type,division,title,items:items.map((x,i)=>({...x,id:uid(),done:false,index:i+1})),startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true};
- q('#sessionTitle').textContent=title;q('#sessionMeta').textContent=standard?division:'Custom Challenge';q('#trainingModal').classList.add('open');renderSession();startTicker();
+  const isStandard=type==='經典挑戰';
+  const isSimulation=type==='日常挑戰';
+
+  if(type==='自訂挑戰'&&q('#customName').dataset.autoName==='1')setDefaultCustomName(true);
+
+  let division='Custom',title='',items=[],templateId=null,templateLabel=null;
+
+  if(isStandard){
+    division=q('#standardDivision').value;
+    title=`經典挑戰｜${standardDivisionLabel(division)}`;
+    items=standardRaceItems(division);
+    templateId='standardRace';
+    templateLabel='經典挑戰';
+  }else if(isSimulation){
+    const t=currentRaceTemplate();
+    division='Open';
+    title=t.label;
+    items=t.build();
+    templateId=t.id;
+    templateLabel=t.label;
+  }else{
+    division='Custom';
+    title=q('#customName').value.trim()||uniqueAutoCustomName();
+    items=customItems();
+  }
+
+  if(title.length>80){toast('挑戰名稱最多 80 個字');return}
+  if(!items.length){toast('請至少設定一個挑戰項目');return}
+
+  session={
+    id:uid(),challengeType:type,division,title,templateId,templateLabel,
+    items:items.map((x,i)=>({...x,id:uid(),done:false,index:i+1})),
+    startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true
+  };
+
+  q('#sessionTitle').textContent=title;
+  q('#sessionMeta').textContent=isStandard
+    ?`標準模式 · ${standardDivisionLabel(division)}`
+    :isSimulation?templateLabel:'Custom Challenge';
+  q('#trainingModal').classList.add('open');
+  renderSession();
+  startTicker();
 }
 function elapsedMs(){if(!session)return 0;const now=session.running?Date.now():(session.pausedAt||Date.now());return Math.max(0,now-session.startedAt-session.pausedTotal)}
 function startTicker(){clearInterval(ticker);ticker=setInterval(()=>{if(session)q('#sessionTimer').textContent=fmt(elapsedMs()/1000)},250)}
@@ -1448,6 +2706,7 @@ async function saveLog(){
     },0),
     stations:{
       challenge_items:finishedSession.items.map((x,i)=>({name:x.name,detail:x.detail,order:i+1,distance_m:x.distance_m??null,weight_kg:x.weight_kg??null,reps:x.reps??null})),
+      ...(finishedSession.templateId?{challenge_template:{id:finishedSession.templateId,label:finishedSession.templateLabel||''}}:{}),
       ...(challengeSource?{challenge_source:challengeSource}:{})
     },
     notes:cleanNotes,completion_pct:100
@@ -1468,140 +2727,201 @@ function challengeCount(id){
 }
 function stripChallengePrefix(title){return String(title||'').replace(/^(?:發起挑戰：)+/,'').trim()}
 function isChallengeResult(r){return !!(r?.stations?.challenge_source?.source_result_id)||/^發起挑戰：/.test(String(r?.workout_name||''))}
+
+function normalizeDailyTemplateId(id){
+  const map={heavyDay:'moverDay',dualEngine:'aerobicMax',noStop:'fatBurn'};
+  return map[id]||id;
+}
+function simulationTemplateIdForRow(r){
+  const saved=normalizeDailyTemplateId(String(r?.stations?.challenge_template?.id||'').trim());
+  if(saved&&RACE_TEMPLATES[saved])return saved;
+
+  const name=String(r?.workout_name||'');
+  const legacyNames={
+    '重裝日':'moverDay',
+    '雙引擎':'aerobicMax',
+    '不准停':'fatBurn'
+  };
+  for(const [oldName,newId] of Object.entries(legacyNames)){
+    if(name.includes(oldName))return newId;
+  }
+
+  const found=Object.entries(RACE_TEMPLATES)
+    .filter(([,t])=>t&&t.label)
+    .find(([,t])=>name.includes(t.label));
+  return normalizeDailyTemplateId(found?.[0]||'easyHybrid');
+}
 function wallGroup(r){
   if(r.workout_type==='自訂挑戰')return 'custom';
-  if(r.workout_type!=='標準挑戰')return 'other';
-  const d=String(r.division||'').toLowerCase();
-  if(d.includes('women'))return 'standard-women';
-  if(d.includes('men'))return 'standard-men';
-  if(d.includes('mixed'))return 'standard-mixed';
-  return 'standard-other';
+
+  if(isStandardRaceType(r.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
+    const d=String(r.division||'').toLowerCase();
+    if(d.includes('women'))return 'standard-women';
+    if(d.includes('men'))return 'standard-men';
+    if(d.includes('mixed'))return 'standard-mixed';
+    return 'standard-other';
+  }
+
+  if(isSimulationType(r.workout_type)){
+    return `simulation-${simulationTemplateIdForRow(r)}`;
+  }
+
+  return 'other';
 }
+
 function groupLabel(key){
-  return ({custom:'自訂挑戰','standard-women':'女子標準','standard-men':'男子標準','standard-mixed':'Mixed Doubles','standard-other':'標準挑戰',other:'挑戰'})[key]||'挑戰';
-}
-function groupRows(key){
-  const rows=allResults.filter(r=>wallGroup(r)===key);
-  if(key==='custom'){
-    return rows.sort((a,b)=>challengeCount(b.id)-challengeCount(a.id)||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  if(key==='standard-women')return '女子';
+  if(key==='standard-men')return '男子';
+  if(key==='standard-mixed')return 'Mixed';
+  if(String(key||'').startsWith('simulation-')){
+    const id=String(key).replace('simulation-','');
+    return RACE_TEMPLATES[id]?.label||'日常挑戰';
   }
-  return rows.sort((a,b)=>(Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12)||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  return '挑戰';
 }
-function filtered(){
-  const selected=q('#wallCategory')?.value||'all';
-  if(selected==='all'){
-    const rows=[...allResults].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
-    return {rows,ranks:new Map()};
-  }
-  const rows=groupRows(selected);
-  const ranks=new Map();
-  rows.forEach((r,i)=>ranks.set(String(r.id),{rank:i+1,key:selected}));
-  return {rows,ranks};
-}
-function updateWallSortNote(){
-  const selected=q('#wallCategory')?.value||'all';
-  const notes={
-    all:'全部：最新登錄的成績排在前面，不做跨類型排名。',
-    custom:'自訂挑戰：被挑戰次數最多的排在前面。',
-    'standard-women':'女子標準挑戰：完成時間最快的排在前面。',
-    'standard-men':'男子標準挑戰：完成時間最快的排在前面。',
-    'standard-mixed':'Mixed Doubles：完成時間最快的排在前面。'
-  };
-  q('#wallSortNote').textContent=notes[selected]||'';
-}
+
 function getChallengeItems(r){
   const items=r?.stations?.challenge_items;
   if(Array.isArray(items)&&items.length)return [...items].sort((a,b)=>(a.order||0)-(b.order||0));
-  if(r?.workout_type==='標準挑戰')return standardItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
+
+  if(isStandardRaceType(r?.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
+    return standardRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
+  }
+
+  if(isSimulationType(r?.workout_type)){
+    const tid=simulationTemplateIdForRow(r);
+    return simulationItems(tid).map((x,i)=>({...x,order:i+1}));
+  }
+
   return [];
 }
+
 function compactChallengeContent(r){
   const items=getChallengeItems(r);
   if(!items.length)return '';
-  if(r.workout_type==='標準挑戰')return `${r.division||'Standard'} · ${items.length} 項`;
-  const shown=items.slice(0,6).map(x=>`${x.name}${x.detail?` ${x.detail}`:''}`);
-  return shown.join(' · ')+(items.length>6?` · +${items.length-6}`:'');
-}
-function openChallengeRules(id){
-  const r=allResults.find(x=>String(x.id)===String(id));if(!r)return;
-  if(isChallengeResult(r)){toast('這筆是發起挑戰後的成績，不能再次發起挑戰');return}
-  const sourceItems=getChallengeItems(r);
-  if(!sourceItems.length){toast('這筆舊紀錄沒有保存完整挑戰內容');return}
-  if(!(Number(r.total_seconds)>0)){toast('這筆紀錄沒有有效的目標時間，暫時無法發起挑戰');return}
-  pendingWallChallenge=r;
-  q('#rulesChallengeName').textContent=r.workout_name||'Challenge';
-  q('#rulesChallengeMeta').textContent=`${groupLabel(wallGroup(r))} · ${r.nickname||''}`;
-  q('#rulesTargetTime').textContent=fmt(r.total_seconds);
-  q('#challengeRulesModal').classList.add('open');
-}
-async function confirmWallChallenge(){
-  const r=pendingWallChallenge;if(!r)return;
-  const sourceItems=getChallengeItems(r);if(!sourceItems.length)return;
-  q('#confirmWallChallengeBtn').disabled=true;
-  q('#confirmWallChallengeBtn').textContent='準備中…';
-  try{
-    const counterResult=await recordChallengeEvent(r.id);
-    renderWall();
-    if(counterResult && counterResult.counted===false){
-      toast('一小時內重複挑戰同一菜單，本次不重複計入被挑戰次數');
-    }
-  }catch(e){
-    console.error('challenge count update failed',e);
-    q('#confirmWallChallengeBtn').disabled=false;
-    q('#confirmWallChallengeBtn').textContent='挑戰開始';
-    toast('目前無法發起挑戰，請稍後再試');
-    return;
+
+  if(isStandardRaceType(r.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
+    return `8 × 1 km · 8 項挑戰`;
   }
-  const challengeType=r.workout_type==='標準挑戰'?'標準挑戰':'自訂挑戰';
-  session={
-    id:uid(),challengeType,division:r.division||'Custom',title:r.workout_name||'Shared Challenge',
-    items:sourceItems.map((x,i)=>({name:x.name,detail:x.detail||'',distance_m:x.distance_m??null,weight_kg:x.weight_kg??null,reps:x.reps??null,id:uid(),done:false,index:i+1})),
-    startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true,
-    sourceNickname:r.nickname,sourceResultId:r.id,isWallChallenge:true,targetSeconds:Number(r.total_seconds)
-  };
-  pendingWallChallenge=null;
-  q('#challengeRulesModal').classList.remove('open');
-  q('#confirmWallChallengeBtn').disabled=false;
-  q('#confirmWallChallengeBtn').textContent='挑戰開始';
-  q('#sessionTitle').textContent=session.title;
-  q('#sessionMeta').textContent=`目標 ${fmt(session.targetSeconds)} · 發起 ${r.nickname} 的${challengeType==='標準挑戰'?'標準':'自訂'}挑戰`;
-  q('#trainingModal').classList.add('open');
-  renderSession();startTicker();
+
+  if(isSimulationType(r.workout_type)){
+    const t=RACE_TEMPLATES[simulationTemplateIdForRow(r)]||RACE_TEMPLATES.easyHybrid;
+    return `${t.label} · 強度 ${t.intensity}/10 · ${items.length} 項`;
+  }
+
+  return '';
 }
-function closeChallengeRules(){
-  pendingWallChallenge=null;
-  q('#challengeRulesModal').classList.remove('open');
+
+function medalForRank(rank){
+  return String(rank);
 }
-function resultRow(r,rankInfo){
-  const rank=rankInfo?.rank||0,top=rank>0&&rank<=5,items=getChallengeItems(r),count=challengeCount(r.id),label=groupLabel(rankInfo?.key||wallGroup(r)),content=compactChallengeContent(r),challengedResult=isChallengeResult(r);
-  const canChallenge=!challengedResult&&items.length&&Number(r.total_seconds)>0;
-  const action=challengedResult
-    ?`<div class="score-rechallenge-note">挑戰結果</div>`
-    :(canChallenge?`<button class="btn small primary" data-challenge-copy="${esc(r.id)}">發起挑戰</button>`:`<button class="btn small" disabled title="缺少完整挑戰內容或目標時間">發起挑戰</button>`);
-  const countBlock=challengedResult?`<div class="score-challenges score-challenges-hidden"></div>`:`<div class="score-challenges">被挑戰次數<strong>${count}</strong></div>`;
-  return `<div class="score-row ${top?`rank-top rank-${rank}`:''} ${challengedResult?'challenge-result-row':''}">
-    <div class="score-rank">${rank?`#${rank}`:''}</div>
-    <div class="score-main"><div class="score-title">${esc(r.workout_name||'Challenge')}</div><div class="score-meta">${esc(label)} · ${esc(r.nickname||'')} · ${esc(r.session_date||'')}</div>${content?`<div class="score-content">${esc(content)}</div>`:''}</div>
+
+function classicRows(groupKey){
+  return allResults
+    .filter(r=>wallGroup(r)===groupKey && Number(r.total_seconds)>0)
+    .sort((a,b)=>(Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12)
+      ||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+}
+
+function dailyDifficulty(r){
+  const id=simulationTemplateIdForRow(r);
+  return Number(RACE_TEMPLATES[id]?.intensity)||0;
+}
+
+function dailyRows(){
+  return allResults
+    .filter(r=>isSimulationType(r.workout_type) && Number(r.total_seconds)>0)
+    .sort((a,b)=>{
+      const diff=dailyDifficulty(b)-dailyDifficulty(a);
+      if(diff!==0)return diff;
+      const time=(Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12);
+      if(time!==0)return time;
+      return String(b.created_at||'').localeCompare(String(a.created_at||''));
+    });
+}
+
+function publicChallengeTitle(value){
+  let s=String(value||'Challenge');
+  const legacy=/\b(?:STYREKX|HARCO|HYROX)\b/gi;
+  return s.replace(legacy,'Hybrid');
+}
+
+function cleanStoredTitle(r){
+  return publicChallengeTitle(stripChallengePrefix(r?.workout_name||'Challenge'));
+}
+
+function classicResultRow(r,rank,groupKey){
+  const rankText=medalForRank(rank);
+  const typeClass=`classic-${groupKey.replace('standard-','')}`;
+  return `<div class="score-row classic-score-row ${typeClass}">
+    <div class="score-athlete">${esc(r.nickname||'')}</div>
+    <div class="score-main">
+      <div class="score-title">${esc(cleanStoredTitle(r))}</div>
+      <div class="score-meta">${esc(r.session_date||'')}</div>
+      <div class="score-content">${esc(compactChallengeContent(r))}</div>
+    </div>
+    <div class="score-rank-number" aria-label="第 ${rankText} 名">${rankText}</div>
     <div class="score-time">${fmt(r.total_seconds)}</div>
-    ${countBlock}
-    <div class="score-action">${action}</div>
   </div>`;
 }
-function renderWall(){
-  updateWallSortNote();
-  const {rows,ranks}=filtered();
-  q('#resultsList').innerHTML=rows.length?rows.map(r=>resultRow(r,ranks.get(String(r.id)))).join(''):'<div class="score-empty">這個分類目前還沒有成績。完成一次挑戰，就可以留下第一筆。</div>';
-  qa('[data-challenge-copy]').forEach(b=>b.onclick=()=>openChallengeRules(b.dataset.challengeCopy));
+
+function dailyResultRow(r){
+  const id=simulationTemplateIdForRow(r);
+  const t=RACE_TEMPLATES[id]||RACE_TEMPLATES.easyHybrid;
+  return `<div class="score-row daily-score-row daily-${esc(id)}">
+    <div class="score-athlete">${esc(r.nickname||'')}</div>
+    <div class="score-main">
+      <div class="score-title">${esc(t.label)}</div>
+      <div class="score-meta">${esc(r.session_date||'')}</div>
+      <div class="score-content">${esc(t.description||'')}</div>
+    </div>
+    <div class="daily-difficulty">${t.intensity}<span>/10</span></div>
+    <div class="score-time">${fmt(r.total_seconds)}</div>
+  </div>`;
 }
-renderPicker();updateCustomPreview();setDefaultCustomName(true);q('#publicConfigWarning').classList.toggle('show',!isConfigured());q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});loadResults();
-qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardBtn').onclick=()=>startSession('標準挑戰');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#closeSessionBtn').onclick=()=>{if(session)pauseToggle();q('#trainingModal').classList.remove('open')};q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
-q('#wallCategory').addEventListener('change',renderWall);
-q('#closeRulesBtn').onclick=closeChallengeRules;
-q('#cancelRulesBtn').onclick=closeChallengeRules;
-q('#confirmWallChallengeBtn').onclick=confirmWallChallenge;
-q('#closeFailureBtn').onclick=()=>q('#challengeFailureModal').classList.remove('open');
-q('#challengeRulesModal').onclick=e=>{if(e.target===q('#challengeRulesModal'))closeChallengeRules()};
-q('#challengeFailureModal').onclick=e=>{if(e.target===q('#challengeFailureModal'))q('#challengeFailureModal').classList.remove('open')};
+
+function renderClassicWall(){
+  const groups=[
+    ['standard-women','#womenResults','#womenCount'],
+    ['standard-men','#menResults','#menCount'],
+    ['standard-mixed','#mixedResults','#mixedCount']
+  ];
+
+  groups.forEach(([groupKey,boxSel,countSel])=>{
+    const rows=classicRows(groupKey);
+    const box=q(boxSel);
+    const count=q(countSel);
+    if(count)count.textContent=`${rows.length} 筆`;
+    if(!box)return;
+
+    box.innerHTML=rows.length
+      ?rows.map((r,i)=>classicResultRow(r,i+1,groupKey)).join('')
+      :'<div class="score-empty compact-empty">目前還沒有成績。</div>';
+  });
+}
+
+function renderDailyWall(){
+  const box=q('#dailyResults');
+  const count=q('#dailyCount');
+  const rows=dailyRows();
+  if(count)count.textContent=`${rows.length} 筆`;
+  if(!box)return;
+  box.innerHTML=rows.length
+    ?rows.map(dailyResultRow).join('')
+    :'<div class="score-empty compact-empty">目前還沒有日常挑戰成績。</div>';
+}
+
+function renderWall(){
+  renderClassicWall();
+  renderDailyWall();
+}
+renderPicker();updateCustomPreview();setDefaultCustomName(true);updateRaceTemplateUI();
+q('#publicConfigWarning').classList.toggle('show',!isConfigured());
+q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
+q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
+
+loadResults();
+qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardRaceBtn').onclick=()=>startSession('經典挑戰');q('#startSimulationBtn').onclick=()=>startSession('日常挑戰');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#closeSessionBtn').onclick=()=>{if(session)pauseToggle();q('#trainingModal').classList.remove('open')};q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
 })();
 </script>
 </body>
