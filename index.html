@@ -1,15 +1,6 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-
-  <!-- PWA / Add to Home Screen -->
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0f141b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Hybrid Log">
-  <link rel="apple-touch-icon" href="/icon-192.png">
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d14">
@@ -1741,6 +1732,85 @@ nav.tabs button.active{
   }
 }
 
+
+/* ===== Mobile training controls: keep actions away from bottom overlays =====
+   On phones the action buttons sit ABOVE the exercise list instead of at
+   the bottom of the screen. This prevents Netlify/mobile-browser overlays
+   from covering critical controls, even with larger text/display scaling.
+*/
+@media(max-width:760px){
+  #trainingModal .modal-card{
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  #trainingModal .modal-head{
+    order:1;
+    flex:0 0 auto;
+  }
+
+  #trainingModal .timer-box{
+    order:2;
+    flex:0 0 auto;
+  }
+
+  #trainingModal .session-footer{
+    order:3;
+    position:static;
+    flex:0 0 auto;
+    width:100%;
+    margin:10px 0 8px;
+    padding:0;
+    background:transparent;
+    border-top:0;
+    backdrop-filter:none;
+
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:7px;
+  }
+
+  #trainingModal .session-footer .btn{
+    width:100%;
+    min-width:0;
+    min-height:42px;
+    padding:8px 8px;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    line-height:1.2;
+  }
+
+  /* The most important action gets its own full-width row. */
+  #trainingModal #finishChallengeBtn{
+    grid-column:1 / -1;
+    min-height:46px;
+  }
+
+  #trainingModal .session-list{
+    order:4;
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:calc(26px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Extra protection for very narrow viewports / large system fonts. */
+@media(max-width:380px){
+  #trainingModal .session-footer{
+    grid-template-columns:1fr;
+  }
+  #trainingModal #finishChallengeBtn{
+    grid-column:auto;
+  }
+  #trainingModal .session-footer .btn{
+    min-height:44px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2933,16 +3003,5 @@ loadResults();
 qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardRaceBtn').onclick=()=>startSession('經典挑戰');q('#startSimulationBtn').onclick=()=>startSession('日常挑戰');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#closeSessionBtn').onclick=()=>{if(session)pauseToggle();q('#trainingModal').classList.remove('open')};q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
 })();
 </script>
-
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .catch(err => console.error("Service Worker registration failed:", err));
-  });
-}
-</script>
-
 </body>
 </html>
