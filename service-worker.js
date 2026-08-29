@@ -5,7 +5,8 @@ const APP_SHELL = [
   "/index.html",
   "/manifest.webmanifest",
   "/icon-192.png",
-  "/icon-512.png"
+  "/icon-512.png",
+  "/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", event => {
@@ -32,10 +33,10 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Do not intercept Supabase or other cross-origin requests.
+  // Never intercept Supabase / other external services.
   if (url.origin !== self.location.origin) return;
 
-  // Network-first for page navigation, fallback to cached app shell.
+  // Page navigation: always try the latest version first.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -49,7 +50,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Cache-first for local static assets.
+  // Static same-origin files: use cache, then network.
   event.respondWith(
     caches.match(request).then(cached =>
       cached ||
