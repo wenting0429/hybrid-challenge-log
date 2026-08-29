@@ -1,13 +1,15 @@
-const CACHE_NAME = "hybrid-challenge-log-v1";
+const CACHE_NAME = "hybrid-challenge-log-v2";
+const SCOPE = self.registration.scope;
+const appUrl = path => new URL(path, SCOPE).href;
 
 const APP_SHELL = [
-  "/",
-  "/index.html",
-  "/manifest.webmanifest",
-  "/icon-192.png",
-  "/icon-512.png",
-  "/apple-touch-icon.png"
-];
+  "",
+  "index.html",
+  "manifest.webmanifest",
+  "icon-192.png",
+  "icon-512.png",
+  "apple-touch-icon.png"
+].map(appUrl);
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -33,24 +35,24 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Never intercept Supabase / other external services.
+  // Never intercept Supabase or any other external service.
   if (url.origin !== self.location.origin) return;
 
-  // Page navigation: always try the latest version first.
+  // Page navigation: prefer the latest network version, fall back to the app shell.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put("/index.html", copy));
+          caches.open(CACHE_NAME).then(cache => cache.put(appUrl("index.html"), copy));
           return response;
         })
-        .catch(() => caches.match("/index.html"))
+        .catch(() => caches.match(appUrl("index.html")))
     );
     return;
   }
 
-  // Static same-origin files: use cache, then network.
+  // Static same-origin files: cache first, then network.
   event.respondWith(
     caches.match(request).then(cached =>
       cached ||
