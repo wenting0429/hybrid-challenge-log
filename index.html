@@ -1968,6 +1968,356 @@ nav.tabs button.active{
   }
 }
 
+
+
+/* ===== Score wall redesign v4 ===== */
+.ranking-card::after{display:none!important}
+.ranking-card-head{
+  padding:16px 16px 12px;
+}
+.ranking-card-head h3{
+  font-size:18px;
+  line-height:1.2;
+}
+.ranking-count{
+  font-size:10px;
+}
+.ranking-scroll{
+  height:430px;
+  padding:12px;
+}
+.ranking-card .score-row{
+  display:block!important;
+  min-height:0!important;
+  margin:0 0 12px 0!important;
+  padding:0!important;
+  border-radius:16px!important;
+  overflow:hidden;
+}
+.ranking-card .score-row:last-child{margin-bottom:0!important}
+.wall-entry{
+  padding:14px 15px;
+}
+.wall-entry-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+}
+.wall-entry-main{min-width:0;flex:1}
+.wall-entry-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:9px;
+}
+.wall-chip{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 9px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+  color:#aab6c3;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.02em;
+}
+.wall-chip.rank{
+  color:#fff1bf;
+  border-color:rgba(255,209,102,.26);
+  background:rgba(255,209,102,.10);
+}
+.wall-chip.type{
+  color:#9fe8e3;
+  border-color:rgba(112,222,216,.18);
+  background:rgba(112,222,216,.07);
+}
+.wall-chip.date{
+  color:#95a3b6;
+}
+.wall-entry-athlete{
+  font-size:22px;
+  line-height:1.08;
+  font-weight:950;
+  letter-spacing:-.03em;
+  color:#f5f8fb;
+  word-break:break-word;
+}
+.wall-entry-result{
+  flex:0 0 auto;
+  text-align:right;
+}
+.wall-entry-time-label{
+  color:#7e8d9f;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.08em;
+}
+.wall-entry-time{
+  margin-top:3px;
+  color:#ffffff;
+  font-size:31px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.05em;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.wall-entry-title{
+  margin-top:12px;
+  color:#e8eef5;
+  font-size:15px;
+  font-weight:900;
+  line-height:1.35;
+}
+.wall-entry-content{
+  margin-top:8px;
+  color:#c2ccd8;
+  font-size:12px;
+  line-height:1.65;
+  white-space:normal;
+  word-break:break-word;
+}
+.wall-entry-note{
+  margin-top:10px;
+  padding:10px 11px;
+  border:1px dashed rgba(255,255,255,.12);
+  border-radius:11px;
+  background:rgba(255,255,255,.03);
+  color:#d6dee8;
+  font-size:12px;
+  line-height:1.65;
+  white-space:normal;
+  word-break:break-word;
+}
+.wall-entry-note b{color:#ffd0c1}
+.ranking-card .score-athlete,
+.ranking-card .score-main,
+.ranking-card .score-rank-number,
+.ranking-card .daily-difficulty,
+.ranking-card .score-time{all:unset}
+.ranking-card .compact-empty{
+  padding:20px 14px;
+  border-radius:14px;
+  font-size:12px;
+  line-height:1.5;
+}
+.daily-score-row .wall-entry-athlete{color:#fff4ee}
+.daily-score-row .wall-entry-title{color:#ffd3c4}
+.daily-score-row .wall-chip.type{
+  color:#ffd3c4;
+  border-color:rgba(255,151,105,.22);
+  background:rgba(255,151,105,.08);
+}
+@media(max-width:760px){
+  .wall-grid{grid-template-columns:1fr!important;gap:12px!important}
+  .ranking-scroll{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding:10px;
+  }
+  .ranking-card-head{
+    padding:14px 14px 10px;
+  }
+  .ranking-card-head h3{font-size:17px}
+  .wall-entry{padding:13px 13px 12px}
+  .wall-entry-top{gap:10px;align-items:flex-start}
+  .wall-entry-athlete{font-size:20px}
+  .wall-entry-time{font-size:26px}
+  .wall-entry-title{font-size:14px}
+  .wall-entry-content,.wall-entry-note{font-size:11.5px;line-height:1.6}
+}
+@media(max-width:520px){
+  .wall-entry-top{display:block}
+  .wall-entry-result{
+    margin-top:10px;
+    text-align:left;
+  }
+  .wall-entry-time{font-size:28px}
+  .wall-entry-athlete{font-size:21px}
+  .wall-entry-meta{margin-bottom:8px}
+}
+
+
+
+/* ===== Score wall v5: rank-first, single-line athlete identity ===== */
+.ranking-scroll{
+  height:min(430px,62vh);
+  padding:10px;
+}
+.ranking-card .score-row{
+  display:block!important;
+  margin:0 0 9px!important;
+  padding:0!important;
+  border-radius:13px!important;
+  overflow:hidden!important;
+}
+.wall-entry{
+  display:grid;
+  grid-template-columns:66px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 13px;
+}
+.wall-entry-rank{
+  align-self:stretch;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  padding-right:11px;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.wall-entry-rank span{
+  color:#758396;
+  font-size:8px;
+  line-height:1.1;
+  font-weight:900;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+.wall-entry-rank strong{
+  display:block;
+  margin-top:4px;
+  color:#f3f6f9;
+  font-size:25px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.06em;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.wall-rank-1 .wall-entry-rank strong{color:#ffd879}
+.wall-rank-2 .wall-entry-rank strong{color:#bfe9ff}
+.wall-rank-3 .wall-entry-rank strong{color:#ffc0ad}
+.wall-rank-1{box-shadow:inset 3px 0 0 rgba(255,216,121,.7)!important}
+.wall-rank-2{box-shadow:inset 3px 0 0 rgba(191,233,255,.45)!important}
+.wall-rank-3{box-shadow:inset 3px 0 0 rgba(255,192,173,.42)!important}
+.wall-entry-core{
+  min-width:0;
+}
+.wall-entry-athlete{
+  display:block;
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  word-break:normal;
+  color:#f6f8fb;
+  font-size:18px;
+  line-height:1.15;
+  font-weight:950;
+  letter-spacing:-.025em;
+}
+.wall-entry-subline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  margin-top:5px;
+}
+.wall-entry-title{
+  min-width:0;
+  margin:0!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#b9c4d0;
+  font-size:11px!important;
+  line-height:1.25;
+  font-weight:850;
+}
+.wall-entry-date{
+  flex:0 0 auto;
+  color:#718094;
+  font-size:9px;
+  line-height:1.2;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.wall-entry-note{
+  margin-top:7px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#aab5c2!important;
+  font-size:10.5px!important;
+  line-height:1.45!important;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.wall-entry-result{
+  min-width:74px;
+  text-align:right;
+}
+.wall-entry-result span{
+  display:block;
+  color:#758396;
+  font-size:8px;
+  line-height:1.1;
+  font-weight:850;
+  letter-spacing:.05em;
+  white-space:nowrap;
+}
+.wall-entry-result strong{
+  display:block;
+  margin-top:4px;
+  color:#fff;
+  font-size:20px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.045em;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.wall-entry-content{display:none!important}
+.daily-score-row .wall-entry-athlete{color:#fff3ed}
+.daily-score-row .wall-entry-title{color:#dfb2a4!important}
+
+@media(max-width:760px){
+  .ranking-scroll{
+    height:min(620px,70vh)!important;
+    max-height:620px!important;
+    overflow-y:auto!important;
+    padding:8px!important;
+  }
+  .wall-entry{
+    grid-template-columns:58px minmax(0,1fr) 70px;
+    gap:9px;
+    padding:11px 10px;
+  }
+  .wall-entry-rank{padding-right:8px}
+  .wall-entry-rank span{font-size:7px}
+  .wall-entry-rank strong{font-size:22px}
+  .wall-entry-athlete{font-size:17px}
+  .wall-entry-subline{gap:6px;margin-top:4px}
+  .wall-entry-title{font-size:10px!important}
+  .wall-entry-date{font-size:8px}
+  .wall-entry-result{min-width:68px}
+  .wall-entry-result span{font-size:7px}
+  .wall-entry-result strong{font-size:18px}
+  .wall-entry-note{font-size:10px!important;line-height:1.4!important}
+}
+@media(max-width:380px){
+  .wall-entry{
+    grid-template-columns:52px minmax(0,1fr) 64px;
+    gap:7px;
+    padding:10px 8px;
+  }
+  .wall-entry-rank{padding-right:6px}
+  .wall-entry-rank strong{font-size:20px}
+  .wall-entry-athlete{font-size:16px}
+  .wall-entry-result{min-width:60px}
+  .wall-entry-result strong{font-size:16px}
+  .wall-entry-title{font-size:9.5px!important}
+  .wall-entry-date{display:none}
+}
+
 </style>
 
   <!-- PWA -->
@@ -2128,7 +2478,7 @@ nav.tabs button.active{
         <section class="ranking-card ranking-daily">
           <div class="ranking-card-head">
             <div>
-              <div class="ranking-card-kicker">DAILY TRAINING</div>
+              <div class="ranking-card-kicker">DAILY TRAINING LOG</div>
               <h3>日常訓練</h3>
             </div>
             <span class="ranking-count" id="dailyCount">0 筆</span>
@@ -2224,7 +2574,7 @@ nav.tabs button.active{
     </div>
     <div class="finish-form">
       <div class="field full" id="finishChallengeNameWrap" style="display:none"><label>挑戰名稱（可在登錄前修改）</label><input id="finishChallengeName" maxlength="80" placeholder="例如 Core & Sled Challenge"></div>
-      <div class="field full"><label>選手暱稱</label><input id="finishNickname" maxlength="30" placeholder="例如 咪咪"></div>
+      <div class="field full"><label>選手暱稱（最多 14 字）</label><input id="finishNickname" maxlength="14" placeholder="例如 咪咪" autocomplete="nickname"></div>
       <div class="field full"><label>備註（可留空）</label><textarea id="finishNotes" maxlength="500" placeholder="今天的感覺、策略、哪一站最卡……"></textarea></div>
     </div>
     <div class="actions" style="justify-content:center">
@@ -2241,6 +2591,8 @@ nav.tabs button.active{
 (() => {
 const TABLE='training_results';
 const ACTIVE_SESSION_KEY='hybridActiveSession_v1';
+const NICKNAME_MAX_LENGTH=14;
+const NICKNAME_DEVICE_SECRET_KEY='hybridNicknameDeviceSecret_v1';
 const PUBLIC_CONFIG=window.HYBRID_CONFIG||window.HYROX_CONFIG||{};
 const cloudConfig={
   url:String(PUBLIC_CONFIG.SUPABASE_URL||'').trim(),
@@ -2762,6 +3114,28 @@ function closeSessionView(){
   saveActiveSession();
 }
 function uid(){return crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
+function nicknameLength(v){return Array.from(String(v||'')).length}
+function getNicknameDeviceSecret(){
+  let secret=localStorage.getItem(NICKNAME_DEVICE_SECRET_KEY)||'';
+  if(secret)return secret;
+  const bytes=new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  secret=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+  localStorage.setItem(NICKNAME_DEVICE_SECRET_KEY,secret);
+  return secret;
+}
+function rpcTextValue(value){
+  if(Array.isArray(value))value=value[0];
+  if(value&&typeof value==='object')value=Object.values(value)[0];
+  return String(value??'').replace(/^"|"$/g,'').trim();
+}
+async function claimNicknameForThisDevice(nickname){
+  const result=await api('rpc/claim_nickname',{
+    method:'POST',
+    body:JSON.stringify({p_nickname:nickname,p_device_secret:getNicknameDeviceSecret()})
+  });
+  return rpcTextValue(result);
+}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function europeChallengeStamp(date=new Date()){
   const parts=new Intl.DateTimeFormat('en-GB',{
@@ -3311,7 +3685,7 @@ async function saveLog(){
   if(!finishedSession)return;
   const nickname=q('#finishNickname').value.trim();
   if(!nickname){toast('請先輸入選手暱稱');return}
-  if(nickname.length>30){toast('選手暱稱最多 30 個字');return}
+  if(nicknameLength(nickname)>NICKNAME_MAX_LENGTH){toast(`選手暱稱最多 ${NICKNAME_MAX_LENGTH} 字`);return}
   const isCustom=finishedSession.challengeType==='自訂挑戰';
   const editedTitle=isCustom?q('#finishChallengeName').value.trim():finishedSession.title;
   if(isCustom&&!editedTitle){toast('請替這個自訂挑戰取一個名稱');return}
@@ -3345,12 +3719,25 @@ async function saveLog(){
   };
   q('#saveLogBtn').disabled=true;q('#saveLogBtn').textContent='登錄中…';
   try{
+    const nicknameClaim=await claimNicknameForThisDevice(nickname);
+    if(nicknameClaim==='taken'){
+      toast('這個暱稱已由其他裝置使用，請換一個名字');
+      return;
+    }
+    if(nicknameClaim!=='ok'){
+      throw new Error('NICKNAME_CLAIM_'+(nicknameClaim||'UNKNOWN'));
+    }
     await addResult(row);
     localStorage.setItem('hyroxChallenge_lastNickname',nickname);
     q('#finishModal').classList.remove('open');finishedSession=null;
     toast('已登錄到成績牆');switchTab('wall')
-  }catch(e){console.error(e);toast('登錄失敗，請稍後再試')}
-  q('#saveLogBtn').disabled=false;q('#saveLogBtn').textContent='登錄到成績牆'
+  }catch(e){
+    console.error(e);
+    if(String(e?.message||'').includes('NICKNAME_CLAIM_')) toast('暱稱保護尚未啟用，請先執行 nickname-lock.sql');
+    else toast('登錄失敗，請稍後再試');
+  }finally{
+    q('#saveLogBtn').disabled=false;q('#saveLogBtn').textContent='登錄到成績牆';
+  }
 }
 function challengeCount(id){
   const source=String(id);
@@ -3431,21 +3818,21 @@ function getChallengeItems(r){
 function compactChallengeContent(r){
   const items=getChallengeItems(r);
   if(!items.length)return '';
-
-  if(isStandardRaceType(r.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
-    return `8 × 1 km · 8 項挑戰`;
-  }
-
-  if(isSimulationType(r.workout_type)){
-    const t=RACE_TEMPLATES[simulationTemplateIdForRow(r)]||RACE_TEMPLATES.easyHybrid;
-    return `${t.label} · 難度 ${t.intensity}/10 · ${items.length} 項`;
-  }
-
-  return '';
+  const parts=items.map(x=>[String(x.name||'').trim(),String(x.detail||'').trim()].filter(Boolean).join(' ')).filter(Boolean);
+  return parts.join(' ｜ ');
 }
 
-function medalForRank(rank){
-  return String(rank);
+function wallNoteText(r){
+  return String(r?.notes||'').trim();
+}
+
+function rankText(rank){
+  return '#'+String(Math.max(1,Number(rank)||1)).padStart(2,'0');
+}
+
+function rankToneClass(rank){
+  const n=Number(rank)||999;
+  return n===1?'wall-rank-1':n===2?'wall-rank-2':n===3?'wall-rank-3':'wall-rank-other';
 }
 
 function classicRows(groupKey){
@@ -3455,21 +3842,29 @@ function classicRows(groupKey){
       ||String(b.created_at||'').localeCompare(String(a.created_at||'')));
 }
 
-function dailyDifficulty(r){
-  const id=simulationTemplateIdForRow(r);
-  return Number(RACE_TEMPLATES[id]?.intensity)||0;
-}
-
 function dailyRows(){
   return allResults
     .filter(r=>isSimulationType(r.workout_type) && Number(r.total_seconds)>0)
-    .sort((a,b)=>{
-      const diff=dailyDifficulty(b)-dailyDifficulty(a);
-      if(diff!==0)return diff;
-      const time=(Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12);
-      if(time!==0)return time;
-      return String(b.created_at||'').localeCompare(String(a.created_at||''));
+    .sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))
+      || (Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12));
+}
+
+function dailyTemplateRankMap(){
+  const groups=new Map();
+  allResults
+    .filter(r=>isSimulationType(r.workout_type) && Number(r.total_seconds)>0)
+    .forEach(r=>{
+      const key=simulationTemplateIdForRow(r);
+      if(!groups.has(key))groups.set(key,[]);
+      groups.get(key).push(r);
     });
+  const ranks=new Map();
+  groups.forEach(rows=>{
+    rows.sort((a,b)=>(Number(a.total_seconds)||1e12)-(Number(b.total_seconds)||1e12)
+      ||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    rows.forEach((r,i)=>ranks.set(String(r.id),i+1));
+  });
+  return ranks;
 }
 
 function publicChallengeTitle(value){
@@ -3482,35 +3877,57 @@ function cleanStoredTitle(r){
   return publicChallengeTitle(stripChallengePrefix(r?.workout_name||'Challenge'));
 }
 
+function wallNoteText(r){
+  return String(r?.notes||'').trim();
+}
+
 function classicResultRow(r,rank,groupKey){
-  const rankText=medalForRank(rank);
   const typeClass=`classic-${groupKey.replace('standard-','')}`;
-  return `<div class="score-row classic-score-row ${typeClass}">
-    <div class="score-athlete">${esc(r.nickname||'')}</div>
-    <div class="score-main">
-      <div class="score-title">${esc(cleanStoredTitle(r))}</div>
-      <div class="score-meta">${esc(r.session_date||'')}</div>
-      <div class="score-content">${esc(compactChallengeContent(r))}</div>
+  const note=wallNoteText(r);
+  return `<div class="score-row classic-score-row ${typeClass} ${rankToneClass(rank)}">
+    <div class="wall-entry">
+      <div class="wall-entry-rank" aria-label="第 ${rank} 名">
+        <span>名次</span><strong>${rankText(rank)}</strong>
+      </div>
+      <div class="wall-entry-core">
+        <div class="wall-entry-athlete" title="${esc(r.nickname||'未命名選手')}">${esc(r.nickname||'未命名選手')}</div>
+        <div class="wall-entry-subline">
+          <span class="wall-entry-title">${esc(cleanStoredTitle(r))}</span>
+          <span class="wall-entry-date">${esc(r.session_date||'')}</span>
+        </div>
+        ${note?`<div class="wall-entry-note">${esc(note)}</div>`:''}
+      </div>
+      <div class="wall-entry-result">
+        <span>完成時間</span><strong>${fmt(r.total_seconds)}</strong>
+      </div>
     </div>
-    <div class="score-rank-number" aria-label="第 ${rankText} 名">${rankText}</div>
-    <div class="score-time">${fmt(r.total_seconds)}</div>
   </div>`;
 }
 
-function dailyResultRow(r){
+function dailyResultRow(r,templateRank){
   const id=simulationTemplateIdForRow(r);
   const t=RACE_TEMPLATES[id]||RACE_TEMPLATES.easyHybrid;
-  return `<div class="score-row daily-score-row daily-${esc(id)}">
-    <div class="score-athlete">${esc(r.nickname||'')}</div>
-    <div class="score-main">
-      <div class="score-title">${esc(t.label)}</div>
-      <div class="score-meta">${esc(r.session_date||'')}</div>
-      <div class="score-content">${esc(t.description||'')}</div>
+  const note=wallNoteText(r);
+  return `<div class="score-row daily-score-row daily-${esc(id)} ${rankToneClass(templateRank)}">
+    <div class="wall-entry">
+      <div class="wall-entry-rank" aria-label="同項訓練第 ${templateRank} 名">
+        <span>同項排名</span><strong>${rankText(templateRank)}</strong>
+      </div>
+      <div class="wall-entry-core">
+        <div class="wall-entry-athlete" title="${esc(r.nickname||'未命名選手')}">${esc(r.nickname||'未命名選手')}</div>
+        <div class="wall-entry-subline">
+          <span class="wall-entry-title">${esc(t.label)}</span>
+          <span class="wall-entry-date">${esc(r.session_date||'')}</span>
+        </div>
+        ${note?`<div class="wall-entry-note">${esc(note)}</div>`:''}
+      </div>
+      <div class="wall-entry-result">
+        <span>完成時間</span><strong>${fmt(r.total_seconds)}</strong>
+      </div>
     </div>
-    <div class="daily-difficulty" aria-label="難度 ${t.intensity}/10">${t.intensity}<span>/10</span></div>
-    <div class="score-time">${fmt(r.total_seconds)}</div>
   </div>`;
 }
+
 
 function renderClassicWall(){
   const groups=[
@@ -3538,8 +3955,9 @@ function renderDailyWall(){
   const rows=dailyRows();
   if(count)count.textContent=`${rows.length} 筆`;
   if(!box)return;
+  const rankMap=dailyTemplateRankMap();
   box.innerHTML=rows.length
-    ?rows.map(dailyResultRow).join('')
+    ?rows.map(r=>dailyResultRow(r,rankMap.get(String(r.id))||1)).join('')
     :'<div class="score-empty compact-empty">目前還沒有日常訓練成績。</div>';
 }
 
