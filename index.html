@@ -1923,6 +1923,11 @@ nav.tabs button.active{
 }
 
 /* ===== Subtle visit counter ===== */
+
+.visit-counter[hidden]{
+  display:none!important;
+}
+
 .visit-counter{
   display:block;
   width:max-content;
@@ -2700,14 +2705,25 @@ function scalarRpcValue(value){
     const first=Object.values(value)[0];
     if(first!=null)value=first;
   }
+  if(typeof value==='string'){
+    const trimmed=value.trim().replace(/^"|"$/g,'');
+    if(trimmed==='')return null;
+    value=trimmed;
+  }
   const n=Number(value);
-  return Number.isFinite(n)?n:null;
+  return Number.isFinite(n)&&n>=0?Math.trunc(n):null;
 }
 
 async function updateVisitCounter(){
   const wrap=q('#visitCounter');
   const valueEl=q('#visitCount');
-  if(!wrap||!valueEl||!isConfigured())return;
+  if(!wrap||!valueEl)return;
+
+  // Never show a placeholder such as "—" while the database request is pending
+  // or when the counter backend has not been set up correctly.
+  wrap.hidden=true;
+
+  if(!isConfigured())return;
 
   try{
     const now=Date.now();
@@ -2718,15 +2734,16 @@ async function updateVisitCounter(){
       ?await api('rpc/increment_site_visit',{method:'POST',body:'{}'})
       :await api('rpc/get_site_visits',{method:'POST',body:'{}'});
 
-    if(shouldCount)localStorage.setItem(VISIT_SESSION_KEY,String(now));
-
     const value=scalarRpcValue(result);
-    if(value==null)return;
+    if(value==null)throw new Error('INVALID_VISIT_COUNTER_RESPONSE');
+
+    if(shouldCount)localStorage.setItem(VISIT_SESSION_KEY,String(now));
 
     valueEl.textContent=value.toLocaleString('zh-TW');
     wrap.hidden=false;
   }catch(e){
-    // Visit statistics must never interfere with the actual app.
+    // A statistics failure must never break the rest of the app.
+    wrap.hidden=true;
     console.warn('Visit counter unavailable',e);
   }
 }
