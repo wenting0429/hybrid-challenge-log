@@ -939,10 +939,6 @@ nav.tabs button.active{
 }
 
 
-.race-template-note{margin-top:10px;padding:9px 10px;border:1px solid rgba(114,222,216,.14);background:rgba(114,222,216,.035);border-radius:10px;color:#8392a4}
-@media(max-width:640px){
-  .race-template-note{font-size:10px;line-height:1.45;margin-top:10px;padding:8px 9px}
-}
 
 
 
@@ -1083,7 +1079,7 @@ nav.tabs button.active{
 }
 .challenge-card.standard-race .mini-stat b{color:#d9faf7}
 
-/* 日常挑戰：暖色，與經典挑戰清楚分區但同樣被強調 */
+/* 日常訓練：暖色，與經典挑戰清楚分區但同樣被強調 */
 .challenge-card.simulation{
   border-color:rgba(255,151,105,.42);
   background:
@@ -1812,6 +1808,31 @@ nav.tabs button.active{
 }
 
 
+/* ===== Active challenge page lock ===== */
+.session-head-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+#lockSessionBtn{
+  min-width:86px;
+}
+#lockSessionBtn.locked{
+  border-color:rgba(107,214,163,.48);
+  background:rgba(44,119,87,.18);
+  color:#9aebc3;
+}
+#trainingModal.page-locked .modal-card{
+  border-color:rgba(107,214,163,.34);
+  box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 0 1px rgba(107,214,163,.04) inset;
+}
+@media(max-width:640px){
+  .session-head-actions{gap:5px}
+  #lockSessionBtn{min-width:0}
+}
+
 /* ===== Per-item countdown timer =====
    Appears only when an item's detail contains a duration such as
    "4 min", "8 min" or "45 sec". Keeps the existing training UI compact.
@@ -2008,13 +2029,13 @@ nav.tabs button.active{
         <div class="challenge-card simulation">
           <div class="challenge-top">
             <div>
-              <h3>日常挑戰</h3>
+              <h3>日常訓練</h3>
               
             </div>
           </div>
           <div class="challenge-grid">
             <div class="field full">
-              <label>挑戰模板</label>
+              <label>訓練模板</label>
               <select id="raceTemplate">
                 <option value="easyHybrid">1｜加減練一下</option>
                 <option value="coreTraining">2｜核心也要練</option>
@@ -2022,7 +2043,7 @@ nav.tabs button.active{
                 <option value="noRun">4｜今天不跑步</option>
                 <option value="lowerBlast">5｜下肢炸裂 Run</option>
                 <option value="balanced8">6｜全能 8 站</option>
-                <option value="fatBurn">7｜燃燒脂肪</option>
+                <option value="fatBurn">7｜代謝耐力</option>
                 <option value="moverDay">8｜搬運工的一天</option>
                 <option value="aerobicMax">9｜有氧拉滿</option>
                 <option value="hellDay">10｜地獄日</option>
@@ -2036,7 +2057,7 @@ nav.tabs button.active{
             <ol class="daily-preview-list" id="dailyPreviewList"></ol>
             <div class="daily-preview-total" id="dailyPreviewTotal"></div>
           </div>
-          <button class="btn coral standard-start-mobile" id="startSimulationBtn">挑戰開始</button>
+          <button class="btn coral standard-start-mobile" id="startSimulationBtn">開始訓練</button>
         </div>
 
         <div class="challenge-card custom">
@@ -2107,8 +2128,8 @@ nav.tabs button.active{
         <section class="ranking-card ranking-daily">
           <div class="ranking-card-head">
             <div>
-              <div class="ranking-card-kicker">DAILY CHALLENGES</div>
-              <h3>日常挑戰</h3>
+              <div class="ranking-card-kicker">DAILY TRAINING</div>
+              <h3>日常訓練</h3>
             </div>
             <span class="ranking-count" id="dailyCount">0 筆</span>
           </div>
@@ -2172,7 +2193,10 @@ nav.tabs button.active{
   <div class="modal-card">
     <div class="modal-head">
       <div><h3 id="sessionTitle">Challenge</h3><div class="modal-sub" id="sessionMeta"></div></div>
-      <button class="btn small ghost" id="closeSessionBtn">關閉</button>
+      <div class="session-head-actions">
+        <button class="btn small ghost" id="lockSessionBtn" type="button" aria-pressed="false">鎖定頁面</button>
+        <button class="btn small ghost" id="closeSessionBtn" type="button">關閉</button>
+      </div>
     </div>
     <div class="timer-box">
       <div><div class="timer-label">TOTAL TIME</div><div class="timer" id="sessionTimer">00:00</div></div>
@@ -2216,6 +2240,7 @@ nav.tabs button.active{
 <script>
 (() => {
 const TABLE='training_results';
+const ACTIVE_SESSION_KEY='hybridActiveSession_v1';
 const PUBLIC_CONFIG=window.HYBRID_CONFIG||window.HYROX_CONFIG||{};
 const cloudConfig={
   url:String(PUBLIC_CONFIG.SUPABASE_URL||'').trim(),
@@ -2315,7 +2340,7 @@ const RACE_TEMPLATES={
     label:'加減練一下',
     duration:'約 30–40 分鐘',
     intensity:1,
-    description:'低門檻活動日。不跑步，以 Quick Walk 搭配簡單全身動作，適合恢復日或只是想動一動。',
+    description:'低門檻活動日。不跑步，以 Quick Walk 搭配簡單全身動作，適合恢復日、初學者或只是想動一動。',
     equipment:'壺鈴／啞鈴／自體重量',
     total:'總 Quick Walk：2 km',
     build(){
@@ -2327,7 +2352,7 @@ const RACE_TEMPLATES={
         ['Quick Walk','500 m',500],
         ['Kettlebell Goblet Squat','20 reps'],
         ['Quick Walk','500 m',500],
-        ['Farmers Carry','60 m · 自選重量'],
+        ['Farmers Carry','60 m · 輕中重量（RPE 5–6）'],
         ['Plank','45 sec']
       ];
       return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
@@ -2338,23 +2363,23 @@ const RACE_TEMPLATES={
     id:'coreTraining',
     label:'核心也要練',
     duration:'約 55–65 分鐘',
-    intensity:2,
-    description:'核心穩定＋心肺交錯。不跑步，讓心肺／Race Station 與核心輪流出現，不會變成單純腹肌課。',
+    intensity:3,
+    description:'核心穩定＋心肺交錯。不跑步，讓 Erg／Sled／Carry 與核心控制輪流出現，重點是疲勞下維持軀幹穩定，而不是單純做腹肌。',
     equipment:'SkiErg／Row／BikeErg／Sled／啞鈴',
     total:'跑步：0 km｜核心與心肺交錯｜預計約 60 分鐘',
     build(){
       const seq=[
         ['SkiErg','800 m'],
         ['Weighted Sit-Up','25 reps'],
-        ['Sled Push','40 m · 自選重量'],
+        ['Sled Push','40 m · RPE 6–7'],
         ['Dead Bug','20 reps / side'],
         ['Row','800 m'],
         ['Plank Dumbbell Drag','20 reps / side'],
-        ['Sled Pull','40 m · 自選重量'],
+        ['Sled Pull','40 m · RPE 6–7'],
         ['Weighted Russian Twist','40 reps'],
         ['BikeErg','6 min'],
         ['Renegade Row','12 reps / side'],
-        ['Farmers Carry','120 m · 自選重量'],
+        ['Farmers Carry','120 m · RPE 6–7'],
         ['Pallof Press','15 reps / side']
       ];
       return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
@@ -2378,7 +2403,7 @@ const RACE_TEMPLATES={
         ['Run','400 m',400],
         ['Dumbbell Row','15 reps / side'],
         ['Run','400 m',400],
-        ['Farmers Carry','100 m · 自選重量'],
+        ['Farmers Carry','100 m · RPE 6–7'],
         ['Run','400 m',400],
         ['Weighted Sit-Up','20 reps'],
         ['Run','400 m',400],
@@ -2392,27 +2417,27 @@ const RACE_TEMPLATES={
     id:'noRun',
     label:'今天不跑步',
     duration:'約 85–95 分鐘',
-    intensity:4,
-    description:'不跑，但照樣爆汗。用長時間 Heavy Walk 穿插全身負重動作，燃燒頑強的脂肪。',
+    intensity:5,
+    description:'不跑步的長時間 hybrid endurance。Heavy Walk 指快速走、坡度走或輕度負重走，以能穩定完成 8 分鐘為原則，再穿插全身肌耐力與 carry。',
     equipment:'啞鈴／壺鈴／藥球／可負重步行',
     total:'跑步：0 km｜Heavy Walk：約 64 分鐘',
     build(){
       const seq=[
-        ['Heavy Walk','8 min'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
         ['Kettlebell Swing','40 reps'],
-        ['Heavy Walk','8 min'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
         ['Dumbbell Walking Lunge','40 reps'],
-        ['Heavy Walk','8 min'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
         ['Burpee','25 reps'],
-        ['Heavy Walk','8 min'],
-        ['Farmers Carry','160 m · 自選重量'],
-        ['Heavy Walk','8 min'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
+        ['Farmers Carry','160 m · RPE 6–7'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
         ['Kettlebell Goblet Squat','30 reps'],
-        ['Heavy Walk','8 min'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
         ['Medicine Ball Slam','40 reps'],
-        ['Heavy Walk','8 min'],
-        ['Front Rack Carry','120 m · 自選重量'],
-        ['Heavy Walk','8 min'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
+        ['Front Rack Carry','120 m · RPE 6–7'],
+        ['Heavy Walk','8 min · 快走／坡度走／輕度負重'],
         ['Dumbbell Thruster','30 reps']
       ];
       return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
@@ -2423,26 +2448,26 @@ const RACE_TEMPLATES={
     id:'lowerBlast',
     label:'下肢炸裂 Run',
     duration:'約 75–90 分鐘',
-    intensity:5,
-    description:'今天的目標是把腿操爆。',
+    intensity:6,
+    description:'下肢主導的 compromised-running 挑戰。Sled、lunge、squat 與 carry 反覆穿插跑步，重點是腿部疲勞後仍能維持移動效率。',
     equipment:'Sled／Row／啞鈴或壺鈴',
     total:'總 Run：3.5 km',
     build(){
       const seq=[
         ['Run','500 m',500],
-        ['Sled Push','40 m · 自選重量'],
+        ['Sled Push','40 m · RPE 7–8'],
         ['Run','500 m',500],
         ['Dumbbell Walking Lunge','40 reps'],
         ['Run','500 m',500],
-        ['Sled Pull','40 m · 自選重量'],
+        ['Sled Pull','40 m · RPE 7–8'],
         ['Run','500 m',500],
         ['Kettlebell Goblet Squat','30 reps'],
         ['Run','500 m',500],
         ['Row','600 m'],
         ['Run','500 m',500],
-        ['Heavy Farmers Carry','120 m'],
+        ['Heavy Farmers Carry','120 m · RPE 7–8'],
         ['Run','500 m',500],
-        ['Weighted Lunges','60 m']
+        ['Weighted Lunges','60 m · 可穩定完成重量']
       ];
       return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
     }
@@ -2452,8 +2477,8 @@ const RACE_TEMPLATES={
     id:'balanced8',
     label:'全能 8 站',
     duration:'約 85–105 分鐘',
-    intensity:6,
-    description:'該練的大概都會練到，心肺、推、拉、carry、burpee、腿部都有，整體負荷大概比標準賽事輕一些。',
+    intensity:7,
+    description:'跑量低於經典挑戰，但仍屬高負荷的全能型訓練。保留 8 段跑步與多個 race-specific station，適合作為較完整的 HYROX-style 模擬。',
     equipment:'SkiErg／Sled／Row／壺鈴／啞鈴',
     total:'總 Run：6 km｜8 個工作站',
     build(){
@@ -2461,7 +2486,7 @@ const RACE_TEMPLATES={
         ['Run','750 m',750],
         ['SkiErg','1000 m'],
         ['Run','750 m',750],
-        ['Sled Push','50 m · 自選重量'],
+        ['Sled Push','50 m · RPE 7–8'],
         ['Run','750 m',750],
         ['Dumbbell Thruster','40 reps'],
         ['Run','750 m',750],
@@ -2469,7 +2494,7 @@ const RACE_TEMPLATES={
         ['Run','750 m',750],
         ['Burpee Broad Jump','60 m'],
         ['Run','750 m',750],
-        ['Farmers Carry','160 m · 自選重量'],
+        ['Farmers Carry','160 m · RPE 7–8'],
         ['Run','750 m',750],
         ['Kettlebell Swing','50 reps'],
         ['Run','750 m',750],
@@ -2481,10 +2506,10 @@ const RACE_TEMPLATES={
 
   fatBurn:{
     id:'fatBurn',
-    label:'燃燒脂肪',
+    label:'代謝耐力',
     duration:'約 75–90 分鐘',
-    intensity:7,
-    description:'想要瘦練這個。',
+    intensity:6,
+    description:'Quick Walk、Run、BikeErg 與 Row 交錯，搭配全身肌耐力動作，目標是維持較長時間的穩定輸出。減脂效果仍取決於整體能量平衡與長期訓練。',
     equipment:'BikeErg／Row／壺鈴／啞鈴／自體重量',
     total:'總 Run：1.8 km｜Quick Walk：2.4 km｜BikeErg：8 min｜Row：600 m',
     build(){
@@ -2494,7 +2519,7 @@ const RACE_TEMPLATES={
         ['Run','600 m',600],
         ['Dumbbell Walking Lunge','30 reps'],
         ['BikeErg','4 min'],
-        ['Farmers Carry','100 m'],
+        ['Farmers Carry','100 m · RPE 6–7'],
         ['Run','600 m',600],
         ['Dumbbell Thruster','20 reps'],
         ['Quick Walk','800 m',800],
@@ -2502,7 +2527,7 @@ const RACE_TEMPLATES={
         ['Row','600 m'],
         ['Burpee','20 reps'],
         ['Run','600 m',600],
-        ['Farmers Carry','100 m'],
+        ['Farmers Carry','100 m · RPE 6–7'],
         ['BikeErg','4 min'],
         ['Weighted Sit-Up','25 reps'],
         ['Quick Walk','800 m',800],
@@ -2517,25 +2542,25 @@ const RACE_TEMPLATES={
     label:'搬運工的一天',
     duration:'約 80–100 分鐘',
     intensity:8,
-    description:'重、慢、一直搬。跑量不高，主要靠 sled、carry、deadlift、walking lunge 和 Heavy Walk 累積負重疲勞。',
+    description:'重、慢、一直搬。跑量不高，主要靠 sled、carry、deadlift、walking lunge 與 Heavy Walk 累積負重耐力。Heavy 以 RPE 7–8 為原則；比較成績時請固定相同重量。',
     equipment:'Sled／BikeErg／啞鈴／壺鈴／可負重步行',
     total:'Run：1 km｜Heavy Walk：1.6 km',
     build(){
       const seq=[
-        ['Heavy Walk','800 m',800],
-        ['Heavy Sled Push','50 m'],
+        ['Heavy Walk','800 m · 快走／坡度走／輕中負重',800],
+        ['Heavy Sled Push','50 m · RPE 7–8'],
         ['Dumbbell Deadlift','30 reps'],
         ['BikeErg','4 min'],
-        ['Heavy Sled Pull','50 m'],
-        ['Front Rack Carry','120 m'],
+        ['Heavy Sled Pull','50 m · RPE 7–8'],
+        ['Front Rack Carry','120 m · RPE 7–8'],
         ['Run','500 m',500],
         ['Kettlebell Goblet Squat','30 reps'],
-        ['Heavy Farmers Carry','160 m'],
+        ['Heavy Farmers Carry','160 m · RPE 7–8'],
         ['BikeErg','4 min'],
         ['Dumbbell Walking Lunge','80 m'],
         ['Run','500 m',500],
         ['Kettlebell Thruster','30 reps'],
-        ['Heavy Walk','800 m',800]
+        ['Heavy Walk','800 m · 快走／坡度走／輕中負重',800]
       ];
       return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
     }
@@ -2545,8 +2570,8 @@ const RACE_TEMPLATES={
     id:'aerobicMax',
     label:'有氧拉滿',
     duration:'約 90–115 分鐘',
-    intensity:9,
-    description:'長時間心肺輸出。Run、SkiErg、Row 反覆交錯。',
+    intensity:8,
+    description:'長時間心肺輸出。Run、SkiErg、Row 反覆交錯；前段維持可持續節奏，最後三段再逐步加速，避免一開始就衝爆。',
     equipment:'SkiErg／Row／壺鈴／啞鈴',
     total:'總 Run：4.2 km｜SkiErg + Row：3.2 km',
     build(){
@@ -2562,7 +2587,7 @@ const RACE_TEMPLATES={
         ['Run','600 m',600],
         ['Kettlebell Swing','40 reps'],
         ['Run','600 m',600],
-        ['Farmers Carry','120 m'],
+        ['Farmers Carry','120 m · RPE 6–7'],
         ['Run','600 m',600],
         ['Dumbbell Thruster','30 reps']
       ];
@@ -2575,7 +2600,7 @@ const RACE_TEMPLATES={
     label:'地獄日',
     duration:'約 120–150 分鐘',
     intensity:10,
-    description:'時常練這個，正式比賽一定沒問題。',
+    description:'終極高量 benchmark。完整跑量加上高負荷工作站，適合已有訓練基礎時偶爾用來測試能力，不建議頻繁安排。',
     equipment:'SkiErg／Sled／Row／BikeErg／重負重器材',
     total:'總 Run：8 km｜10 個高量工作站｜明確高於經典挑戰',
     build(){
@@ -2583,15 +2608,15 @@ const RACE_TEMPLATES={
         ['Run','1 km',1000],
         ['SkiErg','1000 m'],
         ['Run','1 km',1000],
-        ['Heavy Sled Push','50 m'],
+        ['Heavy Sled Push','50 m · RPE 8'],
         ['Run','1 km',1000],
-        ['Heavy Sled Pull','50 m'],
+        ['Heavy Sled Pull','50 m · RPE 8'],
         ['Run','1 km',1000],
         ['Burpee Broad Jump','80 m'],
         ['Run','1 km',1000],
         ['Row','1000 m'],
         ['Run','1 km',1000],
-        ['Heavy Farmers Carry','200 m'],
+        ['Heavy Farmers Carry','200 m · RPE 8'],
         ['Run','1 km',1000],
         ['Weighted Lunges','100 m'],
         ['Run','1 km',1000],
@@ -2613,7 +2638,7 @@ RACE_TEMPLATES.dualEngine=RACE_TEMPLATES.aerobicMax;
 RACE_TEMPLATES.noStop=RACE_TEMPLATES.fatBurn;
 
 function isStandardRaceType(type){return type==='經典挑戰'||type==='標準賽事'||type==='標準挑戰'}
-function isSimulationType(type){return type==='日常挑戰'||type==='模擬賽挑戰'||type==='賽事挑戰'}
+function isSimulationType(type){return type==='日常訓練'||type==='日常挑戰'||type==='模擬賽挑戰'||type==='賽事挑戰'}
 function isRaceChallengeType(type){return isStandardRaceType(type)||isSimulationType(type)}
 function standardRaceItems(division){
   const out=[];
@@ -2635,7 +2660,7 @@ function updateRaceTemplateUI(){
   const t=currentRaceTemplate();
   const items=t.build();
 
-  q('#dailyPreviewHead').textContent=`${t.label}｜${t.duration}｜強度 ${t.intensity}/10`;
+  q('#dailyPreviewHead').textContent=`${t.label}｜${t.duration}｜難度 ${t.intensity}/10`;
   q('#dailyPreviewDesc').textContent=t.description||'';
   q('#dailyPreviewEquipment').textContent=`器材：${t.equipment}`;
   q('#dailyPreviewList').innerHTML=items.map(x=>`<li><b>${esc(x.name)}</b>${x.detail?`<span>${esc(x.detail)}</span>`:''}</li>`).join('');
@@ -2644,6 +2669,98 @@ function updateRaceTemplateUI(){
 
 const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
 let allResults=[],session=null,ticker=null,finishedSession=null,pendingWallChallenge=null,customOrder=[{id:uid(),name:'Run',distance:500,weight:'',reps:''}];
+let sessionHistoryGuardArmed=false;
+
+function saveActiveSession(){
+  try{
+    if(session)localStorage.setItem(ACTIVE_SESSION_KEY,JSON.stringify(session));
+    else localStorage.removeItem(ACTIVE_SESSION_KEY);
+  }catch(e){
+    console.warn('Could not save active challenge',e);
+  }
+}
+function clearActiveSession(){
+  try{localStorage.removeItem(ACTIVE_SESSION_KEY)}catch(e){}
+}
+function sessionMetaText(s){
+  if(!s)return '';
+  if(isStandardRaceType(s.challengeType))return `標準模式 · ${standardDivisionLabel(s.division)}`;
+  if(isSimulationType(s.challengeType))return s.templateLabel||s.title||'日常訓練';
+  return 'Custom Challenge';
+}
+function syncSessionLockUI(){
+  const locked=!!session?.pageLocked;
+  const btn=q('#lockSessionBtn');
+  const modal=q('#trainingModal');
+  if(btn){
+    btn.textContent=locked?'🔒 已鎖定':'鎖定頁面';
+    btn.classList.toggle('locked',locked);
+    btn.setAttribute('aria-pressed',locked?'true':'false');
+    btn.title=locked?'點一下解除頁面鎖定':'避免誤按上一頁或關閉挑戰畫面';
+  }
+  if(modal)modal.classList.toggle('page-locked',locked);
+}
+function armSessionHistoryGuard(){
+  if(!session?.pageLocked||sessionHistoryGuardArmed)return;
+  try{
+    history.pushState({...((history.state&&typeof history.state==='object')?history.state:{}),hybridSessionGuard:true},'',location.href);
+    sessionHistoryGuardArmed=true;
+  }catch(e){}
+}
+function disarmSessionHistoryGuard(){
+  if(!sessionHistoryGuardArmed)return;
+  sessionHistoryGuardArmed=false;
+  try{
+    if(history.state?.hybridSessionGuard)history.back();
+  }catch(e){}
+}
+function setSessionPageLocked(locked){
+  if(!session)return;
+  session.pageLocked=!!locked;
+  if(session.pageLocked)armSessionHistoryGuard();
+  else disarmSessionHistoryGuard();
+  syncSessionLockUI();
+  saveActiveSession();
+  toast(session.pageLocked?'挑戰頁面已鎖定':'已解除頁面鎖定');
+}
+function toggleSessionPageLock(){
+  if(!session)return;
+  setSessionPageLocked(!session.pageLocked);
+}
+function showActiveSession(){
+  if(!session)return;
+  q('#sessionTitle').textContent=session.title||'Challenge';
+  q('#sessionMeta').textContent=sessionMetaText(session);
+  q('#trainingModal').classList.add('open');
+  syncSessionLockUI();
+  renderSession();
+  startTicker();
+}
+function restoreActiveSession(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(ACTIVE_SESSION_KEY)||'null')}catch(e){}
+  if(!saved||!Array.isArray(saved.items)||!saved.items.length||!Number(saved.startedAt)){
+    clearActiveSession();
+    return false;
+  }
+  session=saved;
+  session.pageLocked=!!session.pageLocked;
+  showActiveSession();
+  if(session.pageLocked)armSessionHistoryGuard();
+  toast('已恢復進行中的挑戰');
+  return true;
+}
+function closeSessionView(){
+  if(!session){q('#trainingModal').classList.remove('open');return}
+  if(session.pageLocked){
+    q('#trainingModal').classList.add('open');
+    toast('頁面已鎖定，請先解除鎖定');
+    return;
+  }
+  if(session.running)pauseToggle();
+  q('#trainingModal').classList.remove('open');
+  saveActiveSession();
+}
 function uid(){return crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function europeChallengeStamp(date=new Date()){
@@ -2877,7 +2994,7 @@ function updateCustomPreview(rerender=true){
 function customItems(){return customOrder.map(item=>{const ex=CUSTOM_EXERCISES.find(x=>x.name===item.name);return {name:item.name,detail:formatCustomDetail(item,ex?.cat||'自訂訓練項目'),distance_m:Number(item.distance)||null,weight_kg:String(item.weight||'').trim()||null,reps:Number(item.reps)||null}})}
 function startSession(type){
   const isStandard=type==='經典挑戰';
-  const isSimulation=type==='日常挑戰';
+  const isSimulation=isSimulationType(type);
 
   if(type==='自訂挑戰'&&q('#customName').dataset.autoName==='1')setDefaultCustomName(true);
 
@@ -2908,16 +3025,11 @@ function startSession(type){
   session={
     id:uid(),challengeType:type,division,title,templateId,templateLabel,
     items:items.map((x,i)=>({...x,id:uid(),done:false,index:i+1})),
-    startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true
+    startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true,pageLocked:false
   };
 
-  q('#sessionTitle').textContent=title;
-  q('#sessionMeta').textContent=isStandard
-    ?`標準模式 · ${standardDivisionLabel(division)}`
-    :isSimulation?templateLabel:'Custom Challenge';
-  q('#trainingModal').classList.add('open');
-  renderSession();
-  startTicker();
+  saveActiveSession();
+  showActiveSession();
 }
 function elapsedMs(){if(!session)return 0;const now=session.running?Date.now():(session.pausedAt||Date.now());return Math.max(0,now-session.startedAt-session.pausedTotal)}
 
@@ -3010,6 +3122,7 @@ function updateCountdownDisplays(){
         it.countdownExpired=true;
         it.countdownRemaining=0;
         countdownSignal(it);
+        saveActiveSession();
       }
     }
 
@@ -3044,6 +3157,7 @@ function toggleCountdown(itemId){
     it.countdownEndAt=Date.now()+Number(it.countdownRemaining)*1000;
   }
   updateCountdownDisplays();
+  saveActiveSession();
 }
 
 function resetCountdown(itemId){
@@ -3057,6 +3171,7 @@ function resetCountdown(itemId){
   it.countdownAlerted=false;
   it.countdownResumeAfterSessionPause=false;
   updateCountdownDisplays();
+  saveActiveSession();
 }
 
 function pauseRunningCountdownsForSession(){
@@ -3139,7 +3254,9 @@ function renderSession(){
 
   q('#finishChallengeBtn').disabled=done!==session.items.length;
   q('#pauseBtn').textContent=session.running?'暫停':'繼續';
+  syncSessionLockUI();
   updateCountdownDisplays();
+  saveActiveSession();
 }
 
 function pauseToggle(){
@@ -3156,12 +3273,14 @@ function pauseToggle(){
   }
   renderSession();
 }
-function abandon(){if(!session)return;if(!confirm('確定放棄這次挑戰？本次不會登錄到成績牆。'))return;clearInterval(ticker);session=null;q('#trainingModal').classList.remove('open');toast('已放棄挑戰')}
+function abandon(){if(!session)return;if(!confirm('確定放棄這次挑戰？本次不會登錄到成績牆。'))return;clearInterval(ticker);if(session.pageLocked)disarmSessionHistoryGuard();session=null;clearActiveSession();q('#trainingModal').classList.remove('open');syncSessionLockUI();toast('已放棄挑戰')}
 function finishChallenge(){
   if(!session||session.items.some(x=>!x.done))return;
   if(session.running){session.pausedAt=Date.now();session.running=false}
   const completed={...session,totalSeconds:Math.round(elapsedMs()/1000)};
   clearInterval(ticker);
+  if(session.pageLocked)disarmSessionHistoryGuard();
+  clearActiveSession();
   q('#trainingModal').classList.remove('open');
 
   if(completed.isWallChallenge&&Number(completed.targetSeconds)>0&&completed.totalSeconds>Number(completed.targetSeconds)){
@@ -3170,6 +3289,7 @@ function finishChallenge(){
     q('#challengeFailureModal').classList.add('open');
     finishedSession=null;
     session=null;
+    syncSessionLockUI();
     return;
   }
 
@@ -3184,6 +3304,7 @@ function finishChallenge(){
   q('#finishNotes').value='';
   q('#finishModal').classList.add('open');
   session=null;
+  syncSessionLockUI();
 }
 function skipLog(){finishedSession=null;q('#finishModal').classList.remove('open');toast('本次挑戰未登錄')}
 async function saveLog(){
@@ -3286,7 +3407,7 @@ function groupLabel(key){
   if(key==='standard-mixed')return 'Mixed';
   if(String(key||'').startsWith('simulation-')){
     const id=String(key).replace('simulation-','');
-    return RACE_TEMPLATES[id]?.label||'日常挑戰';
+    return RACE_TEMPLATES[id]?.label||'日常訓練';
   }
   return '挑戰';
 }
@@ -3317,7 +3438,7 @@ function compactChallengeContent(r){
 
   if(isSimulationType(r.workout_type)){
     const t=RACE_TEMPLATES[simulationTemplateIdForRow(r)]||RACE_TEMPLATES.easyHybrid;
-    return `${t.label} · 強度 ${t.intensity}/10 · ${items.length} 項`;
+    return `${t.label} · 難度 ${t.intensity}/10 · ${items.length} 項`;
   }
 
   return '';
@@ -3386,7 +3507,7 @@ function dailyResultRow(r){
       <div class="score-meta">${esc(r.session_date||'')}</div>
       <div class="score-content">${esc(t.description||'')}</div>
     </div>
-    <div class="daily-difficulty">${t.intensity}<span>/10</span></div>
+    <div class="daily-difficulty" aria-label="難度 ${t.intensity}/10">${t.intensity}<span>/10</span></div>
     <div class="score-time">${fmt(r.total_seconds)}</div>
   </div>`;
 }
@@ -3419,13 +3540,41 @@ function renderDailyWall(){
   if(!box)return;
   box.innerHTML=rows.length
     ?rows.map(dailyResultRow).join('')
-    :'<div class="score-empty compact-empty">目前還沒有日常挑戰成績。</div>';
+    :'<div class="score-empty compact-empty">目前還沒有日常訓練成績。</div>';
 }
 
 function renderWall(){
   renderClassicWall();
   renderDailyWall();
 }
+window.addEventListener('popstate',()=>{
+  if(session?.pageLocked){
+    sessionHistoryGuardArmed=false;
+    armSessionHistoryGuard();
+    q('#trainingModal').classList.add('open');
+    renderSession();
+    toast('挑戰頁面已鎖定');
+  }else{
+    sessionHistoryGuardArmed=false;
+  }
+});
+window.addEventListener('beforeunload',e=>{
+  if(!session)return;
+  saveActiveSession();
+  if(session.pageLocked){
+    e.preventDefault();
+    e.returnValue='';
+  }
+});
+window.addEventListener('pagehide',()=>saveActiveSession());
+document.addEventListener('visibilitychange',()=>{
+  saveActiveSession();
+  if(!document.hidden&&session?.pageLocked){
+    q('#trainingModal').classList.add('open');
+    renderSession();
+  }
+});
+
 renderPicker();updateCustomPreview();setDefaultCustomName(true);updateRaceTemplateUI();
 q('#publicConfigWarning').classList.toggle('show',!isConfigured());
 q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
@@ -3433,7 +3582,8 @@ q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
 
 loadResults();
 updateVisitCounter();
-qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardRaceBtn').onclick=()=>startSession('經典挑戰');q('#startSimulationBtn').onclick=()=>startSession('日常挑戰');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#closeSessionBtn').onclick=()=>{if(session)pauseToggle();q('#trainingModal').classList.remove('open')};q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
+qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardRaceBtn').onclick=()=>startSession('經典挑戰');q('#startSimulationBtn').onclick=()=>startSession('日常訓練');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#lockSessionBtn').onclick=toggleSessionPageLock;q('#closeSessionBtn').onclick=closeSessionView;q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
+restoreActiveSession();
 })();
 </script>
 
