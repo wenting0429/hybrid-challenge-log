@@ -1735,7 +1735,7 @@ nav.tabs button.active{
 
 /* ===== Mobile training controls: keep actions away from bottom overlays =====
    On phones the action buttons sit ABOVE the exercise list instead of at
-   the bottom of the screen. This prevents mobile-browser overlays
+   the bottom of the screen. This prevents Netlify/mobile-browser overlays
    from covering critical controls, even with larger text/display scaling.
 */
 @media(max-width:760px){
@@ -1811,16 +1811,113 @@ nav.tabs button.active{
   }
 }
 
+
+/* ===== Per-item countdown timer =====
+   Appears only when an item's detail contains a duration such as
+   "4 min", "8 min" or "45 sec". Keeps the existing training UI compact.
+*/
+.session-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  min-width:0;
+}
+.countdown-wrap{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.countdown-btn{
+  min-width:82px;
+  min-height:35px;
+  padding:7px 9px;
+  border:1px solid #344357;
+  border-radius:9px;
+  background:#121b27;
+  color:#c9d4df;
+  font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.01em;
+  cursor:pointer;
+  transition:.16s ease;
+}
+.countdown-btn:hover{
+  border-color:#4b6078;
+  background:#172333;
+}
+.countdown-btn.running{
+  border-color:rgba(83,210,199,.48);
+  background:rgba(37,128,120,.17);
+  color:#8de7df;
+}
+.countdown-btn.expired{
+  border-color:rgba(255,118,87,.55);
+  background:rgba(176,67,52,.16);
+  color:#ff9c84;
+}
+.countdown-reset{
+  width:34px;
+  min-width:34px;
+  min-height:35px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:1px solid #303d4e;
+  border-radius:9px;
+  background:#101822;
+  color:#8493a5;
+  font-size:16px;
+  cursor:pointer;
+}
+.countdown-reset:hover{
+  color:#d0d8e0;
+  border-color:#46586e;
+}
+.session-item.done .countdown-btn,
+.session-item.done .countdown-reset{
+  opacity:.48;
+}
+@media(max-width:520px){
+  .session-actions{
+    grid-column:2;
+    width:100%;
+    justify-content:stretch;
+    margin-top:3px;
+  }
+  .countdown-wrap{
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .countdown-btn{
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .session-actions .check-btn{
+    flex:1 1 46%;
+    min-width:92px;
+  }
+}
+@media(max-width:360px){
+  .session-actions{
+    flex-wrap:wrap;
+  }
+  .countdown-wrap,
+  .session-actions .check-btn{
+    flex:1 1 100%;
+  }
+}
+
 </style>
 
-  <!-- PWA / GitHub Pages -->
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0f141b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hybrid Log">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
 </head>
 <body>
@@ -2731,9 +2828,242 @@ function startSession(type){
   startTicker();
 }
 function elapsedMs(){if(!session)return 0;const now=session.running?Date.now():(session.pausedAt||Date.now());return Math.max(0,now-session.startedAt-session.pausedTotal)}
-function startTicker(){clearInterval(ticker);ticker=setInterval(()=>{if(session)q('#sessionTimer').textContent=fmt(elapsedMs()/1000)},250)}
-function renderSession(){if(!session)return;const done=session.items.filter(x=>x.done).length;q('#sessionProgress').textContent=`${done} / ${session.items.length}`;q('#sessionTimer').textContent=fmt(elapsedMs()/1000);q('#sessionList').innerHTML=session.items.map(it=>`<div class="session-item ${it.done?'done':''}"><div class="session-index">${it.index}</div><div><div class="session-name">${esc(it.name)}</div><div class="session-detail">${esc(it.detail)}</div></div><button class="btn check-btn ${it.done?'primary':''}" data-id="${it.id}">${it.done?'已完成':'完成'}</button></div>`).join('');qa('[data-id]').forEach(b=>b.onclick=()=>{const it=session.items.find(x=>x.id===b.dataset.id);it.done=!it.done;renderSession()});q('#finishChallengeBtn').disabled=done!==session.items.length;q('#pauseBtn').textContent=session.running?'暫停':'繼續'}
-function pauseToggle(){if(!session)return;if(session.running){session.pausedAt=Date.now();session.running=false}else{session.pausedTotal+=Date.now()-session.pausedAt;session.pausedAt=null;session.running=true}renderSession()}
+
+function parseCountdownSeconds(detail){
+  const text=String(detail||'').toLowerCase();
+  const m=text.match(/(\d+(?:\.\d+)?)\s*(min|mins|minute|minutes|sec|secs|second|seconds)\b/);
+  if(!m)return null;
+  const value=Number(m[1]);
+  if(!Number.isFinite(value)||value<=0)return null;
+  return Math.max(1,Math.round(value*(m[2].startsWith('min')?60:1)));
+}
+
+function countdownFormat(totalSeconds){
+  const s=Math.max(0,Math.ceil(Number(totalSeconds)||0));
+  const min=Math.floor(s/60);
+  const sec=s%60;
+  return `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function ensureCountdown(it){
+  if(it.countdownInitial!=null)return it.countdownInitial;
+  const seconds=parseCountdownSeconds(it.detail);
+  if(!seconds)return null;
+  it.countdownInitial=seconds;
+  it.countdownRemaining=seconds;
+  it.countdownRunning=false;
+  it.countdownEndAt=null;
+  it.countdownExpired=false;
+  it.countdownAlerted=false;
+  it.countdownResumeAfterSessionPause=false;
+  return seconds;
+}
+
+function getCountdownRemaining(it){
+  const initial=ensureCountdown(it);
+  if(!initial)return null;
+  if(it.countdownRunning&&it.countdownEndAt){
+    return Math.max(0,Math.ceil((it.countdownEndAt-Date.now())/1000));
+  }
+  return Math.max(0,Number(it.countdownRemaining??initial));
+}
+
+let countdownAudioCtx=null;
+function primeCountdownAudio(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    if(!countdownAudioCtx)countdownAudioCtx=new AC();
+    if(countdownAudioCtx.state==='suspended')countdownAudioCtx.resume();
+  }catch(e){}
+}
+function countdownSignal(it){
+  if(it.countdownAlerted)return;
+  it.countdownAlerted=true;
+  try{if(navigator.vibrate)navigator.vibrate([180,90,180])}catch(e){}
+  try{
+    primeCountdownAudio();
+    if(countdownAudioCtx){
+      const now=countdownAudioCtx.currentTime;
+      [0,0.18].forEach((offset,i)=>{
+        const osc=countdownAudioCtx.createOscillator();
+        const gain=countdownAudioCtx.createGain();
+        osc.type='sine';
+        osc.frequency.value=i===0?880:660;
+        gain.gain.setValueAtTime(.0001,now+offset);
+        gain.gain.exponentialRampToValueAtTime(.12,now+offset+.01);
+        gain.gain.exponentialRampToValueAtTime(.0001,now+offset+.12);
+        osc.connect(gain);
+        gain.connect(countdownAudioCtx.destination);
+        osc.start(now+offset);
+        osc.stop(now+offset+.13);
+      });
+    }
+  }catch(e){}
+  toast(`${it.name}：時間到`);
+}
+
+function updateCountdownDisplays(){
+  if(!session)return;
+  session.items.forEach(it=>{
+    const initial=ensureCountdown(it);
+    if(!initial)return;
+
+    let remaining=getCountdownRemaining(it);
+    if(it.countdownRunning){
+      it.countdownRemaining=remaining;
+      if(remaining<=0){
+        it.countdownRunning=false;
+        it.countdownEndAt=null;
+        it.countdownExpired=true;
+        it.countdownRemaining=0;
+        countdownSignal(it);
+      }
+    }
+
+    const btn=qa('[data-countdown-id]').find(el=>el.dataset.countdownId===it.id);
+    if(btn){
+      const display=getCountdownRemaining(it);
+      btn.textContent=it.countdownExpired?'時間到':`${it.countdownRunning?'Ⅱ':'▶'} ${countdownFormat(display)}`;
+      btn.classList.toggle('running',!!it.countdownRunning);
+      btn.classList.toggle('expired',!!it.countdownExpired);
+      btn.setAttribute('aria-label',it.countdownRunning?`${it.name} 倒數暫停`:`${it.name} 倒數開始`);
+    }
+  });
+}
+
+function toggleCountdown(itemId){
+  if(!session)return;
+  const it=session.items.find(x=>x.id===itemId);
+  if(!it||!ensureCountdown(it)||it.done)return;
+  primeCountdownAudio();
+
+  if(it.countdownRunning){
+    it.countdownRemaining=getCountdownRemaining(it);
+    it.countdownRunning=false;
+    it.countdownEndAt=null;
+  }else{
+    if(it.countdownExpired||Number(it.countdownRemaining)<=0){
+      it.countdownRemaining=it.countdownInitial;
+      it.countdownExpired=false;
+      it.countdownAlerted=false;
+    }
+    it.countdownRunning=true;
+    it.countdownEndAt=Date.now()+Number(it.countdownRemaining)*1000;
+  }
+  updateCountdownDisplays();
+}
+
+function resetCountdown(itemId){
+  if(!session)return;
+  const it=session.items.find(x=>x.id===itemId);
+  if(!it||!ensureCountdown(it))return;
+  it.countdownRunning=false;
+  it.countdownEndAt=null;
+  it.countdownRemaining=it.countdownInitial;
+  it.countdownExpired=false;
+  it.countdownAlerted=false;
+  it.countdownResumeAfterSessionPause=false;
+  updateCountdownDisplays();
+}
+
+function pauseRunningCountdownsForSession(){
+  if(!session)return;
+  session.items.forEach(it=>{
+    if(ensureCountdown(it)&&it.countdownRunning){
+      it.countdownRemaining=getCountdownRemaining(it);
+      it.countdownRunning=false;
+      it.countdownEndAt=null;
+      it.countdownResumeAfterSessionPause=true;
+    }
+  });
+}
+
+function resumeCountdownsAfterSessionPause(){
+  if(!session)return;
+  session.items.forEach(it=>{
+    if(ensureCountdown(it)&&it.countdownResumeAfterSessionPause&&!it.done&&Number(it.countdownRemaining)>0){
+      it.countdownResumeAfterSessionPause=false;
+      it.countdownRunning=true;
+      it.countdownEndAt=Date.now()+Number(it.countdownRemaining)*1000;
+    }
+  });
+}
+
+function startTicker(){
+  clearInterval(ticker);
+  ticker=setInterval(()=>{
+    if(!session)return;
+    q('#sessionTimer').textContent=fmt(elapsedMs()/1000);
+    updateCountdownDisplays();
+  },250);
+}
+
+function renderSession(){
+  if(!session)return;
+  const done=session.items.filter(x=>x.done).length;
+  q('#sessionProgress').textContent=`${done} / ${session.items.length}`;
+  q('#sessionTimer').textContent=fmt(elapsedMs()/1000);
+
+  q('#sessionList').innerHTML=session.items.map(it=>{
+    const duration=ensureCountdown(it);
+    const remaining=duration?getCountdownRemaining(it):null;
+    const timerControls=duration
+      ?`<div class="countdown-wrap">
+          <button class="countdown-btn ${it.countdownRunning?'running':''} ${it.countdownExpired?'expired':''}" data-countdown-id="${it.id}" type="button">
+            ${it.countdownExpired?'時間到':`${it.countdownRunning?'Ⅱ':'▶'} ${countdownFormat(remaining)}`}
+          </button>
+          <button class="countdown-reset" data-countdown-reset="${it.id}" type="button" aria-label="重設 ${esc(it.name)} 倒數">↺</button>
+        </div>`
+      :'';
+
+    return `<div class="session-item ${it.done?'done':''}">
+      <div class="session-index">${it.index}</div>
+      <div>
+        <div class="session-name">${esc(it.name)}</div>
+        <div class="session-detail">${esc(it.detail)}</div>
+      </div>
+      <div class="session-actions">
+        ${timerControls}
+        <button class="btn check-btn ${it.done?'primary':''}" data-item-done="${it.id}">${it.done?'已完成':'完成'}</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  qa('[data-item-done]').forEach(b=>b.onclick=()=>{
+    const it=session.items.find(x=>x.id===b.dataset.itemDone);
+    if(!it)return;
+    it.done=!it.done;
+    if(it.done&&ensureCountdown(it)){
+      it.countdownRemaining=getCountdownRemaining(it);
+      it.countdownRunning=false;
+      it.countdownEndAt=null;
+      it.countdownResumeAfterSessionPause=false;
+    }
+    renderSession();
+  });
+  qa('[data-countdown-id]').forEach(b=>b.onclick=()=>toggleCountdown(b.dataset.countdownId));
+  qa('[data-countdown-reset]').forEach(b=>b.onclick=()=>resetCountdown(b.dataset.countdownReset));
+
+  q('#finishChallengeBtn').disabled=done!==session.items.length;
+  q('#pauseBtn').textContent=session.running?'暫停':'繼續';
+  updateCountdownDisplays();
+}
+
+function pauseToggle(){
+  if(!session)return;
+  if(session.running){
+    pauseRunningCountdownsForSession();
+    session.pausedAt=Date.now();
+    session.running=false;
+  }else{
+    session.pausedTotal+=Date.now()-session.pausedAt;
+    session.pausedAt=null;
+    session.running=true;
+    resumeCountdownsAfterSessionPause();
+  }
+  renderSession();
+}
 function abandon(){if(!session)return;if(!confirm('確定放棄這次挑戰？本次不會登錄到成績牆。'))return;clearInterval(ticker);session=null;q('#trainingModal').classList.remove('open');toast('已放棄挑戰')}
 function finishChallenge(){
   if(!session||session.items.some(x=>!x.done))return;
@@ -3018,7 +3348,7 @@ qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#sta
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("./service-worker.js", { updateViaCache: "none" })
+      .register("/service-worker.js", { updateViaCache: "none" })
       .then(registration => registration.update())
       .catch(err => console.error("Service Worker registration failed:", err));
   });
