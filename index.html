@@ -1908,6 +1908,40 @@ nav.tabs button.active{
   }
 }
 
+
+/* ===== Leaderboard touch-scroll fix =====
+   Keep each ranking card independently scrollable, but allow the gesture
+   to continue to the page when the inner list reaches its top/bottom.
+*/
+.ranking-card{
+  touch-action:pan-y;
+}
+.ranking-scroll{
+  overscroll-behavior-y:auto!important;
+  touch-action:pan-y;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ===== Subtle visit counter ===== */
+.visit-counter{
+  display:block;
+  width:max-content;
+  margin-top:6px;
+  color:#7f8b99;
+  font-size:8px;
+  line-height:1.25;
+  letter-spacing:.025em;
+  opacity:.88;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:640px){
+  .visit-counter{
+    margin-top:5px;
+    font-size:7.5px;
+    opacity:.82;
+  }
+}
+
 </style>
 
   <!-- PWA -->
@@ -2078,7 +2112,7 @@ nav.tabs button.active{
       </div>
     </section>
   </main>
-  <div class="footer">本站設計初衷是讓熱愛 Hybrid Fitness Race 的朋友們紀錄和分享平日練習，不代表任何特定賽事或品牌，且與任何賽事主辦方均無隸屬、合作、贊助或認可關係。請勿在暱稱或備註中填寫敏感個人資料。</div>
+  <div class="footer">本站設計初衷是讓熱愛 Hybrid Fitness Race 的朋友們紀錄和分享平日練習，不代表任何特定賽事或品牌，且與任何賽事主辦方均無隸屬、合作、贊助或認可關係。請勿在暱稱或備註中填寫敏感個人資料。<span class="visit-counter" id="visitCounter" hidden>累計瀏覽 <span id="visitCount">—</span> 次</span></div>
 </div>
 
 <div class="modal" id="challengeRulesModal">
@@ -2656,6 +2690,47 @@ async function api(path,opts={}){
   const txt=await r.text();
   return txt?JSON.parse(txt):null;
 }
+
+const VISIT_SESSION_KEY='hybridVisitSession_v1';
+const VISIT_SESSION_MS=30*60*1000; // same browser counts at most once per 30 minutes
+
+function scalarRpcValue(value){
+  if(Array.isArray(value))value=value[0];
+  if(value&&typeof value==='object'){
+    const first=Object.values(value)[0];
+    if(first!=null)value=first;
+  }
+  const n=Number(value);
+  return Number.isFinite(n)?n:null;
+}
+
+async function updateVisitCounter(){
+  const wrap=q('#visitCounter');
+  const valueEl=q('#visitCount');
+  if(!wrap||!valueEl||!isConfigured())return;
+
+  try{
+    const now=Date.now();
+    const last=Number(localStorage.getItem(VISIT_SESSION_KEY)||0);
+    const shouldCount=!last||(now-last)>=VISIT_SESSION_MS;
+
+    const result=shouldCount
+      ?await api('rpc/increment_site_visit',{method:'POST',body:'{}'})
+      :await api('rpc/get_site_visits',{method:'POST',body:'{}'});
+
+    if(shouldCount)localStorage.setItem(VISIT_SESSION_KEY,String(now));
+
+    const value=scalarRpcValue(result);
+    if(value==null)return;
+
+    valueEl.textContent=value.toLocaleString('zh-TW');
+    wrap.hidden=false;
+  }catch(e){
+    // Visit statistics must never interfere with the actual app.
+    console.warn('Visit counter unavailable',e);
+  }
+}
+
 async function loadResults(){
   const ids=['womenResults','menResults','mixedResults','dailyResults'];
   const loading='<div class="score-empty">正在載入成績…</div>';
@@ -3340,6 +3415,7 @@ q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName
 q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
 
 loadResults();
+updateVisitCounter();
 qa('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));q('#startStandardRaceBtn').onclick=()=>startSession('經典挑戰');q('#startSimulationBtn').onclick=()=>startSession('日常挑戰');q('#startCustomBtn').onclick=()=>startSession('自訂挑戰');q('#customRun').oninput=()=>{};q('#addRunBtn').onclick=()=>addCustomItem('Run');q('#pauseBtn').onclick=pauseToggle;q('#abandonBtn').onclick=abandon;q('#finishChallengeBtn').onclick=finishChallenge;q('#closeSessionBtn').onclick=()=>{if(session)pauseToggle();q('#trainingModal').classList.remove('open')};q('#skipLogBtn').onclick=skipLog;q('#saveLogBtn').onclick=saveLog;q('#refreshBtn').onclick=loadResults;
 })();
 </script>

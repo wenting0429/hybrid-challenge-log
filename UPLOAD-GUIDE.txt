@@ -1,0 +1,19 @@
+HYBRID CHALLENGE LOG — Upload Guide
+
+Upload/replace these files in the ROOT of your GitHub repository:
+- index.html
+- manifest.webmanifest
+- service-worker.js
+- icon-192.png
+- icon-512.png
+- apple-touch-icon.png
+
+KEEP your existing config.js unchanged.
+Do NOT replace config.js with anything from this package.
+
+Supabase:
+- site-visit-counter.sql is NOT uploaded to GitHub.
+- Open Supabase > SQL Editor and run it once.
+
+Cloudflare:
+- If your Cloudflare project is connected to GitHub, committing these files to the production branch should trigger a deployment automatically.
