@@ -2389,6 +2389,137 @@ nav.tabs button.active{
   .wall-entry-date{display:none}
 }
 
+
+
+/* ===== Daily training grouped template picker v2 ===== */
+.native-template-select{
+  position:absolute!important;
+  width:1px!important;height:1px!important;
+  opacity:0!important;pointer-events:none!important;
+  clip:rect(0 0 0 0)!important;
+}
+.challenge-card.simulation{overflow:visible}
+.challenge-card.simulation::after{display:none}
+.template-picker{position:relative;z-index:35}
+.template-picker-trigger{
+  width:100%;min-height:50px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 14px;
+  border:1px solid rgba(255,151,105,.38);
+  border-radius:12px;
+  background:linear-gradient(180deg,#201b1e,#11161d);
+  color:#f7f3f1;text-align:left;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 5px 18px rgba(0,0,0,.16);
+  transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.template-picker-trigger:hover,.template-picker.open .template-picker-trigger{
+  border-color:rgba(255,151,105,.72);
+  background:linear-gradient(180deg,#2a2020,#141921);
+  box-shadow:0 0 0 3px rgba(255,126,82,.07),0 8px 24px rgba(0,0,0,.22);
+}
+.template-trigger-copy{display:flex;align-items:center;min-width:0;gap:9px}
+.template-trigger-level{
+  flex:0 0 auto;color:#ffb092;font-size:10px;font-weight:950;
+  letter-spacing:.075em;text-transform:uppercase;
+}
+.template-trigger-divider{color:#6e7886;font-size:12px}
+.template-trigger-name{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#f5f7fa;font-size:13px;font-weight:880;
+}
+.template-trigger-chevron{
+  flex:0 0 auto;color:#b9c3cf;font-size:20px;line-height:1;
+  transform:translateY(-2px);transition:transform .16s ease;
+}
+.template-picker.open .template-trigger-chevron{transform:rotate(180deg) translateY(1px)}
+
+/* Raised menu: deliberately lighter than the page/card behind it */
+.template-picker-menu{
+  display:none;position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:80;
+  max-height:min(560px,62vh);overflow:auto;overscroll-behavior:contain;
+  padding:10px;
+  border:1px solid #66505a;border-radius:16px;
+  background:linear-gradient(180deg,#29272f 0%,#20232a 100%);
+  box-shadow:0 28px 82px rgba(0,0,0,.68),0 0 0 1px rgba(255,255,255,.045) inset;
+  scrollbar-width:thin;scrollbar-color:#715867 #20232a;
+}
+.template-picker.open .template-picker-menu{display:block}
+.template-picker-menu::-webkit-scrollbar{width:9px}
+.template-picker-menu::-webkit-scrollbar-track{background:#20232a;border-radius:999px}
+.template-picker-menu::-webkit-scrollbar-thumb{background:#715867;border-radius:999px;border:2px solid #20232a}
+
+/* Each level is one visual row: level on the left, menus on the right */
+.template-level-group{
+  display:grid;
+  grid-template-columns:74px minmax(0,1fr);
+  gap:0;
+  margin:0 0 8px;
+  overflow:hidden;
+  border:1px solid #3b424e;
+  border-radius:12px;
+  background:#141a22;
+  box-shadow:0 3px 12px rgba(0,0,0,.16);
+}
+.template-level-group:last-child{margin-bottom:0}
+.template-level-head{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:52px;padding:10px 8px;
+  border-right:1px solid rgba(255,151,105,.20);
+  background:linear-gradient(180deg,rgba(255,126,82,.14),rgba(255,126,82,.055));
+  color:#ffab89;text-align:center;
+}
+.template-level-word{
+  display:block;font-size:7.5px;line-height:1;font-weight:900;letter-spacing:.13em;
+  color:#b98a7d;text-transform:uppercase;
+}
+.template-level-number{
+  display:block;margin-top:5px;font-size:20px;line-height:1;font-weight:950;
+  letter-spacing:-.035em;color:#ffb192;
+}
+.template-level-options{
+  min-width:0;padding:5px;
+  background:linear-gradient(180deg,rgba(20,26,34,.96),rgba(16,21,28,.98));
+}
+.template-option{
+  position:relative;width:100%;min-height:40px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 11px 9px 13px;margin:0;
+  border:1px solid transparent;border-radius:9px;
+  background:transparent;color:#d7dee7;text-align:left;
+  font-size:12px;font-weight:790;
+  transition:background .13s ease,border-color .13s ease,color .13s ease,transform .13s ease;
+}
+.template-option + .template-option{margin-top:3px}
+.template-option:hover{
+  background:#212a35;border-color:#3b4858;color:#fff;
+  transform:translateX(1px);
+}
+.template-option.selected{
+  color:#fff6f2;
+  border-color:rgba(255,151,105,.52);
+  background:linear-gradient(90deg,#4b2d29 0%,#32272a 58%,#25232a 100%);
+  box-shadow:inset 3px 0 0 #ff8e67,0 3px 10px rgba(0,0,0,.16);
+}
+.template-option-check{
+  flex:0 0 auto;width:20px;height:20px;display:grid;place-items:center;
+  border-radius:999px;background:#ff8e67;color:#22100b;
+  font-size:10px;font-weight:950;opacity:0;transform:scale(.86);
+  transition:opacity .13s ease,transform .13s ease;
+}
+.template-option.selected .template-option-check{opacity:1;transform:scale(1)}
+
+@media(max-width:640px){
+  .template-picker-trigger{min-height:47px;padding:10px 12px;border-radius:11px}
+  .template-trigger-level{font-size:9.5px}.template-trigger-name{font-size:13px}
+  .template-picker-menu{max-height:60vh;padding:8px;border-radius:14px}
+  .template-level-group{grid-template-columns:62px minmax(0,1fr);margin-bottom:7px;border-radius:11px}
+  .template-level-head{min-height:49px;padding:8px 5px}
+  .template-level-word{font-size:7px}
+  .template-level-number{font-size:18px;margin-top:4px}
+  .template-level-options{padding:4px}
+  .template-option{min-height:39px;padding:8px 9px 8px 11px;font-size:12px;border-radius:8px}
+}
+
 </style>
 
   <!-- PWA -->
@@ -2457,24 +2588,35 @@ nav.tabs button.active{
           <div class="challenge-grid">
             <div class="field full">
               <label>訓練模板</label>
-              <select id="raceTemplate">
-                <option value="easyHybrid">1｜加減練一下</option>
-                <option value="coreTraining">2｜核心也要練</option>
-                <option value="engineBuilder">3｜平凡的一次訓練</option>
-                <option value="coreSculpt">3｜核心線條雕塑</option>
-                <option value="noRun">4｜今天不跑步</option>
-                <option value="strengthBoost">4｜力量強化</option>
-                <option value="lineBoost">4｜線條強化</option>
-                <option value="lowerBlast">5｜下肢炸裂 Run</option>
-                <option value="shoulderBackSculpt">5｜肩背線條雕塑</option>
-                <option value="slimWaist">5｜小蠻腰挑戰</option>
-                <option value="balanced8">6｜全能 8 站</option>
-                <option value="zeroRunEndurance">6｜無跑步肌耐力訓練</option>
-                <option value="fatBurn">7｜代謝耐力</option>
-                <option value="moverDay">8｜搬運工的一天</option>
-                <option value="aerobicMax">9｜有氧拉滿</option>
-                <option value="hellDay">10｜地獄日</option>
+              <select id="raceTemplate" class="native-template-select" aria-hidden="true" tabindex="-1">
+                <option value="easyHybrid" data-level="1">Level I | 加減練一下</option>
+                <option value="coreTraining" data-level="2">Level II | 核心也要練</option>
+                <option value="engineBuilder" data-level="3">Level III | 平凡的一次訓練</option>
+                <option value="coreSculpt" data-level="3">Level III | 核心線條雕塑</option>
+                <option value="noRun" data-level="4">Level IV | 今天不跑步</option>
+                <option value="strengthBoost" data-level="4">Level IV | 力量強化</option>
+                <option value="lineBoost" data-level="4">Level IV | 線條強化</option>
+                <option value="lowerBlast" data-level="5">Level V | 下肢炸裂 Run</option>
+                <option value="shoulderBackSculpt" data-level="5">Level V | 肩背線條雕塑</option>
+                <option value="slimWaist" data-level="5">Level V | 小蠻腰挑戰</option>
+                <option value="balanced8" data-level="6">Level VI | 全能 8 站</option>
+                <option value="zeroRunEndurance" data-level="6">Level VI | 無跑步肌耐力訓練</option>
+                <option value="fatBurn" data-level="7">Level VII | 代謝耐力</option>
+                <option value="moverDay" data-level="8">Level VIII | 搬運工的一天</option>
+                <option value="aerobicMax" data-level="9">Level IX | 有氧拉滿</option>
+                <option value="hellDay" data-level="10">Level X | 地獄日</option>
               </select>
+              <div class="template-picker" id="templatePicker">
+                <button type="button" class="template-picker-trigger" id="templatePickerTrigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="template-trigger-copy">
+                    <span class="template-trigger-level" id="templateTriggerLevel">Level I</span>
+                    <span class="template-trigger-divider">|</span>
+                    <span class="template-trigger-name" id="templateTriggerName">加減練一下</span>
+                  </span>
+                  <span class="template-trigger-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <div class="template-picker-menu" id="templatePickerMenu" role="listbox" aria-label="日常訓練模板"></div>
+              </div>
             </div>
             <div class="field full" id="dailyCardioChoiceWrap" style="display:none">
               <label>有氧選擇</label>
@@ -2531,7 +2673,7 @@ nav.tabs button.active{
       <div class="wall-toolbar"><button class="btn small" id="refreshBtn">重新整理</button></div>
 
       <div class="wall-grid">
-        <section class="ranking-card ranking-women">
+        <section class="ranking-card ranking-women" data-wall-card="standard-women">
           <div class="ranking-card-head">
             <div>
               <div class="ranking-card-kicker">CLASSIC CHALLENGE</div>
@@ -2542,7 +2684,7 @@ nav.tabs button.active{
           <div class="ranking-scroll" id="womenResults"></div>
         </section>
 
-        <section class="ranking-card ranking-men">
+        <section class="ranking-card ranking-men" data-wall-card="standard-men">
           <div class="ranking-card-head">
             <div>
               <div class="ranking-card-kicker">CLASSIC CHALLENGE</div>
@@ -2553,7 +2695,7 @@ nav.tabs button.active{
           <div class="ranking-scroll" id="menResults"></div>
         </section>
 
-        <section class="ranking-card ranking-mixed">
+        <section class="ranking-card ranking-mixed" data-wall-card="standard-mixed">
           <div class="ranking-card-head">
             <div>
               <div class="ranking-card-kicker">CLASSIC CHALLENGE</div>
@@ -2564,7 +2706,7 @@ nav.tabs button.active{
           <div class="ranking-scroll" id="mixedResults"></div>
         </section>
 
-        <section class="ranking-card ranking-daily">
+        <section class="ranking-card ranking-daily" data-wall-card="daily">
           <div class="ranking-card-head">
             <div>
               <div class="ranking-card-kicker">DAILY TRAINING LOG</div>
@@ -3329,8 +3471,68 @@ function simulationItems(templateId){
   const t=RACE_TEMPLATES[templateId]||RACE_TEMPLATES.lowerBlast;
   return buildTemplateItems(t,'Bike');
 }
+const ROMAN_LEVELS={1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI',7:'VII',8:'VIII',9:'IX',10:'X'};
+function romanLevel(n){return ROMAN_LEVELS[Number(n)]||String(n||'')}
+function syncTemplatePicker(){
+  const select=q('#raceTemplate'),picker=q('#templatePicker');
+  if(!select||!picker)return;
+  const t=currentRaceTemplate();
+  const level=q('#templateTriggerLevel'),name=q('#templateTriggerName');
+  const selectedOpt=select.options[select.selectedIndex];
+  const displayLevel=Number(selectedOpt?.dataset.level)||Number(t.intensity)||1;
+  if(level)level.textContent=`Level ${romanLevel(displayLevel)}`;
+  if(name)name.textContent=t.label;
+  qa('#templatePickerMenu .template-option').forEach(btn=>{
+    const selected=btn.dataset.templateId===select.value;
+    btn.classList.toggle('selected',selected);
+    btn.setAttribute('aria-selected',selected?'true':'false');
+  });
+}
+function buildTemplatePicker(){
+  const select=q('#raceTemplate'),menu=q('#templatePickerMenu'),trigger=q('#templatePickerTrigger'),picker=q('#templatePicker');
+  if(!select||!menu||!trigger||!picker)return;
+  const grouped=new Map();
+  [...select.options].forEach(opt=>{
+    const t=RACE_TEMPLATES[opt.value];if(!t)return;
+    const level=Number(opt.dataset.level)||Number(t.intensity)||0;
+    if(!grouped.has(level))grouped.set(level,[]);
+    grouped.get(level).push({id:opt.value,label:t.label});
+  });
+  menu.innerHTML=[...grouped.entries()].sort((a,b)=>a[0]-b[0]).map(([level,items])=>`
+    <div class="template-level-group" data-level="${level}">
+      <div class="template-level-head">
+        <span class="template-level-word">LEVEL</span>
+        <strong class="template-level-number">${romanLevel(level)}</strong>
+      </div>
+      <div class="template-level-options">
+        ${items.map(item=>`<button type="button" class="template-option" role="option" data-template-id="${esc(item.id)}"><span>${esc(item.label)}</span><span class="template-option-check">✓</span></button>`).join('')}
+      </div>
+    </div>`).join('');
+  menu.querySelectorAll('.template-option').forEach(btn=>btn.addEventListener('click',()=>{
+    select.value=btn.dataset.templateId;
+    picker.classList.remove('open');trigger.setAttribute('aria-expanded','false');
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+  }));
+  trigger.addEventListener('click',()=>{
+    const open=!picker.classList.contains('open');
+    picker.classList.toggle('open',open);trigger.setAttribute('aria-expanded',open?'true':'false');
+    if(open){
+      syncTemplatePicker();
+      requestAnimationFrame(()=>menu.querySelector('.template-option.selected')?.scrollIntoView({block:'nearest'}));
+    }
+  });
+  trigger.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){picker.classList.remove('open');trigger.setAttribute('aria-expanded','false')}
+  });
+  document.addEventListener('click',e=>{
+    if(!picker.contains(e.target)){picker.classList.remove('open');trigger.setAttribute('aria-expanded','false')}
+  });
+  syncTemplatePicker();
+}
+
 function updateRaceTemplateUI(){
   const t=currentRaceTemplate();
+  syncTemplatePicker();
   const cardioWrap=q('#dailyCardioChoiceWrap');
   if(cardioWrap)cardioWrap.style.display=t.id==='coreSculpt'?'grid':'none';
   const items=buildTemplateItems(t);
@@ -4302,9 +4504,41 @@ function openWorkoutDetail(resultId){
 }
 function closeWorkoutDetail(){q('#workoutDetailModal').classList.remove('open')}
 
+function wallCardStats(){
+  const configs=[
+    {key:'standard-women',rows:classicRows('standard-women'),fallback:1},
+    {key:'standard-men',rows:classicRows('standard-men'),fallback:2},
+    {key:'standard-mixed',rows:classicRows('standard-mixed'),fallback:3},
+    {key:'daily',rows:dailyRows(),fallback:0}
+  ];
+  return configs.map(cfg=>{
+    const latest=cfg.rows.reduce((max,r)=>{
+      const t=Date.parse(r?.created_at||r?.session_date||'')||0;
+      return Math.max(max,t);
+    },0);
+    return {...cfg,count:cfg.rows.length,latest};
+  });
+}
+
+function sortWallCards(){
+  const grid=q('.wall-grid');
+  if(!grid)return;
+  // Most recently updated category first. Total record count does not matter.
+  // Example: new result in A -> A first; then new result in B -> B first, A second.
+  const stats=wallCardStats().sort((a,b)=>
+    (b.latest-a.latest) ||
+    (a.fallback-b.fallback)
+  );
+  stats.forEach(stat=>{
+    const card=grid.querySelector(`[data-wall-card="${stat.key}"]`);
+    if(card)grid.appendChild(card);
+  });
+}
+
 function renderWall(){
   renderClassicWall();
   renderDailyWall();
+  sortWallCards();
 }
 window.addEventListener('popstate',()=>{
   if(session?.pageLocked){
@@ -4334,7 +4568,7 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 
-renderPicker();updateCustomPreview();setDefaultCustomName(true);updateRaceTemplateUI();
+renderPicker();updateCustomPreview();setDefaultCustomName(true);buildTemplatePicker();updateRaceTemplateUI();
 q('#publicConfigWarning').classList.toggle('show',!isConfigured());
 q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
 q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
