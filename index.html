@@ -2150,11 +2150,23 @@ nav.tabs button.active{
 }
 .ranking-card .score-row{
   display:block!important;
+  cursor:pointer;
+  transition:border-color .15s ease, transform .15s ease, background .15s ease;
   margin:0 0 9px!important;
   padding:0!important;
   border-radius:13px!important;
   overflow:hidden!important;
 }
+
+.ranking-card .score-row[data-result-id]:hover{
+  transform:translateY(-1px);
+  border-color:rgba(112,222,216,.34)!important;
+}
+.ranking-card .score-row[data-result-id]:focus-visible{
+  outline:2px solid rgba(112,222,216,.65);
+  outline-offset:2px;
+}
+
 .wall-entry{
   display:grid;
   grid-template-columns:66px minmax(0,1fr) auto;
@@ -2303,6 +2315,65 @@ nav.tabs button.active{
   .wall-entry-result strong{font-size:18px}
   .wall-entry-note{font-size:10px!important;line-height:1.4!important}
 }
+
+/* ===== Score wall menu detail interaction ===== */
+.ranking-card .score-row[data-result-id]{
+  cursor:pointer;
+  transition:border-color .14s ease,transform .14s ease,background .14s ease;
+}
+.ranking-card .score-row[data-result-id]:hover{
+  transform:translateY(-1px);
+  border-color:rgba(112,222,216,.34)!important;
+}
+.ranking-card .score-row[data-result-id]:focus-visible{
+  outline:2px solid rgba(112,222,216,.72);
+  outline-offset:2px;
+}
+.workout-detail-list{
+  display:grid;
+  gap:7px;
+  margin-top:15px;
+}
+.workout-detail-item{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  padding:10px 11px;
+  border:1px solid #293648;
+  border-radius:11px;
+  background:#0b1119;
+}
+.workout-detail-index{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  background:#172230;
+  color:#7fe1db;
+  font-size:11px;
+  font-weight:950;
+}
+.workout-detail-name{font-size:13px;font-weight:900;line-height:1.3}
+.workout-detail-spec{margin-top:3px;color:#8d9bad;font-size:10.5px;line-height:1.45}
+.workout-detail-summary{
+  margin-top:12px;
+  padding:10px 11px;
+  border:1px solid #293648;
+  border-radius:11px;
+  background:#0e151f;
+  color:#aab7c5;
+  font-size:11px;
+  line-height:1.5;
+}
+@media(max-width:640px){
+  .workout-detail-item{padding:9px;grid-template-columns:31px minmax(0,1fr);gap:8px}
+  .workout-detail-index{width:28px;height:28px;font-size:10px}
+  .workout-detail-name{font-size:12px}
+  .workout-detail-spec{font-size:10px}
+}
+
 @media(max-width:380px){
   .wall-entry{
     grid-template-columns:52px minmax(0,1fr) 64px;
@@ -2390,13 +2461,31 @@ nav.tabs button.active{
                 <option value="easyHybrid">1｜加減練一下</option>
                 <option value="coreTraining">2｜核心也要練</option>
                 <option value="engineBuilder">3｜平凡的一次訓練</option>
+                <option value="coreSculpt">3｜核心線條雕塑</option>
                 <option value="noRun">4｜今天不跑步</option>
+                <option value="strengthBoost">4｜力量強化</option>
+                <option value="lineBoost">4｜線條強化</option>
                 <option value="lowerBlast">5｜下肢炸裂 Run</option>
+                <option value="shoulderBackSculpt">5｜肩背線條雕塑</option>
+                <option value="slimWaist">5｜小蠻腰挑戰</option>
                 <option value="balanced8">6｜全能 8 站</option>
+                <option value="zeroRunEndurance">6｜無跑步肌耐力訓練</option>
                 <option value="fatBurn">7｜代謝耐力</option>
                 <option value="moverDay">8｜搬運工的一天</option>
                 <option value="aerobicMax">9｜有氧拉滿</option>
                 <option value="hellDay">10｜地獄日</option>
+              </select>
+            </div>
+            <div class="field full" id="dailyCardioChoiceWrap" style="display:none">
+              <label>有氧選擇</label>
+              <select id="dailyCardioChoice">
+                <option value="Bike">Bike</option>
+                <option value="Row">Row</option>
+                <option value="SkiErg">SkiErg</option>
+                <option value="Stair Climber">Stair Climber</option>
+                <option value="Elliptical">Elliptical</option>
+                <option value="Incline Walk">Incline Walk</option>
+                <option value="Brisk Walk">Brisk Walk</option>
               </select>
             </div>
           </div>
@@ -2581,6 +2670,20 @@ nav.tabs button.active{
       <button class="btn" id="skipLogBtn">這次不登錄</button>
       <button class="btn primary" id="saveLogBtn">登錄到成績牆</button>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="workoutDetailModal">
+  <div class="modal-card" style="width:min(650px,100%)">
+    <div class="modal-head">
+      <div>
+        <h3 id="workoutDetailTitle">菜單內容</h3>
+        <div class="modal-sub" id="workoutDetailMeta"></div>
+      </div>
+      <button class="btn small ghost" id="closeWorkoutDetailBtn" type="button">關閉</button>
+    </div>
+    <div class="workout-detail-summary" id="workoutDetailSummary"></div>
+    <div class="workout-detail-list" id="workoutDetailList"></div>
   </div>
 </div>
 
@@ -2980,6 +3083,222 @@ const RACE_TEMPLATES={
     }
   },
 
+  coreSculpt:{
+    id:'coreSculpt',
+    label:'核心線條雕塑',
+    duration:'約 50–60 分鐘',
+    intensity:3,
+    description:'核心耐力＋全身肌耐力的無跑訓練。開始前自選一種有氧，全程使用同一種器材／模式，搭配 carry、下肢與肩背動作。',
+    equipment:'有氧自選／啞鈴／壺鈴／Cable 或自體重量',
+    total:'跑步：0 km｜Cardio：約 29 分鐘｜核心＋全身肌耐力',
+    build(cardioChoice='Bike'){
+      const cardio=String(cardioChoice||'Bike');
+      const seq=[
+        [cardio,'6 min'],
+        ['Kettlebell Goblet Squat','20 reps'],
+        ['Farmers Carry','80 m · RPE 6'],
+        ['Reverse Crunch','15 reps'],
+        [cardio,'6 min'],
+        ['Dumbbell Row','15 reps / side'],
+        ['Walking Lunges','24 reps'],
+        ['Pallof Press','12 reps / side'],
+        [cardio,'6 min'],
+        ['Hip Thrust','20 reps'],
+        ['Suitcase Carry','40 m / side'],
+        ['Hanging Knee Raise','12 reps'],
+        [cardio,'6 min'],
+        ['Dumbbell Shoulder Press','15 reps'],
+        ['Box Step-Up','20 reps'],
+        ['Cable Crunch','15 reps'],
+        [cardio,'5 min · moderate–hard'],
+        ['Side Plank','30 sec / side'],
+        ['Hollow Body Hold','30 sec'],
+        ['Plank','60 sec']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  strengthBoost:{
+    id:'strengthBoost',
+    label:'力量強化',
+    duration:'約 60–75 分鐘',
+    intensity:4,
+    description:'以全身力量與力量耐力為主，Row 放在每個力量區塊之後維持心肺壓力。Kettlebell、Sled 與 Carry 是主要特色。',
+    equipment:'Row／Sled／壺鈴／啞鈴／Sandbag',
+    total:'跑步：0 km｜Row：2.9 km｜Kettlebell + Sled strength',
+    build(){
+      const seq=[
+        ['Kettlebell Goblet Squat','20 reps'],
+        ['Kettlebell Swing','20 reps'],
+        ['Farmers Carry','100 m · RPE 6–7'],
+        ['Row','600 m'],
+        ['Sled Push','40 m · RPE 7'],
+        ['Dumbbell Bench Press','15 reps'],
+        ['Front Rack Carry','40 m / side'],
+        ['Row','600 m'],
+        ['Sled Pull','40 m · RPE 7'],
+        ['Box Step-Up','24 reps · weighted'],
+        ['Dumbbell Shoulder Press','15 reps'],
+        ['Row','600 m'],
+        ['Kettlebell Deadlift','20 reps'],
+        ['Sandbag Carry','100 m'],
+        ['Lat Pulldown','15 reps'],
+        ['Row','600 m'],
+        ['Row','500 m · hard'],
+        ['Kettlebell Swing','20 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  lineBoost:{
+    id:'lineBoost',
+    label:'線條強化',
+    duration:'約 60–70 分鐘',
+    intensity:4,
+    description:'力量、核心與爆發力均衡的無跑訓練。Bike 負責心肺，Medicine Ball Slam 增加全身爆發與核心穩定刺激。',
+    equipment:'Bike／Sled／藥球／啞鈴／Sandbag／Cable',
+    total:'跑步：0 km｜Bike：約 28 分鐘｜Medicine Ball Slam：45 reps',
+    build(){
+      const seq=[
+        ['Bike','6 min'],
+        ['Kettlebell Goblet Squat','20 reps'],
+        ['Medicine Ball Slam','15 reps'],
+        ['Hanging Knee Raise','15 reps'],
+        ['Bike','6 min'],
+        ['Sled Push','40 m · RPE 7'],
+        ['Romanian Deadlift','20 reps'],
+        ['Pallof Press','15 reps / side'],
+        ['Bike','6 min'],
+        ['Medicine Ball Slam','15 reps'],
+        ['Farmers Carry','100 m · RPE 6–7'],
+        ['Reverse Crunch','20 reps'],
+        ['Bike','6 min'],
+        ['Sandbag Lunges','30 reps'],
+        ['Dumbbell Shoulder Press','15 reps'],
+        ['Suitcase Carry','50 m / side'],
+        ['Bike','4 min · hard'],
+        ['Medicine Ball Slam','15 reps'],
+        ['Cable Crunch','20 reps'],
+        ['Side Plank','40 sec / side']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  shoulderBackSculpt:{
+    id:'shoulderBackSculpt',
+    label:'肩背線條雕塑',
+    duration:'約 70–85 分鐘',
+    intensity:5,
+    description:'以上肢肌耐力、肩背輪廓與握力為主。Row 維持心肺負荷，推、拉、側三角與後三角均衡安排，避免拉類動作過度集中。',
+    equipment:'Row／Sled／啞鈴／Cable／壺鈴',
+    total:'跑步：0 km｜Row：3.8 km｜Upper-body endurance',
+    build(){
+      const seq=[
+        ['Row','700 m'],
+        ['Dumbbell Bench Press','18 reps'],
+        ['Dumbbell Row','12 reps / side'],
+        ['Farmers Carry','100 m'],
+        ['Row','700 m'],
+        ['Lat Pulldown','15 reps'],
+        ['Dumbbell Shoulder Press','15 reps'],
+        ['Sled Pull','30 m · RPE 6–7'],
+        ['Row','700 m'],
+        ['Push-Up','15–20 reps'],
+        ['Dumbbell Lateral Raise','15 reps'],
+        ['Face Pull','15 reps'],
+        ['Row','700 m'],
+        ['Dumbbell Incline Press','15 reps'],
+        ['Chest-Supported Dumbbell Row','15 reps'],
+        ['Front Rack Carry','40 m / side'],
+        ['Row','500 m'],
+        ['Rear Delt Fly','15 reps'],
+        ['Dumbbell Lateral Raise','15 reps'],
+        ['Farmers Carry','100 m'],
+        ['Row','500 m · hard'],
+        ['Plank Shoulder Tap','15 reps / side']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  slimWaist:{
+    id:'slimWaist',
+    label:'小蠻腰挑戰',
+    duration:'約 70–85 分鐘',
+    intensity:5,
+    description:'核心耐力與腰腹控制為主，但仍保留 Sled、Carry、Lunge 與臀腿力量。Stair Climber 提供持續心肺與臀腿刺激。',
+    equipment:'Stair Climber／Sled／啞鈴／Sandbag／Cable',
+    total:'跑步：0 km｜Stair Climber：約 33 分鐘｜Core endurance',
+    build(){
+      const seq=[
+        ['Stair Climber','7 min'],
+        ['Kettlebell Goblet Squat','20 reps'],
+        ['Farmers Carry','120 m · RPE 6–7'],
+        ['Hanging Knee Raise','15 reps'],
+        ['Stair Climber','7 min'],
+        ['Sled Push','40 m · RPE 7'],
+        ['Dumbbell Row','15 reps / side'],
+        ['Pallof Press','15 reps / side'],
+        ['Stair Climber','7 min'],
+        ['Sandbag Lunges','30 reps'],
+        ['Cable Crunch','20 reps'],
+        ['Suitcase Carry','50 m / side'],
+        ['Stair Climber','7 min'],
+        ['Hip Thrust','25 reps'],
+        ['Reverse Crunch','20 reps'],
+        ['Farmers Carry','100 m'],
+        ['Stair Climber','5 min · moderate–hard'],
+        ['Side Plank Hip Lift','12 reps / side'],
+        ['Hollow Body Hold','30–40 sec'],
+        ['Plank','60 sec']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
+  zeroRunEndurance:{
+    id:'zeroRunEndurance',
+    label:'無跑步肌耐力訓練',
+    duration:'約 80–95 分鐘',
+    intensity:6,
+    description:'以快走／斜坡走取代跑步的全身肌耐力訓練。Sled、Carry、Sandbag Lunge、Kettlebell、上肢推拉與 Wall Ball 全部涵蓋。',
+    equipment:'跑步機或快走空間／Sled／壺鈴／啞鈴／Sandbag',
+    total:'跑步：0 km｜Brisk / Incline Walk：約 47 分鐘｜Full-body muscular endurance',
+    build(){
+      const seq=[
+        ['Incline Walk','7 min'],
+        ['Sled Push','40 m · RPE 7'],
+        ['Kettlebell Goblet Squat','25 reps'],
+        ['Brisk Walk','6 min'],
+        ['Sled Pull','40 m · RPE 7'],
+        ['Dumbbell Row','20 reps / side'],
+        ['Hanging Knee Raise','15 reps'],
+        ['Incline Walk','7 min'],
+        ['Farmers Carry','150 m · RPE 6–7'],
+        ['Sandbag Lunges','40 reps'],
+        ['Brisk Walk','6 min'],
+        ['Dumbbell Bench Press','20 reps'],
+        ['Lat Pulldown','20 reps'],
+        ['Pallof Press','15 reps / side'],
+        ['Incline Walk','7 min'],
+        ['Kettlebell Swing','30 reps'],
+        ['Box Step-Up','30 reps · weighted'],
+        ['Farmers Carry','120 m'],
+        ['Brisk Walk','6 min'],
+        ['Dumbbell Shoulder Press','20 reps'],
+        ['Wall Balls','40 reps'],
+        ['Reverse Crunch','20 reps'],
+        ['Incline Walk','8 min · progressively harder'],
+        ['Suitcase Carry','50 m / side'],
+        ['Plank','60 sec']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
+
   // Legacy aliases keep old saved results readable after the rename.
   heavyDay:null,
   dualEngine:null,
@@ -3004,13 +3323,17 @@ function standardDivisionLabel(division){
   return division==='Women Open'?'女子':division==='Men Open'?'男子':division==='Mixed Doubles'?'Mixed':String(division||'');
 }
 function currentRaceTemplate(){return RACE_TEMPLATES[q('#raceTemplate')?.value]||RACE_TEMPLATES.lowerBlast}
+function selectedDailyCardio(){return q('#dailyCardioChoice')?.value||'Bike'}
+function buildTemplateItems(t,cardioChoice=null){return t.build(cardioChoice||selectedDailyCardio())}
 function simulationItems(templateId){
   const t=RACE_TEMPLATES[templateId]||RACE_TEMPLATES.lowerBlast;
-  return t.build();
+  return buildTemplateItems(t,'Bike');
 }
 function updateRaceTemplateUI(){
   const t=currentRaceTemplate();
-  const items=t.build();
+  const cardioWrap=q('#dailyCardioChoiceWrap');
+  if(cardioWrap)cardioWrap.style.display=t.id==='coreSculpt'?'grid':'none';
+  const items=buildTemplateItems(t);
 
   q('#dailyPreviewHead').textContent=`${t.label}｜${t.duration}｜難度 ${t.intensity}/10`;
   q('#dailyPreviewDesc').textContent=t.description||'';
@@ -3384,7 +3707,7 @@ function startSession(type){
     const t=currentRaceTemplate();
     division='Open';
     title=t.label;
-    items=t.build();
+    items=buildTemplateItems(t);
     templateId=t.id;
     templateLabel=t.label;
   }else{
@@ -3884,7 +4207,7 @@ function wallNoteText(r){
 function classicResultRow(r,rank,groupKey){
   const typeClass=`classic-${groupKey.replace('standard-','')}`;
   const note=wallNoteText(r);
-  return `<div class="score-row classic-score-row ${typeClass} ${rankToneClass(rank)}">
+  return `<div class="score-row classic-score-row ${typeClass} ${rankToneClass(rank)}" data-result-id="${esc(String(r.id||''))}" role="button" tabindex="0" title="點一下查看菜單內容" aria-label="查看 ${esc(cleanStoredTitle(r))} 菜單內容">
     <div class="wall-entry">
       <div class="wall-entry-rank" aria-label="第 ${rank} 名">
         <span>名次</span><strong>${rankText(rank)}</strong>
@@ -3908,7 +4231,7 @@ function dailyResultRow(r,templateRank){
   const id=simulationTemplateIdForRow(r);
   const t=RACE_TEMPLATES[id]||RACE_TEMPLATES.easyHybrid;
   const note=wallNoteText(r);
-  return `<div class="score-row daily-score-row daily-${esc(id)} ${rankToneClass(templateRank)}">
+  return `<div class="score-row daily-score-row daily-${esc(id)} ${rankToneClass(templateRank)}" data-result-id="${esc(String(r.id||''))}" role="button" tabindex="0" title="點一下查看菜單內容" aria-label="查看 ${esc(t.label)} 菜單內容">
     <div class="wall-entry">
       <div class="wall-entry-rank" aria-label="同項訓練第 ${templateRank} 名">
         <span>同項排名</span><strong>${rankText(templateRank)}</strong>
@@ -3916,7 +4239,7 @@ function dailyResultRow(r,templateRank){
       <div class="wall-entry-core">
         <div class="wall-entry-athlete" title="${esc(r.nickname||'未命名選手')}">${esc(r.nickname||'未命名選手')}</div>
         <div class="wall-entry-subline">
-          <span class="wall-entry-title">${esc(t.label)}</span>
+          <span class="wall-entry-title">${esc(`Level ${t.intensity}: ${t.label}`)}</span>
           <span class="wall-entry-date">${esc(r.session_date||'')}</span>
         </div>
         ${note?`<div class="wall-entry-note">${esc(note)}</div>`:''}
@@ -3961,6 +4284,24 @@ function renderDailyWall(){
     :'<div class="score-empty compact-empty">目前還沒有日常訓練成績。</div>';
 }
 
+function openWorkoutDetail(resultId){
+  const r=allResults.find(x=>String(x.id)===String(resultId));
+  if(!r){toast('找不到這筆成績');return}
+  const items=getChallengeItems(r);
+  const templateId=isSimulationType(r.workout_type)?simulationTemplateIdForRow(r):null;
+  const title=templateId&&RACE_TEMPLATES[templateId]
+    ?RACE_TEMPLATES[templateId].label
+    :cleanStoredTitle(r);
+  q('#workoutDetailTitle').textContent=title||'菜單內容';
+  q('#workoutDetailMeta').textContent=[r.nickname||'未命名選手',r.session_date||'',`完成時間 ${fmt(r.total_seconds)}`].filter(Boolean).join(' · ');
+  q('#workoutDetailSummary').textContent=`共 ${items.length} 個項目${Number(r.run_distance_m)>0?` · Run ${(Number(r.run_distance_m)/1000).toFixed(1)} km`:' · No Run'}`;
+  q('#workoutDetailList').innerHTML=items.length
+    ?items.map((x,i)=>`<div class="workout-detail-item"><div class="workout-detail-index">${i+1}</div><div><div class="workout-detail-name">${esc(x.name||'Training')}</div>${x.detail?`<div class="workout-detail-spec">${esc(x.detail)}</div>`:''}</div></div>`).join('')
+    :'<div class="score-empty compact-empty">這筆舊紀錄沒有保存菜單內容。</div>';
+  q('#workoutDetailModal').classList.add('open');
+}
+function closeWorkoutDetail(){q('#workoutDetailModal').classList.remove('open')}
+
 function renderWall(){
   renderClassicWall();
   renderDailyWall();
@@ -3997,6 +4338,20 @@ renderPicker();updateCustomPreview();setDefaultCustomName(true);updateRaceTempla
 q('#publicConfigWarning').classList.toggle('show',!isConfigured());
 q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
 q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
+q('#dailyCardioChoice').addEventListener('change',updateRaceTemplateUI);
+q('#wall').addEventListener('click',e=>{
+  const row=e.target.closest('[data-result-id]');
+  if(row)openWorkoutDetail(row.dataset.resultId);
+});
+q('#wall').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const row=e.target.closest('[data-result-id]');
+  if(!row)return;
+  e.preventDefault();
+  openWorkoutDetail(row.dataset.resultId);
+});
+q('#closeWorkoutDetailBtn').onclick=closeWorkoutDetail;
+q('#workoutDetailModal').addEventListener('click',e=>{if(e.target===q('#workoutDetailModal'))closeWorkoutDetail()});
 
 loadResults();
 updateVisitCounter();
