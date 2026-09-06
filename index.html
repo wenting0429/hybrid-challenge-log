@@ -4559,7 +4559,556 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 
-renderPicker();updateCustomPreview();setDefaultCustomName(true);buildTemplatePicker();updateRaceTemplateUI();
+/* ===== DAILY MENU ADMIN INTEGRATION v1 ===== */
+/* ============================================================
+   DAILY MENU ADMIN PATCH
+   Paste this INSIDE the existing (() => { ... }) block,
+   immediately BEFORE the final initialization line that starts:
+       renderPicker();updateCustomPreview();...
+   ============================================================ */
+
+let dailyMenuAdminName = '';
+let editingDailyTemplateId = null;
+let editingDailyTemplateMeta = null;
+let baseDailyTemplateIds = [];
+let cloudDailyTemplateIds = [];
+
+const DAILY_CARDIO_PLACEHOLDER = 'Cardio 自選';
+const DAILY_CARDIO_DB_TOKEN = '__CARDIO__';
+
+// Let the existing Custom Builder represent a replaceable cardio station.
+if (!CUSTOM_EXERCISES.some(x => x.name === DAILY_CARDIO_PLACEHOLDER)) {
+  CUSTOM_EXERCISES.push({name: DAILY_CARDIO_PLACEHOLDER, cat: 'Cardio'});
+}
+
+function templateHasCompletedResult(templateId) {
+  const id = String(templateId || '');
+  return (allResults || []).some(r =>
+    Number(r?.completion_pct) === 100 &&
+    String(r?.stations?.challenge_template?.id || '') === id
+  );
+}
+
+function dailyTemplateFromCloud(row) {
+  const rawItems = Array.isArray(row?.items) ? row.items : [];
+  return {
+    id: String(row.template_id),
+    label: String(row.label || row.template_id),
+    intensity: Number(row.intensity) || 1,
+    duration: String(row.duration || '自訂'),
+    description: String(row.description || ''),
+    equipment: String(row.equipment || ''),
+    total: String(row.total || ''),
+    cloudManaged: true,
+    build(cardioChoice) {
+      const cardio = cardioChoice || selectedDailyCardio();
+      return rawItems.map(x => ({
+        name: x?.name === DAILY_CARDIO_DB_TOKEN ? cardio : String(x?.name || ''),
+        detail: String(x?.detail || ''),
+        distance_m: Number(x?.distance_m) > 0 ? Number(x.distance_m) : null,
+        weight_kg: x?.weight_kg ?? null,
+        reps: Number(x?.reps) > 0 ? Number(x.reps) : null
+      }));
+    }
+  };
+}
+
+async function loadCloudDailyTemplates() {
+  if (!isConfigured()) return;
+
+  const rows = await api(
+    'daily_templates?select=template_id,label,intensity,duration,description,equipment,total,items,updated_by,updated_at&order=intensity.asc,updated_at.asc'
+  );
+
+  cloudDailyTemplateIds = [];
+
+  (rows || []).forEach(row => {
+    const t = dailyTemplateFromCloud(row);
+    RACE_TEMPLATES[t.id] = t;
+    cloudDailyTemplateIds.push(t.id);
+  });
+}
+
+function rebuildDailyTemplateSelect() {
+  const select = q('#raceTemplate');
+  if (!select) return;
+
+  const previous = select.value;
+  const ids = [...new Set([...baseDailyTemplateIds, ...cloudDailyTemplateIds])]
+    .filter(id => RACE_TEMPLATES[id]);
+
+  select.innerHTML = ids.map(id => {
+    const t = RACE_TEMPLATES[id];
+    return `<option value="${esc(id)}" data-level="${Number(t.intensity) || 1}">${Number(t.intensity) || 1}｜${esc(t.label)}</option>`;
+  }).join('');
+
+  if (ids.includes(previous)) select.value = previous;
+  else if (ids.length) select.value = ids[0];
+}
+
+function rpcStringValue(value) {
+  if (Array.isArray(value)) value = value[0];
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const vals = Object.values(value);
+    if (vals.length === 1 && typeof vals[0] !== 'object') value = vals[0];
+  }
+  if (value == null) return '';
+  return String(value).replace(/^"|"$/g, '').trim();
+}
+
+async function detectDailyMenuAdmin() {
+  dailyMenuAdminName = '';
+  if (!isConfigured()) return;
+
+  try {
+    const result = await api('rpc/menu_admin_for_device', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_device_secret: getNicknameDeviceSecret()
+      })
+    });
+    dailyMenuAdminName = rpcStringValue(result);
+  } catch (e) {
+    console.warn('Daily menu admin check unavailable', e);
+    dailyMenuAdminName = '';
+  }
+}
+
+function injectDailyAdminStyles() {
+  if (q('#dailyMenuAdminStyles')) return;
+
+  const style = document.createElement('style');
+  style.id = 'dailyMenuAdminStyles';
+  style.textContent = `
+    .daily-admin-tools{
+      display:none;
+      margin-top:10px;
+      padding:10px;
+      border:1px solid #2b3849;
+      background:#0b1119;
+      border-radius:11px;
+    }
+    .daily-admin-tools.show{display:block}
+    .daily-admin-row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .daily-admin-copy{
+      color:#8f9dad;
+      font-size:10px;
+      line-height:1.45;
+    }
+    .daily-admin-copy strong{color:#c8d2dd}
+    .daily-admin-locked{
+      color:#d5a79c;
+    }
+    .daily-admin-custom{
+      display:none;
+      grid-column:1/-1;
+      padding:10px;
+      border:1px solid #2b3849;
+      background:#0b1119;
+      border-radius:11px;
+    }
+    .daily-admin-custom.show{display:grid;gap:8px}
+    .daily-admin-meta-grid{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:8px;
+    }
+    .daily-admin-meta-grid .full{grid-column:1/-1}
+    .custom-detail-admin{
+      display:grid;
+      gap:3px;
+      margin-top:6px;
+    }
+    .custom-detail-admin label{
+      font-size:8px;
+      color:#738094;
+      font-weight:850;
+    }
+    .custom-detail-admin input{
+      min-height:31px;
+      padding:6px 7px;
+      border-radius:7px;
+      font-size:10px;
+      background:#0a0f16;
+    }
+    #saveDailyTemplateBtn{display:none}
+    #saveDailyTemplateBtn.show{display:inline-flex}
+    @media(max-width:640px){
+      .daily-admin-meta-grid{grid-template-columns:1fr}
+      .daily-admin-meta-grid .full{grid-column:auto}
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function ensureDailyAdminUI() {
+  injectDailyAdminStyles();
+
+  if (!q('#dailyAdminTools')) {
+    const preview = q('#dailyPreview');
+    if (preview) {
+      const wrap = document.createElement('div');
+      wrap.id = 'dailyAdminTools';
+      wrap.className = 'daily-admin-tools';
+      wrap.innerHTML = `
+        <div class="daily-admin-row">
+          <div class="daily-admin-copy" id="dailyAdminStatus"></div>
+          <button type="button" class="btn small" id="editDailyTemplateBtn">✏ 修改菜單</button>
+        </div>
+      `;
+      preview.insertAdjacentElement('afterend', wrap);
+
+      q('#editDailyTemplateBtn').addEventListener('click', editCurrentDailyTemplate);
+    }
+  }
+
+  const customCard = q('#customName')?.closest('.challenge-card.custom');
+  const customGrid = customCard?.querySelector('.challenge-grid');
+
+  if (customGrid && !q('#dailyAdminCustomSettings')) {
+    const wrap = document.createElement('div');
+    wrap.id = 'dailyAdminCustomSettings';
+    wrap.className = 'daily-admin-custom';
+    wrap.innerHTML = `
+      <div class="helper"><strong>日常訓練設定</strong>｜只有管理員裝置看得到</div>
+      <div class="daily-admin-meta-grid">
+        <div class="field">
+          <label>Level</label>
+          <select id="customDailyLevel">
+            <option value="1">I</option>
+            <option value="2">II</option>
+            <option value="3">III</option>
+            <option value="4">IV</option>
+            <option value="5">V</option>
+            <option value="6">VI</option>
+            <option value="7">VII</option>
+            <option value="8">VIII</option>
+            <option value="9">IX</option>
+            <option value="10">X</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>時間說明</label>
+          <input id="customDailyDuration" maxlength="80" placeholder="例如 35–45 min">
+        </div>
+        <div class="field full">
+          <label>簡介</label>
+          <input id="customDailyDescription" maxlength="500" placeholder="例如 中等強度 mixed conditioning">
+        </div>
+        <div class="field full">
+          <label>器材</label>
+          <input id="customDailyEquipment" maxlength="300" placeholder="例如 跑步機／TRX／壺鈴">
+        </div>
+      </div>
+      <div class="helper" id="dailyEditorModeText">建立完成後可加入日常訓練。</div>
+    `;
+    customGrid.appendChild(wrap);
+  }
+
+  if (!q('#saveDailyTemplateBtn')) {
+    const startBtn = q('#startCustomBtn');
+    if (startBtn) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'saveDailyTemplateBtn';
+      btn.className = 'btn small';
+      btn.textContent = '＋ 加入日常訓練';
+      btn.addEventListener('click', saveCustomBuilderAsDailyTemplate);
+      startBtn.insertAdjacentElement('beforebegin', btn);
+    }
+  }
+}
+
+function updateDailyAdminUI() {
+  ensureDailyAdminUI();
+
+  const tools = q('#dailyAdminTools');
+  const status = q('#dailyAdminStatus');
+  const editBtn = q('#editDailyTemplateBtn');
+  const customSettings = q('#dailyAdminCustomSettings');
+  const saveBtn = q('#saveDailyTemplateBtn');
+
+  const isAdmin = !!dailyMenuAdminName;
+  tools?.classList.toggle('show', isAdmin);
+  customSettings?.classList.toggle('show', isAdmin);
+  saveBtn?.classList.toggle('show', isAdmin);
+
+  if (!isAdmin) return;
+
+  const t = currentRaceTemplate();
+  const locked = templateHasCompletedResult(t?.id);
+
+  if (status) {
+    status.innerHTML = locked
+      ? `<strong>${esc(dailyMenuAdminName)}</strong>｜<span class="daily-admin-locked">🔒 這份菜單已有完成紀錄，不能修改</span>`
+      : `<strong>${esc(dailyMenuAdminName)}</strong>｜這份菜單尚未被完成，可以修改`;
+  }
+
+  if (editBtn) {
+    editBtn.disabled = locked;
+    editBtn.textContent = locked ? '🔒 已鎖定' : '✏ 修改菜單';
+  }
+
+  if (saveBtn) {
+    saveBtn.textContent = editingDailyTemplateId ? '✓ 儲存菜單修改' : '＋ 加入日常訓練';
+  }
+
+  const mode = q('#dailyEditorModeText');
+  if (mode) {
+    mode.textContent = editingDailyTemplateId
+      ? `正在修改：${RACE_TEMPLATES[editingDailyTemplateId]?.label || editingDailyTemplateId}`
+      : '建立完成後可加入日常訓練。';
+  }
+}
+
+function customItemForEditor(x) {
+  return {
+    id: uid(),
+    name: String(x?.name || ''),
+    distance: Number(x?.distance_m) > 0 ? Number(x.distance_m) : '',
+    weight: x?.weight_kg ?? '',
+    reps: Number(x?.reps) > 0 ? Number(x.reps) : '',
+    detailText: String(x?.detail || '')
+  };
+}
+
+function editCurrentDailyTemplate() {
+  if (!dailyMenuAdminName) {
+    toast('這台裝置沒有菜單管理權限');
+    return;
+  }
+
+  const t = currentRaceTemplate();
+  if (!t) return;
+
+  if (templateHasCompletedResult(t.id)) {
+    toast('這份菜單已有完成紀錄，不能修改');
+    updateDailyAdminUI();
+    return;
+  }
+
+  editingDailyTemplateId = t.id;
+  editingDailyTemplateMeta = {
+    duration: t.duration || '',
+    description: t.description || '',
+    equipment: t.equipment || ''
+  };
+
+  const sourceItems = buildTemplateItems(
+    t,
+    t.id === 'coreSculpt' ? DAILY_CARDIO_PLACEHOLDER : selectedDailyCardio()
+  );
+
+  customOrder = sourceItems.map(customItemForEditor);
+
+  q('#customName').value = t.label;
+  q('#customName').dataset.autoName = '0';
+  q('#customDailyLevel').value = String(Number(t.intensity) || 1);
+  q('#customDailyDuration').value = t.duration || '';
+  q('#customDailyDescription').value = t.description || '';
+  q('#customDailyEquipment').value = t.equipment || '';
+
+  updateCustomPreview(true);
+  updateDailyAdminUI();
+
+  const customCard = q('#customName').closest('.challenge-card.custom');
+  customCard?.scrollIntoView({behavior:'smooth', block:'start'});
+  toast('菜單已載入自訂編輯器');
+}
+
+function buildDailyTotal(items) {
+  const runM = items
+    .filter(x => x.name === 'Run')
+    .reduce((sum, x) => sum + (Number(x.distance_m) || 0), 0);
+
+  const itemText = `共 ${items.length} 個項目`;
+  return runM > 0
+    ? `總 Run：${(runM / 1000).toFixed(runM % 1000 === 0 ? 0 : 1)} km｜${itemText}`
+    : itemText;
+}
+
+function makeNewDailyTemplateId() {
+  const random = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`)
+    .replace(/[^A-Za-z0-9]/g, '');
+  return `daily_${random}`.slice(0, 80);
+}
+
+async function saveCustomBuilderAsDailyTemplate() {
+  if (!dailyMenuAdminName) {
+    toast('這台裝置沒有菜單管理權限');
+    return;
+  }
+
+  const label = q('#customName').value.trim();
+  if (!label) {
+    toast('請先輸入挑戰名稱');
+    return;
+  }
+  if (label.length > 80) {
+    toast('挑戰名稱最多 80 個字');
+    return;
+  }
+
+  const items = customItems().map(x => ({
+    name: x.name === DAILY_CARDIO_PLACEHOLDER ? DAILY_CARDIO_DB_TOKEN : x.name,
+    detail: x.detail || '',
+    distance_m: x.distance_m ?? null,
+    weight_kg: x.weight_kg ?? null,
+    reps: x.reps ?? null
+  }));
+
+  if (!items.length) {
+    toast('請至少設定一個挑戰項目');
+    return;
+  }
+
+  const templateId = editingDailyTemplateId || makeNewDailyTemplateId();
+
+  // Local early check for immediate feedback.
+  if (templateHasCompletedResult(templateId)) {
+    toast('這份菜單已有完成紀錄，不能修改');
+    updateDailyAdminUI();
+    return;
+  }
+
+  const saveBtn = q('#saveDailyTemplateBtn');
+  if (saveBtn) saveBtn.disabled = true;
+
+  try {
+    const result = await api('rpc/save_daily_template', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_device_secret: getNicknameDeviceSecret(),
+        p_template_id: templateId,
+        p_label: label,
+        p_intensity: Number(q('#customDailyLevel').value) || 1,
+        p_duration: q('#customDailyDuration').value.trim() || '自訂',
+        p_description: q('#customDailyDescription').value.trim(),
+        p_equipment: q('#customDailyEquipment').value.trim(),
+        p_total: buildDailyTotal(items),
+        p_items: items
+      })
+    });
+
+    if (!result?.ok) {
+      const reason = String(result?.reason || 'unknown');
+      if (reason === 'locked') {
+        toast('這份菜單已經有人完成，現在已永久鎖定');
+      } else if (reason === 'forbidden') {
+        toast('這台裝置沒有菜單管理權限');
+      } else {
+        toast(`無法儲存菜單：${reason}`);
+      }
+      return;
+    }
+
+    toast(editingDailyTemplateId ? '菜單修改已儲存' : '已加入日常訓練');
+
+    // Reload so the picker is rebuilt exactly once and all devices read the
+    // same cloud version next time they open/refresh the app.
+    setTimeout(() => location.reload(), 450);
+  } catch (e) {
+    console.error(e);
+    toast('菜單儲存失敗，請檢查 Supabase 設定');
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
+}
+
+
+// ----- Extend the existing Custom Builder with a free-text detail field -----
+
+const _originalFormatCustomDetail = formatCustomDetail;
+formatCustomDetail = function(item, fallback='自訂訓練項目') {
+  const manual = String(item?.detailText || '').trim();
+  if (manual) return manual;
+  return _originalFormatCustomDetail(item, fallback);
+};
+
+const _originalRenderCustomOrder = renderCustomOrder;
+renderCustomOrder = function() {
+  _originalRenderCustomOrder();
+
+  qa('#customOrderList .order-item').forEach(el => {
+    const id = el.dataset.orderId;
+    const item = customOrder.find(x => String(x.id) === String(id));
+    const copy = el.querySelector('.order-copy');
+
+    if (!item || !copy || copy.querySelector('.custom-detail-admin')) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'custom-detail-admin';
+    wrap.innerHTML = `
+      <label>細節／時間／RPE（有填就優先使用）</label>
+      <input type="text"
+             maxlength="120"
+             value="${esc(item.detailText || '')}"
+             placeholder="例如 30 sec · controlled pace / RPE 6">
+    `;
+
+    const input = wrap.querySelector('input');
+    input.addEventListener('input', () => {
+      item.detailText = input.value;
+    });
+    input.addEventListener('pointerdown', e => e.stopPropagation());
+    input.addEventListener('mousedown', e => e.stopPropagation());
+
+    copy.appendChild(wrap);
+  });
+};
+
+
+// ----- Keep lock/admin UI in sync with score-wall loading and template changes -----
+
+const _originalLoadResultsForDailyAdmin = loadResults;
+loadResults = async function() {
+  const out = await _originalLoadResultsForDailyAdmin();
+  updateDailyAdminUI();
+  return out;
+};
+
+const _originalUpdateRaceTemplateUIForAdmin = updateRaceTemplateUI;
+updateRaceTemplateUI = function() {
+  const out = _originalUpdateRaceTemplateUIForAdmin();
+  updateDailyAdminUI();
+  return out;
+};
+
+
+// ----- One-time initialization -----
+
+async function initDailyTemplateAdmin() {
+  ensureDailyAdminUI();
+
+  const select = q('#raceTemplate');
+  baseDailyTemplateIds = select
+    ? [...select.options].map(opt => opt.value).filter(Boolean)
+    : [];
+
+  try {
+    await loadCloudDailyTemplates();
+  } catch (e) {
+    console.warn('Cloud daily templates unavailable; using built-in templates', e);
+  }
+
+  rebuildDailyTemplateSelect();
+
+  // IMPORTANT: build picker only after cloud templates have been merged.
+  buildTemplatePicker();
+  updateRaceTemplateUI();
+
+  await detectDailyMenuAdmin();
+  updateDailyAdminUI();
+}
+
+
+renderPicker();updateCustomPreview();setDefaultCustomName(true);initDailyTemplateAdmin();
 q('#publicConfigWarning').classList.toggle('show',!isConfigured());
 q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
 q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
