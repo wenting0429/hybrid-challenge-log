@@ -5253,6 +5253,9 @@ function ensureFriendlyDailyEditorStyles(){
     .daily-editor-insert-row{display:flex;justify-content:center}.daily-editor-insert{margin:-1px 0;border:1px dashed #3b4a5d;border-radius:999px;background:#0d141c;color:#8796aa;padding:4px 10px;font-size:8px}
     .daily-editor-add-to-block{width:100%;margin-top:8px;min-height:34px;border:1px dashed var(--accent);border-radius:8px;background:#0c131b;color:#aebac7;font-size:9.5px;font-weight:850}
     .daily-editor-add-block{width:100%;margin-top:11px;min-height:40px;border:1px dashed #675249;border-radius:10px;background:#171315;color:#ffc0aa;font-size:10px;font-weight:900}
+    .daily-editor-block-insert-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;padding-top:9px;border-top:1px dashed rgba(255,255,255,.09)}
+    .daily-editor-insert-block{min-height:34px;border:1px dashed var(--accent);border-radius:9px;background:color-mix(in srgb,var(--accent) 7%,#0c131b);color:#c8d3dd;font-size:9px;font-weight:850}
+    .daily-editor-transfer{width:min(620px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}.daily-editor-transfer-body{overflow:auto;margin-top:12px}.daily-editor-transfer-current{padding:10px 11px;border:1px solid #2f3c4e;border-radius:10px;background:#0d151f;color:#dce4ec;font-size:11px;line-height:1.45}.daily-editor-transfer-targets{display:grid;gap:7px;margin-top:10px}.daily-editor-transfer-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:9px 10px;border:1px solid #2b3748;border-radius:10px;background:#0b1119}.daily-editor-transfer-row b{font-size:11px}.daily-editor-transfer-row span{display:block;margin-top:2px;color:#748296;font-size:8.5px}.daily-editor-transfer-row .btn{min-height:32px;padding:6px 9px;font-size:9px}.daily-editor-transfer-new{margin-top:12px;padding-top:11px;border-top:1px solid #293547}.daily-editor-transfer-new-grid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;margin-top:7px}.daily-editor-transfer-new-grid .btn{min-height:36px;font-size:9px}.daily-editor-placement-list{display:grid;gap:7px;margin-top:12px}.daily-editor-placement-btn{width:100%;min-height:40px;text-align:left;padding:8px 11px;border:1px solid #324054;border-radius:9px;background:#0d151f;color:#dce4ec;font-size:10px;font-weight:850}.daily-editor-placement-btn:hover{border-color:#557087;background:#121d29}
     .daily-editor-footer{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:12px -17px -17px;padding:12px 17px 17px;border-top:1px solid #303b4d;background:#111722}
     .daily-picker-card{width:min(760px,100%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}.daily-picker-body{overflow:auto}.daily-picker-tools{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:7px;margin:12px 0 9px}.daily-picker-picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.daily-picker-pick{min-height:42px;text-align:left;padding:8px 10px;border:1px solid #324054;background:#0d151f;color:#d6dee8;border-radius:9px}.daily-picker-pick b{display:block;font-size:10.5px}.daily-picker-pick span{display:block;margin-top:3px;color:#788698;font-size:8px}.daily-picker-custom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:11px;padding-top:11px;border-top:1px solid #263244}
     @media(max-width:640px){
@@ -5261,6 +5264,8 @@ function ensureFriendlyDailyEditorStyles(){
       .daily-editor-section-head span{display:none}.daily-editor-blocks{gap:8px}.daily-editor-block{display:none}.daily-editor-block.mobile-active{display:block}
       .daily-editor-block-head{grid-template-columns:64px minmax(0,1fr);gap:7px;padding:9px}.daily-editor-block-actions{grid-column:2;justify-content:flex-start}.daily-editor-block-meta{gap:4px}.daily-editor-block-pill{min-height:28px;padding:3px 5px}.daily-editor-block-pill input{min-width:70px}
       .daily-editor-block-body{padding:9px}.daily-editor-item{grid-template-columns:28px minmax(0,1fr);padding:8px}.daily-editor-item-actions{grid-column:2;justify-content:flex-start}.daily-editor-footer{margin:10px -12px calc(-12px - env(safe-area-inset-bottom));padding:10px 12px calc(10px + env(safe-area-inset-bottom))}.daily-editor-footer .btn{flex:1 1 45%}
+      .daily-editor-block-insert-controls{grid-template-columns:1fr}.daily-editor-insert-block{min-height:38px}
+      .daily-editor-transfer{height:86dvh;max-height:86dvh;border-radius:20px 20px 0 0}.daily-editor-transfer-row{grid-template-columns:minmax(0,1fr) 74px 74px}.daily-editor-transfer-new-grid{grid-template-columns:1fr 1fr}.daily-editor-transfer-new-grid select{grid-column:1/-1}.daily-editor-placement-btn{min-height:44px}
       .daily-picker-card{height:86dvh;max-height:86dvh;border-radius:20px 20px 0 0}.daily-picker-tools{grid-template-columns:1fr 120px}.daily-picker-picks{grid-template-columns:1fr}.daily-picker-custom{grid-template-columns:1fr}
     }
   `;
@@ -5311,6 +5316,84 @@ function ensureDailyExercisePickerModal(){
   q('#dailyEditorCustomExercise').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();q('#dailyEditorAddCustomBtn').click()}});
   modal.addEventListener('click',e=>{if(e.target===modal)closeDailyExercisePicker()});
 }
+
+let dailyEditorTransferTarget=null;
+let dailyEditorBlockCopyTarget=null;
+function dailyEditorPositionOptions(selectedIndex=null){
+  const n=dailyEditorBlocks.length;
+  const opts=[];
+  for(let pos=0;pos<=n;pos++){
+    let label='';
+    if(pos===0)label='最前面（成為 Block 1）';
+    else if(pos===n)label=`最後面（Block ${n} 之後）`;
+    else label=`Block ${pos} 與 Block ${pos+1} 之間`;
+    opts.push(`<option value="${pos}" ${Number(selectedIndex)===pos?'selected':''}>${esc(label)}</option>`);
+  }
+  return opts.join('');
+}
+function ensureDailyItemTransferModal(){
+  if(q('#dailyItemTransferModal'))return;
+  const modal=document.createElement('div');modal.className='modal';modal.id='dailyItemTransferModal';
+  modal.innerHTML=`<div class="modal-card daily-editor-transfer"><div class="modal-head"><div><h3>移動／複製動作</h3><div class="modal-sub">直接把這一站送到其他 Block；也可以建立新 Block。</div></div><button class="btn small ghost" id="closeDailyTransferBtn" type="button">關閉</button></div><div class="daily-editor-transfer-body"><div class="daily-editor-transfer-current" id="dailyTransferCurrent"></div><div class="daily-editor-transfer-targets" id="dailyTransferTargets"></div><div class="daily-editor-transfer-new"><b style="font-size:11px">建立新 Block</b><div class="helper" style="margin-top:3px">先選新 Block 要插入的位置，再決定移動或複製。</div><div class="daily-editor-transfer-new-grid"><select id="dailyTransferNewPosition"></select><button type="button" class="btn" id="dailyTransferMoveNewBtn">移動到新 Block</button><button type="button" class="btn" id="dailyTransferCopyNewBtn">複製到新 Block</button></div></div></div></div>`;
+  document.body.appendChild(modal);
+  q('#closeDailyTransferBtn').onclick=closeDailyItemTransferModal;
+  q('#dailyTransferMoveNewBtn').onclick=()=>transferDailyEditorItemToNewBlock('move');
+  q('#dailyTransferCopyNewBtn').onclick=()=>transferDailyEditorItemToNewBlock('copy');
+  modal.addEventListener('click',e=>{if(e.target===modal)closeDailyItemTransferModal()});
+}
+function openDailyItemTransferModal(blockId,itemId){
+  ensureDailyItemTransferModal();
+  const source=dailyEditorBlockById(blockId),item=source?.items.find(x=>String(x.id)===String(itemId));
+  if(!source||!item)return;
+  dailyEditorTransferTarget={blockId,itemId};
+  const sourceIndex=dailyEditorBlocks.findIndex(b=>String(b.id)===String(blockId));
+  q('#dailyTransferCurrent').innerHTML=`<b>${esc(item.name)}</b>${item.detail?`<div style="margin-top:3px;color:#8795a7;font-size:9.5px">${esc(item.detail)}</div>`:''}<div style="margin-top:5px;color:#6f7e91;font-size:8.5px">目前：Block ${sourceIndex+1}</div>`;
+  q('#dailyTransferTargets').innerHTML=dailyEditorBlocks.map((b,i)=>`<div class="daily-editor-transfer-row"><div><b>BLOCK ${i+1}</b><span>${b.items.length} 站 · ${b.rounds} round${b.rounds>1?'s':''}</span></div><button type="button" class="btn small" data-transfer-move="${esc(b.id)}" ${String(b.id)===String(blockId)?'disabled':''}>移動</button><button type="button" class="btn small" data-transfer-copy="${esc(b.id)}">複製</button></div>`).join('');
+  qa('[data-transfer-move]').forEach(btn=>btn.onclick=()=>transferDailyEditorItem(blockId,itemId,btn.dataset.transferMove,'move'));
+  qa('[data-transfer-copy]').forEach(btn=>btn.onclick=()=>transferDailyEditorItem(blockId,itemId,btn.dataset.transferCopy,'copy'));
+  const select=q('#dailyTransferNewPosition');select.innerHTML=dailyEditorPositionOptions(sourceIndex+1);select.value=String(Math.min(sourceIndex+1,dailyEditorBlocks.length));
+  q('#dailyItemTransferModal').classList.add('open');
+}
+function closeDailyItemTransferModal(){q('#dailyItemTransferModal')?.classList.remove('open');dailyEditorTransferTarget=null}
+function transferDailyEditorItem(sourceBlockId,itemId,targetBlockId,mode){
+  const source=dailyEditorBlockById(sourceBlockId),targetBlock=dailyEditorBlockById(targetBlockId),i=dailyEditorItemPosition(source,itemId);
+  if(!source||!targetBlock||i<0)return;
+  if(mode==='move'&&String(sourceBlockId)===String(targetBlockId)){toast('這個動作已經在此 Block');return}
+  const item={...source.items[i],id:uid()};
+  if(mode==='move')source.items.splice(i,1);
+  targetBlock.items.push(item);
+  dailyEditorActiveBlock=Math.max(0,dailyEditorBlocks.findIndex(b=>String(b.id)===String(targetBlockId)));
+  closeDailyItemTransferModal();renderDailyEditorBlocks();
+  toast(mode==='move'?'已移動到目標 Block':'已複製到目標 Block');
+}
+function transferDailyEditorItemToNewBlock(mode){
+  const t=dailyEditorTransferTarget;if(!t)return;
+  const source=dailyEditorBlockById(t.blockId),i=dailyEditorItemPosition(source,t.itemId);if(!source||i<0)return;
+  const pos=Math.max(0,Math.min(dailyEditorBlocks.length,Number(q('#dailyTransferNewPosition')?.value)||0));
+  const item={...source.items[i],id:uid()};
+  if(mode==='move')source.items.splice(i,1);
+  const newBlock={id:uid(),rounds:1,rest:'60 sec',collapsed:false,items:[item]};
+  dailyEditorBlocks.splice(pos,0,newBlock);dailyEditorActiveBlock=pos;
+  closeDailyItemTransferModal();renderDailyEditorBlocks();
+  toast(mode==='move'?'已建立新 Block 並移動動作':'已建立新 Block 並複製動作');
+}
+function ensureDailyBlockCopyModal(){
+  if(q('#dailyBlockCopyModal'))return;
+  const modal=document.createElement('div');modal.className='modal';modal.id='dailyBlockCopyModal';
+  modal.innerHTML=`<div class="modal-card daily-editor-transfer"><div class="modal-head"><div><h3>複製整個 Block</h3><div class="modal-sub">選擇複製品要插入的位置。</div></div><button class="btn small ghost" id="closeDailyBlockCopyBtn" type="button">關閉</button></div><div class="daily-editor-transfer-body"><div class="daily-editor-transfer-current" id="dailyBlockCopyCurrent"></div><div class="daily-editor-placement-list" id="dailyBlockCopyPositions"></div></div></div>`;
+  document.body.appendChild(modal);q('#closeDailyBlockCopyBtn').onclick=closeDailyBlockCopyModal;modal.addEventListener('click',e=>{if(e.target===modal)closeDailyBlockCopyModal()});
+}
+function openDailyBlockCopyModal(blockId){
+  ensureDailyBlockCopyModal();const src=dailyEditorBlockById(blockId),srcIndex=dailyEditorBlocks.findIndex(b=>String(b.id)===String(blockId));if(!src||srcIndex<0)return;
+  dailyEditorBlockCopyTarget=blockId;
+  q('#dailyBlockCopyCurrent').innerHTML=`<b>BLOCK ${srcIndex+1}</b><div style="margin-top:4px;color:#8795a7;font-size:9.5px">${src.items.length} 站 · ${src.rounds} round${src.rounds>1?'s':''} · 休息 ${esc(src.rest||'—')}</div>`;
+  const n=dailyEditorBlocks.length;
+  q('#dailyBlockCopyPositions').innerHTML=Array.from({length:n+1},(_,pos)=>{let label=pos===0?'複製到最前面（成為 Block 1）':pos===n?`複製到最後面（Block ${n} 之後）`:`插入 Block ${pos} 與 Block ${pos+1} 之間`;return `<button type="button" class="daily-editor-placement-btn" data-block-copy-position="${pos}">＋ ${esc(label)}</button>`}).join('');
+  qa('[data-block-copy-position]').forEach(btn=>btn.onclick=()=>{duplicateDailyEditorBlock(blockId,Number(btn.dataset.blockCopyPosition));closeDailyBlockCopyModal()});
+  q('#dailyBlockCopyModal').classList.add('open');
+}
+function closeDailyBlockCopyModal(){q('#dailyBlockCopyModal')?.classList.remove('open');dailyEditorBlockCopyTarget=null}
+
 function refreshDailyEditorCategoryOptions(){
   const select=q('#dailyEditorCategory');if(!select)return;const prev=select.value||'全部';select.innerHTML='<option value="全部">全部分類</option>'+exerciseCategoryList().map(cat=>`<option value="${esc(cat)}">${esc(cat)}</option>`).join('');if([...select.options].some(o=>o.value===prev))select.value=prev;
 }
@@ -5326,7 +5409,7 @@ function renderDailyEditorNav(){
 function renderDailyEditorBlocks(){
   renderDailyEditorNav();const root=q('#dailyEditorBlocks');if(!root)return;
   if(!dailyEditorBlocks.length){root.innerHTML='<div class="order-empty">目前沒有 Block，請新增一個。</div>';return}
-  root.innerHTML=dailyEditorBlocks.map((block,bi)=>{const [accent,wash]=dailyEditorAccent(bi+1);return `<section class="daily-editor-block ${block.collapsed?'collapsed':''} ${bi===dailyEditorActiveBlock?'mobile-active':''}" style="--accent:${accent};--wash:${wash}"><div class="daily-editor-block-head"><div class="daily-editor-block-index"><span>BLOCK</span><strong>${bi+1}</strong></div><div class="daily-editor-block-meta"><div class="daily-editor-block-pill"><label>輪數</label><select data-block-rounds="${block.id}">${[1,2,3,4,5,6,8,10].map(n=>`<option value="${n}" ${Number(block.rounds)===n?'selected':''}>${n}</option>`).join('')}</select></div><div class="daily-editor-block-pill"><label>休息</label><input data-block-rest="${block.id}" maxlength="40" value="${esc(block.rest||'—')}" placeholder="60 sec"></div></div><div class="daily-editor-block-actions"><button type="button" class="btn small" data-block-collapse="${block.id}">${block.collapsed?'展開':'收合'}</button><button type="button" class="btn small" data-block-up="${block.id}" ${bi===0?'disabled':''}>↑</button><button type="button" class="btn small" data-block-down="${block.id}" ${bi===dailyEditorBlocks.length-1?'disabled':''}>↓</button><button type="button" class="btn small" data-block-copy="${block.id}">複製</button><button type="button" class="btn small danger" data-block-remove="${block.id}">×</button></div></div><div class="daily-editor-block-body"><div class="daily-editor-items">${block.items.map((item,ii)=>`<div><div class="daily-editor-item"><div class="daily-editor-index">${ii+1}</div><div class="daily-editor-item-main"><div class="daily-editor-item-name">${esc(item.name)}</div><input class="daily-editor-detail" data-item-detail="${item.id}" maxlength="120" value="${esc(item.detail||'')}" placeholder="時間／距離／次數／RPE"></div><div class="daily-editor-item-actions"><button type="button" class="daily-editor-replace" data-item-replace="${item.id}" data-block-id="${block.id}">⇄ 替換</button><button type="button" class="order-btn" data-item-copy="${item.id}" data-block-id="${block.id}" title="複製">＋</button><button type="button" class="order-btn" data-item-up="${item.id}" data-block-id="${block.id}" ${ii===0?'disabled':''}>↑</button><button type="button" class="order-btn" data-item-down="${item.id}" data-block-id="${block.id}" ${ii===block.items.length-1?'disabled':''}>↓</button><button type="button" class="order-btn" data-item-remove="${item.id}" data-block-id="${block.id}">×</button></div></div>${ii<block.items.length-1?`<div class="daily-editor-insert-row"><button type="button" class="daily-editor-insert" data-item-insert="${item.id}" data-block-id="${block.id}">＋ 在這裡插入</button></div>`:''}</div>`).join('')}</div><button type="button" class="daily-editor-add-to-block" data-add-to-block="${block.id}">＋ 加到 Block ${bi+1}</button></div></section>`}).join('');
+  root.innerHTML=dailyEditorBlocks.map((block,bi)=>{const [accent,wash]=dailyEditorAccent(bi+1);return `<section class="daily-editor-block ${block.collapsed?'collapsed':''} ${bi===dailyEditorActiveBlock?'mobile-active':''}" style="--accent:${accent};--wash:${wash}"><div class="daily-editor-block-head"><div class="daily-editor-block-index"><span>BLOCK</span><strong>${bi+1}</strong></div><div class="daily-editor-block-meta"><div class="daily-editor-block-pill"><label>輪數</label><select data-block-rounds="${block.id}">${[1,2,3,4,5,6,8,10].map(n=>`<option value="${n}" ${Number(block.rounds)===n?'selected':''}>${n}</option>`).join('')}</select></div><div class="daily-editor-block-pill"><label>休息</label><input data-block-rest="${block.id}" maxlength="40" value="${esc(block.rest||'—')}" placeholder="60 sec"></div></div><div class="daily-editor-block-actions"><button type="button" class="btn small" data-block-collapse="${block.id}">${block.collapsed?'展開':'收合'}</button><button type="button" class="btn small" data-block-up="${block.id}" ${bi===0?'disabled':''}>↑</button><button type="button" class="btn small" data-block-down="${block.id}" ${bi===dailyEditorBlocks.length-1?'disabled':''}>↓</button><button type="button" class="btn small" data-block-copy="${block.id}">複製到…</button><button type="button" class="btn small danger" data-block-remove="${block.id}">×</button></div></div><div class="daily-editor-block-body"><div class="daily-editor-items">${block.items.map((item,ii)=>`<div><div class="daily-editor-item"><div class="daily-editor-index">${ii+1}</div><div class="daily-editor-item-main"><div class="daily-editor-item-name">${esc(item.name)}</div><input class="daily-editor-detail" data-item-detail="${item.id}" maxlength="120" value="${esc(item.detail||'')}" placeholder="時間／距離／次數／RPE"></div><div class="daily-editor-item-actions"><button type="button" class="daily-editor-replace" data-item-replace="${item.id}" data-block-id="${block.id}">⇄ 替換</button><button type="button" class="order-btn" data-item-transfer="${item.id}" data-block-id="${block.id}" title="移動／複製到其他 Block" aria-label="移動或複製 ${esc(item.name)} 到其他 Block">↔</button><button type="button" class="order-btn" data-item-up="${item.id}" data-block-id="${block.id}" ${ii===0?'disabled':''}>↑</button><button type="button" class="order-btn" data-item-down="${item.id}" data-block-id="${block.id}" ${ii===block.items.length-1?'disabled':''}>↓</button><button type="button" class="order-btn" data-item-remove="${item.id}" data-block-id="${block.id}">×</button></div></div>${ii<block.items.length-1?`<div class="daily-editor-insert-row"><button type="button" class="daily-editor-insert" data-item-insert="${item.id}" data-block-id="${block.id}">＋ 在這裡插入</button></div>`:''}</div>`).join('')}</div><button type="button" class="daily-editor-add-to-block" data-add-to-block="${block.id}">＋ 加到 Block ${bi+1}</button><div class="daily-editor-block-insert-controls"><button type="button" class="daily-editor-insert-block" data-block-insert-before="${block.id}">＋ 在 Block ${bi+1} 前插入新 Block</button><button type="button" class="daily-editor-insert-block" data-block-insert-after="${block.id}">＋ 在 Block ${bi+1} 後插入新 Block</button></div></div></section>`}).join('');
   bindDailyEditorBlockEvents();
 }
 function dailyEditorBlockById(id){return dailyEditorBlocks.find(b=>String(b.id)===String(id))}
@@ -5336,16 +5419,19 @@ function bindDailyEditorBlockEvents(){
   qa('[data-block-rest]').forEach(el=>el.oninput=()=>{const b=dailyEditorBlockById(el.dataset.blockRest);if(b)b.rest=el.value});
   qa('[data-block-collapse]').forEach(btn=>btn.onclick=()=>{const b=dailyEditorBlockById(btn.dataset.blockCollapse);if(b)b.collapsed=!b.collapsed;renderDailyEditorBlocks()});
   qa('[data-block-up]').forEach(btn=>btn.onclick=()=>moveDailyEditorBlock(btn.dataset.blockUp,-1));qa('[data-block-down]').forEach(btn=>btn.onclick=()=>moveDailyEditorBlock(btn.dataset.blockDown,1));
-  qa('[data-block-copy]').forEach(btn=>btn.onclick=()=>duplicateDailyEditorBlock(btn.dataset.blockCopy));qa('[data-block-remove]').forEach(btn=>btn.onclick=()=>removeDailyEditorBlock(btn.dataset.blockRemove));
+  qa('[data-block-copy]').forEach(btn=>btn.onclick=()=>openDailyBlockCopyModal(btn.dataset.blockCopy));qa('[data-block-remove]').forEach(btn=>btn.onclick=()=>removeDailyEditorBlock(btn.dataset.blockRemove));
+  qa('[data-block-insert-before]').forEach(btn=>btn.onclick=()=>insertDailyEditorBlockRelative(btn.dataset.blockInsertBefore,'before'));qa('[data-block-insert-after]').forEach(btn=>btn.onclick=()=>insertDailyEditorBlockRelative(btn.dataset.blockInsertAfter,'after'));
   qa('[data-item-detail]').forEach(inp=>inp.oninput=()=>{for(const b of dailyEditorBlocks){const item=b.items.find(x=>String(x.id)===String(inp.dataset.itemDetail));if(item){item.detail=inp.value;break}}});
   qa('[data-item-replace]').forEach(btn=>btn.onclick=()=>openDailyExercisePicker(btn.dataset.blockId,btn.dataset.itemReplace,'replace'));
   qa('[data-item-insert]').forEach(btn=>btn.onclick=()=>openDailyExercisePicker(btn.dataset.blockId,btn.dataset.itemInsert,'insert'));
   qa('[data-add-to-block]').forEach(btn=>btn.onclick=()=>openDailyExercisePicker(btn.dataset.addToBlock,null,'append'));
-  qa('[data-item-copy]').forEach(btn=>btn.onclick=()=>duplicateDailyEditorItem(btn.dataset.blockId,btn.dataset.itemCopy));qa('[data-item-up]').forEach(btn=>btn.onclick=()=>moveDailyEditorItem(btn.dataset.blockId,btn.dataset.itemUp,-1));qa('[data-item-down]').forEach(btn=>btn.onclick=()=>moveDailyEditorItem(btn.dataset.blockId,btn.dataset.itemDown,1));qa('[data-item-remove]').forEach(btn=>btn.onclick=()=>removeDailyEditorItem(btn.dataset.blockId,btn.dataset.itemRemove));
+  qa('[data-item-transfer]').forEach(btn=>btn.onclick=()=>openDailyItemTransferModal(btn.dataset.blockId,btn.dataset.itemTransfer));qa('[data-item-up]').forEach(btn=>btn.onclick=()=>moveDailyEditorItem(btn.dataset.blockId,btn.dataset.itemUp,-1));qa('[data-item-down]').forEach(btn=>btn.onclick=()=>moveDailyEditorItem(btn.dataset.blockId,btn.dataset.itemDown,1));qa('[data-item-remove]').forEach(btn=>btn.onclick=()=>removeDailyEditorItem(btn.dataset.blockId,btn.dataset.itemRemove));
 }
-function addDailyEditorBlock(){dailyEditorBlocks.push({id:uid(),rounds:1,rest:'60 sec',collapsed:false,items:[]});dailyEditorActiveBlock=dailyEditorBlocks.length-1;renderDailyEditorBlocks()}
+function insertDailyEditorBlockAt(index){const pos=Math.max(0,Math.min(dailyEditorBlocks.length,Number(index)||0));dailyEditorBlocks.splice(pos,0,{id:uid(),rounds:1,rest:'60 sec',collapsed:false,items:[]});dailyEditorActiveBlock=pos;renderDailyEditorBlocks();toast(`已插入 Block ${pos+1}`)}
+function insertDailyEditorBlockRelative(id,where='after'){const i=dailyEditorBlocks.findIndex(b=>String(b.id)===String(id));if(i<0)return;insertDailyEditorBlockAt(where==='before'?i:i+1)}
+function addDailyEditorBlock(){insertDailyEditorBlockAt(dailyEditorBlocks.length)}
 function moveDailyEditorBlock(id,delta){const i=dailyEditorBlocks.findIndex(b=>String(b.id)===String(id)),j=i+delta;if(i<0||j<0||j>=dailyEditorBlocks.length)return;[dailyEditorBlocks[i],dailyEditorBlocks[j]]=[dailyEditorBlocks[j],dailyEditorBlocks[i]];dailyEditorActiveBlock=j;renderDailyEditorBlocks()}
-function duplicateDailyEditorBlock(id){const i=dailyEditorBlocks.findIndex(b=>String(b.id)===String(id));if(i<0)return;const src=dailyEditorBlocks[i],copy={id:uid(),rounds:src.rounds,rest:src.rest,collapsed:false,items:src.items.map(x=>({...x,id:uid()}))};dailyEditorBlocks.splice(i+1,0,copy);dailyEditorActiveBlock=i+1;renderDailyEditorBlocks()}
+function duplicateDailyEditorBlock(id,insertIndex=null){const i=dailyEditorBlocks.findIndex(b=>String(b.id)===String(id));if(i<0)return;const src=dailyEditorBlocks[i],copy={id:uid(),rounds:src.rounds,rest:src.rest,collapsed:false,items:src.items.map(x=>({...x,id:uid()}))};const pos=insertIndex==null?i+1:Math.max(0,Math.min(dailyEditorBlocks.length,Number(insertIndex)||0));dailyEditorBlocks.splice(pos,0,copy);dailyEditorActiveBlock=pos;renderDailyEditorBlocks();toast(`已複製並插入為 Block ${pos+1}`)}
 function removeDailyEditorBlock(id){if(dailyEditorBlocks.length<=1){toast('至少保留一個 Block');return}const i=dailyEditorBlocks.findIndex(b=>String(b.id)===String(id));if(i<0)return;dailyEditorBlocks.splice(i,1);dailyEditorActiveBlock=Math.min(dailyEditorActiveBlock,dailyEditorBlocks.length-1);renderDailyEditorBlocks()}
 function duplicateDailyEditorItem(blockId,itemId){const b=dailyEditorBlockById(blockId),i=dailyEditorItemPosition(b,itemId);if(!b||i<0)return;b.items.splice(i+1,0,{...b.items[i],id:uid()});renderDailyEditorBlocks()}
 function moveDailyEditorItem(blockId,itemId,delta){const b=dailyEditorBlockById(blockId),i=dailyEditorItemPosition(b,itemId),j=i+delta;if(!b||i<0||j<0||j>=b.items.length)return;[b.items[i],b.items[j]]=[b.items[j],b.items[i]];renderDailyEditorBlocks()}
@@ -5360,6 +5446,8 @@ function openDailyTemplateEditor(t){
 }
 function cancelDailyTemplateEditor(){
   closeDailyExercisePicker();
+  closeDailyItemTransferModal();
+  closeDailyBlockCopyModal();
   q('#dailyTemplateEditorModal')?.classList.remove('open');
   editingDailyTemplateId=null;
   dailyEditorBlocks=[];
