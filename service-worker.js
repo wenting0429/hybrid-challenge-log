@@ -1,8 +1,9 @@
-const CACHE_NAME = "hybrid-challenge-log-v3-daily-admin";
+const CACHE_NAME = "hybrid-challenge-log-v4-recovery-20260907";
 
 const APP_SHELL = [
   "/",
   "/index.html",
+  "/config.js",
   "/manifest.webmanifest",
   "/icon-192.png",
   "/icon-512.png",
@@ -10,10 +11,24 @@ const APP_SHELL = [
   "/exercise-media.js"
 ];
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
+async function cacheAvailableShell() {
+  const cache = await caches.open(CACHE_NAME);
+
+  // One missing optional file should not prevent
+  // the new service worker from installing.
+  await Promise.allSettled(
+    APP_SHELL.map(async url => {
+      const response = await fetch(url, { cache: "no-store" });
+
+      if (response && response.ok) {
+        await cache.put(url, response.clone());
+      }
+    })
   );
+}
+
+self.addEventListener("install", event => {
+  event.waitUntil(cacheAvailableShell());
   self.skipWaiting();
 });
 
@@ -27,6 +42,7 @@ self.addEventListener("activate", event => {
       )
     )
   );
+
   self.clients.claim();
 });
 
@@ -34,42 +50,60 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // 不攔截 Supabase 或其他外部服務
-  if (url.origin !== self.location.origin) return;
+  // Do not intercept Supabase or other external services.
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
-  // 頁面導覽：優先抓最新版
-  if (request.mode === "navigate") {
+  // Always prefer the newest deployed HTML.
+  if (
+    request.mode === "navigate" ||
+    url.pathname === "/" ||
+    url.pathname === "/index.html"
+  ) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
+      fetch(request, { cache: "no-store" })
+        .then(async response => {
+          if (response && response.ok) {
+            const cache = await caches.open(CACHE_NAME);
 
-          caches
-            .open(CACHE_NAME)
-            .then(cache => cache.put("/index.html", copy));
+            await cache.put(
+              "/index.html",
+              response.clone()
+            );
+          }
 
           return response;
         })
-        .catch(() => caches.match("/index.html"))
+        .catch(async () => {
+          return (
+            (await caches.match("/index.html")) ||
+            (await caches.match("/"))
+          );
+        })
     );
 
     return;
   }
 
-  // 動作資料與動畫：優先抓網路最新版
+  // Files that may change during app updates:
+  // always try the network first.
   if (
+    url.pathname === "/config.js" ||
+    url.pathname === "/manifest.webmanifest" ||
     url.pathname === "/exercise-media.js" ||
     url.pathname.startsWith("/animations/")
   ) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
+      fetch(request, { cache: "no-store" })
+        .then(async response => {
           if (response && response.ok) {
-            const copy = response.clone();
+            const cache = await caches.open(CACHE_NAME);
 
-            caches
-              .open(CACHE_NAME)
-              .then(cache => cache.put(request, copy));
+            await cache.put(
+              request,
+              response.clone()
+            );
           }
 
           return response;
@@ -80,17 +114,23 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // 其他同網域靜態檔案：先讀 cache，沒有再抓網路
+  // Other same-origin static files:
+  // use cache first, then network.
   event.respondWith(
     caches.match(request).then(cached => {
-      if (cached) return cached;
+      if (cached) {
+        return cached;
+      }
 
-      return fetch(request).then(response => {
-        const copy = response.clone();
+      return fetch(request).then(async response => {
+        if (response && response.ok) {
+          const cache = await caches.open(CACHE_NAME);
 
-        caches
-          .open(CACHE_NAME)
-          .then(cache => cache.put(request, copy));
+          await cache.put(
+            request,
+            response.clone()
+          );
+        }
 
         return response;
       });
