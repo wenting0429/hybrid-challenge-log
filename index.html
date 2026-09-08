@@ -1,4 +1,6 @@
 <!doctype html>
+<!-- PRODUCTION FIX · Level-only UI + robust time-based item countdown · 2026-09-08 -->
+<!-- PRODUCTION BUILD · single numeric Level scale fix · 2026-09-07 -->
 <!-- RECOVERY PRODUCTION BUILD · last-known-working block editor · 2026-09-07 -->
 <html lang="zh-Hant">
 <head>
@@ -1317,7 +1319,7 @@ nav.tabs button.active{
 .daily-score-row{
   grid-template-columns:54px minmax(0,1fr) 90px!important;
 }
-.daily-difficulty{
+.daily-level{
   display:flex;
   align-items:baseline;
   justify-content:center;
@@ -1326,7 +1328,7 @@ nav.tabs button.active{
   font-weight:950;
   letter-spacing:-.04em;
 }
-.daily-difficulty span{
+.daily-level span{
   margin-left:1px;
   color:#7f716e;
   font-size:9px;
@@ -1379,7 +1381,7 @@ nav.tabs button.active{
   .wall-zone .score-time{
     font-size:13px;
   }
-  .daily-difficulty{
+  .daily-level{
     font-size:17px;
   }
 }
@@ -1474,7 +1476,7 @@ nav.tabs button.active{
 /* Daily challenges:
    each challenge template has a stable accent.
    Rows of the same template always look the same. */
-.daily-score-row .daily-difficulty{
+.daily-score-row .daily-level{
   grid-area:rank;
   justify-self:center;
 }
@@ -1539,10 +1541,10 @@ nav.tabs button.active{
     min-width:30px;
     font-size:25px;
   }
-  .daily-difficulty{
+  .daily-level{
     font-size:16px!important;
   }
-  .daily-difficulty span{
+  .daily-level span{
     font-size:8px!important;
   }
 }
@@ -1675,7 +1677,7 @@ nav.tabs button.active{
 .ranking-card .score-time{
   font-size:12px;
 }
-.ranking-card .daily-difficulty{
+.ranking-card .daily-level{
   font-size:15px!important;
 }
 
@@ -2098,7 +2100,7 @@ nav.tabs button.active{
 .ranking-card .score-athlete,
 .ranking-card .score-main,
 .ranking-card .score-rank-number,
-.ranking-card .daily-difficulty,
+.ranking-card .daily-level,
 .ranking-card .score-time{all:unset}
 .ranking-card .compact-empty{
   padding:20px 14px;
@@ -2591,27 +2593,27 @@ nav.tabs button.active{
             <div class="field full">
               <label>訓練模板</label>
               <select id="raceTemplate" class="native-template-select" aria-hidden="true" tabindex="-1">
-                <option value="easyHybrid" data-level="1">Level I | 加減練一下</option>
-                <option value="coreTraining" data-level="2">Level II | 核心也要練</option>
-                <option value="engineBuilder" data-level="3">Level III | 平凡的一次訓練</option>
-                <option value="coreSculpt" data-level="3">Level III | 核心線條雕塑</option>
-                <option value="noRun" data-level="5">Level V | 今天不跑步</option>
-                <option value="strengthBoost" data-level="4">Level IV | 力量強化</option>
-                <option value="lineBoost" data-level="4">Level IV | 線條強化</option>
-                <option value="lowerBlast" data-level="6">Level VI | 下肢炸裂 Run</option>
-                <option value="shoulderBackSculpt" data-level="5">Level V | 肩背線條雕塑</option>
-                <option value="slimWaist" data-level="5">Level V | 小蠻腰挑戰</option>
-                <option value="balanced8" data-level="8">Level VIII | 全能 8 站</option>
-                <option value="zeroRunEndurance" data-level="6">Level VI | 無跑步肌耐力訓練</option>
-                <option value="fatBurn" data-level="7">Level VII | 代謝耐力</option>
-                <option value="moverDay" data-level="8">Level VIII | 搬運工的一天</option>
-                <option value="aerobicMax" data-level="9">Level IX | 有氧拉滿</option>
-                <option value="hellDay" data-level="10">Level X | 地獄日</option>
+                <option value="easyHybrid" data-level="1">Level 1 | 加減練一下</option>
+                <option value="coreTraining" data-level="2">Level 2 | 核心也要練</option>
+                <option value="engineBuilder" data-level="3">Level 3 | 平凡的一次訓練</option>
+                <option value="coreSculpt" data-level="3">Level 3 | 核心線條雕塑</option>
+                <option value="noRun" data-level="5">Level 5 | 今天不跑步</option>
+                <option value="strengthBoost" data-level="4">Level 4 | 力量強化</option>
+                <option value="lineBoost" data-level="4">Level 4 | 線條強化</option>
+                <option value="lowerBlast" data-level="6">Level 6 | 下肢炸裂 Run</option>
+                <option value="shoulderBackSculpt" data-level="5">Level 5 | 肩背線條雕塑</option>
+                <option value="slimWaist" data-level="5">Level 5 | 小蠻腰挑戰</option>
+                <option value="balanced8" data-level="8">Level 8 | 全能 8 站</option>
+                <option value="zeroRunEndurance" data-level="6">Level 6 | 無跑步肌耐力訓練</option>
+                <option value="fatBurn" data-level="7">Level 7 | 代謝耐力</option>
+                <option value="moverDay" data-level="8">Level 8 | 搬運工的一天</option>
+                <option value="aerobicMax" data-level="9">Level 9 | 有氧拉滿</option>
+                <option value="hellDay" data-level="10">Level 10 | 地獄日</option>
               </select>
               <div class="template-picker" id="templatePicker">
                 <button type="button" class="template-picker-trigger" id="templatePickerTrigger" aria-haspopup="listbox" aria-expanded="false">
                   <span class="template-trigger-copy">
-                    <span class="template-trigger-level" id="templateTriggerLevel">Level I</span>
+                    <span class="template-trigger-level" id="templateTriggerLevel">Level 1</span>
                     <span class="template-trigger-divider">|</span>
                     <span class="template-trigger-name" id="templateTriggerName">加減練一下</span>
                   </span>
@@ -3639,16 +3641,20 @@ function simulationItems(templateId){
   const t=RACE_TEMPLATES[templateId]||RACE_TEMPLATES.lowerBlast;
   return buildTemplateItems(t,'Bike');
 }
-const ROMAN_LEVELS={1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI',7:'VII',8:'VIII',9:'IX',10:'X'};
-function romanLevel(n){return ROMAN_LEVELS[Number(n)]||String(n||'')}
+// Level is the app's single difficulty scale. UI always displays Arabic numerals (1–10).
+// The existing database field `intensity` stores this same Level value; it is NOT a second scale.
+function levelNumber(n){
+  const v=Math.round(Number(n)||1);
+  return Math.min(10,Math.max(1,v));
+}
 function syncTemplatePicker(){
   const select=q('#raceTemplate'),picker=q('#templatePicker');
   if(!select||!picker)return;
   const t=currentRaceTemplate();
   const level=q('#templateTriggerLevel'),name=q('#templateTriggerName');
   const selectedOpt=select.options[select.selectedIndex];
-  const displayLevel=Number(selectedOpt?.dataset.level)||Number(t.intensity)||1;
-  if(level)level.textContent=`Level ${romanLevel(displayLevel)}`;
+  const displayLevel=levelNumber(Number(selectedOpt?.dataset.level)||Number(t.intensity)||1);
+  if(level)level.textContent=`Level ${displayLevel}`;
   if(name)name.textContent=t.label;
   qa('#templatePickerMenu .template-option').forEach(btn=>{
     const selected=btn.dataset.templateId===select.value;
@@ -3662,7 +3668,7 @@ function buildTemplatePicker(){
   const grouped=new Map();
   [...select.options].forEach(opt=>{
     const t=RACE_TEMPLATES[opt.value];if(!t)return;
-    const level=Number(opt.dataset.level)||Number(t.intensity)||0;
+    const level=levelNumber(Number(opt.dataset.level)||Number(t.intensity)||1);
     if(!grouped.has(level))grouped.set(level,[]);
     grouped.get(level).push({id:opt.value,label:t.label});
   });
@@ -3670,7 +3676,7 @@ function buildTemplatePicker(){
     <div class="template-level-group" data-level="${level}">
       <div class="template-level-head">
         <span class="template-level-word">LEVEL</span>
-        <strong class="template-level-number">${romanLevel(level)}</strong>
+        <strong class="template-level-number">${level}</strong>
       </div>
       <div class="template-level-options">
         ${items.map(item=>`<button type="button" class="template-option" role="option" data-template-id="${esc(item.id)}"><span>${esc(item.label)}</span><span class="template-option-check">✓</span></button>`).join('')}
@@ -3758,7 +3764,7 @@ function updateRaceTemplateUI(){
   if(cardioWrap)cardioWrap.style.display=t.id==='coreSculpt'?'grid':'none';
   const rawItems=rawTemplateItems(t);
 
-  q('#dailyPreviewHead').textContent=`${t.label}｜${t.duration}｜難度 ${t.intensity}/10`;
+  q('#dailyPreviewHead').textContent=`${t.label}｜${t.duration}｜Level ${levelNumber(t.intensity)}`;
   q('#dailyPreviewDesc').textContent=t.description||'';
   q('#dailyPreviewEquipment').textContent=`器材：${t.equipment}`;
   renderDailyPreviewBlocks(rawItems);
@@ -4242,13 +4248,39 @@ function startSession(type){
 }
 function elapsedMs(){if(!session)return 0;const now=session.running?Date.now():(session.pausedAt||Date.now());return Math.max(0,now-session.startedAt-session.pausedTotal)}
 
-function parseCountdownSeconds(detail){
-  const text=String(detail||'').toLowerCase();
-  const m=text.match(/(\d+(?:\.\d+)?)\s*(min|mins|minute|minutes|sec|secs|second|seconds)\b/);
-  if(!m)return null;
-  const value=Number(m[1]);
-  if(!Number.isFinite(value)||value<=0)return null;
-  return Math.max(1,Math.round(value*(m[2].startsWith('min')?60:1)));
+function parseCountdownSeconds(detail,name=''){
+  // Time is allowed to live in either the editable detail field or the
+  // exercise name.  This keeps cloud-edited Daily Training items compatible
+  // with the per-item countdown UI.
+  const text=`${String(detail||'')} ${String(name||'')}`
+    .replace(/\u00a0/g,' ')
+    .toLowerCase();
+
+  let m=text.match(/(\d+(?:\.\d+)?)\s*(min|mins|minute|minutes)\b/);
+  if(m){
+    const value=Number(m[1]);
+    if(Number.isFinite(value)&&value>0)return Math.max(1,Math.round(value*60));
+  }
+
+  m=text.match(/(\d+(?:\.\d+)?)\s*(?:分鐘|分)(?!鐘|钟)/);
+  if(m){
+    const value=Number(m[1]);
+    if(Number.isFinite(value)&&value>0)return Math.max(1,Math.round(value*60));
+  }
+
+  m=text.match(/(\d+(?:\.\d+)?)\s*(sec|secs|second|seconds)\b/);
+  if(m){
+    const value=Number(m[1]);
+    if(Number.isFinite(value)&&value>0)return Math.max(1,Math.round(value));
+  }
+
+  m=text.match(/(\d+(?:\.\d+)?)\s*(?:秒鐘|秒钟|秒)/);
+  if(m){
+    const value=Number(m[1]);
+    if(Number.isFinite(value)&&value>0)return Math.max(1,Math.round(value));
+  }
+
+  return null;
 }
 
 function countdownFormat(totalSeconds){
@@ -4260,7 +4292,10 @@ function countdownFormat(totalSeconds){
 
 function ensureCountdown(it){
   if(it.countdownInitial!=null)return it.countdownInitial;
-  const seconds=parseCountdownSeconds(it.detail);
+  const explicit=Number(it?.duration_seconds);
+  const seconds=Number.isFinite(explicit)&&explicit>0
+    ?Math.max(1,Math.round(explicit))
+    :parseCountdownSeconds(it?.detail,it?.name);
   if(!seconds)return null;
   it.countdownInitial=seconds;
   it.countdownRemaining=seconds;
@@ -4546,7 +4581,7 @@ async function saveLog(){
       const mm=String(x.detail||'').match(/[\d.]+/);return s+(mm?Number(mm[0])*1000:0)
     },0),
     stations:{
-      challenge_items:finishedSession.items.map((x,i)=>({name:x.name,detail:x.detail,order:i+1,distance_m:x.distance_m??null,weight_kg:x.weight_kg??null,reps:x.reps??null,block_index:x.block_index??null,block_round:x.block_round??null,block_rounds:x.block_rounds??null,block_rest:x.block_rest??null})),
+      challenge_items:finishedSession.items.map((x,i)=>({name:x.name,detail:x.detail,order:i+1,duration_seconds:x.duration_seconds??parseCountdownSeconds(x.detail,x.name),distance_m:x.distance_m??null,weight_kg:x.weight_kg??null,reps:x.reps??null,block_index:x.block_index??null,block_round:x.block_round??null,block_rounds:x.block_rounds??null,block_rest:x.block_rest??null})),
       ...(finishedSession.templateId?{challenge_template:{id:finishedSession.templateId,label:finishedSession.templateLabel||''}}:{}),
       ...(challengeSource?{challenge_source:challengeSource}:{})
     },
@@ -4751,7 +4786,7 @@ function dailyResultRow(r,templateRank){
       <div class="wall-entry-core">
         <div class="wall-entry-athlete" title="${esc(r.nickname||'未命名選手')}">${esc(r.nickname||'未命名選手')}</div>
         <div class="wall-entry-subline">
-          <span class="wall-entry-title">${esc(`Level ${t.intensity}: ${t.label}`)}</span>
+          <span class="wall-entry-title">${esc(`Level ${levelNumber(t.intensity)}: ${t.label}`)}</span>
           <span class="wall-entry-date">${esc(r.session_date||'')}</span>
         </div>
         ${note?`<div class="wall-entry-note">${esc(note)}</div>`:''}
@@ -4913,7 +4948,7 @@ function dailyTemplateFromCloud(row) {
   return {
     id: String(row.template_id),
     label: String(row.label || row.template_id),
-    intensity: Number(row.intensity) || 1,
+    intensity: levelNumber(row.intensity),
     duration: String(row.duration || '自訂'),
     description: String(row.description || ''),
     equipment: String(row.equipment || ''),
@@ -4924,6 +4959,7 @@ function dailyTemplateFromCloud(row) {
       return rawItems.map(x => ({
         name: x?.name === DAILY_CARDIO_DB_TOKEN ? cardio : String(x?.name || ''),
         detail: String(x?.detail || ''),
+        duration_seconds: Number(x?.duration_seconds) > 0 ? Number(x.duration_seconds) : null,
         distance_m: Number(x?.distance_m) > 0 ? Number(x.distance_m) : null,
         weight_kg: x?.weight_kg ?? null,
         reps: Number(x?.reps) > 0 ? Number(x.reps) : null,
@@ -4961,7 +4997,7 @@ function rebuildDailyTemplateSelect() {
 
   select.innerHTML = ids.map(id => {
     const t = RACE_TEMPLATES[id];
-    return `<option value="${esc(id)}" data-level="${Number(t.intensity) || 1}">${Number(t.intensity) || 1}｜${esc(t.label)}</option>`;
+    return `<option value="${esc(id)}" data-level="${levelNumber(t.intensity)}">Level ${levelNumber(t.intensity)} | ${esc(t.label)}</option>`;
   }).join('');
 
   if (ids.includes(previous)) select.value = previous;
@@ -5103,16 +5139,16 @@ function ensureDailyAdminUI() {
         <div class="field">
           <label>Level</label>
           <select id="customDailyLevel">
-            <option value="1">I</option>
-            <option value="2">II</option>
-            <option value="3">III</option>
-            <option value="4">IV</option>
-            <option value="5">V</option>
-            <option value="6">VI</option>
-            <option value="7">VII</option>
-            <option value="8">VIII</option>
-            <option value="9">IX</option>
-            <option value="10">X</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
           </select>
         </div>
         <div class="field">
@@ -5279,7 +5315,7 @@ function ensureDailyTemplateEditorModal(){
       <div class="daily-editor-body">
         <div class="daily-editor-meta">
           <div class="field"><label>菜單名稱</label><input id="dailyEditorName" maxlength="80"></div>
-          <div class="field"><label>Level</label><select id="dailyEditorLevel">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}">${romanLevel(n)}</option>`).join('')}</select></div>
+          <div class="field"><label>Level</label><select id="dailyEditorLevel">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}">${n}</option>`).join('')}</select></div>
           <div class="field"><label>預估時間</label><input id="dailyEditorDuration" maxlength="80" placeholder="例如 45–60 分鐘"></div>
           <div class="field full"><label>簡介</label><textarea id="dailyEditorDescription" maxlength="500" placeholder="訓練目的、強度、安排方式…"></textarea></div>
           <div class="field full"><label>器材</label><input id="dailyEditorEquipment" maxlength="300" placeholder="例如 TRX／Box／Medicine Ball"></div>
@@ -5355,7 +5391,7 @@ function openDailyExercisePicker(blockId,itemId,mode){ensureDailyExercisePickerM
 function closeDailyExercisePicker(){q('#dailyExercisePickerModal')?.classList.remove('open')}
 function applyDailyEditorExerciseChoice(name){const t=dailyEditorPickerTarget;if(!t)return;const b=dailyEditorBlockById(t.blockId);if(!b)return;const newItem={id:uid(),name:String(name||'').trim(),detail:'',distance_m:null,weight_kg:null,reps:null};if(t.mode==='replace'){const i=dailyEditorItemPosition(b,t.itemId);if(i>=0)b.items[i]=newItem}else if(t.mode==='insert'){const i=dailyEditorItemPosition(b,t.itemId);b.items.splice(i>=0?i+1:b.items.length,0,newItem)}else b.items.push(newItem);closeDailyExercisePicker();renderDailyEditorBlocks()}
 function parseDistanceMeters(detail){const text=String(detail||'').toLowerCase(),km=text.match(/(\d+(?:\.\d+)?)\s*km\b/);if(km)return Math.round(Number(km[1])*1000);const m=text.match(/(\d+(?:\.\d+)?)\s*m\b/);return m?Math.round(Number(m[1])):null}
-function flattenDailyEditorBlocks(){const out=[];dailyEditorBlocks.forEach((block,bi)=>block.items.forEach(item=>{const name=String(item.name||'').trim(),detail=String(item.detail||'').trim();if(name)out.push({name:name===DAILY_CARDIO_PLACEHOLDER?DAILY_CARDIO_DB_TOKEN:name,detail,distance_m:parseDistanceMeters(detail),weight_kg:null,reps:null,block_index:bi+1,block_rounds:Math.max(1,Number(block.rounds)||1),block_rest:String(block.rest||'—')})}));return out}
+function flattenDailyEditorBlocks(){const out=[];dailyEditorBlocks.forEach((block,bi)=>block.items.forEach(item=>{const name=String(item.name||'').trim(),detail=String(item.detail||'').trim();if(name){const storedName=name===DAILY_CARDIO_PLACEHOLDER?DAILY_CARDIO_DB_TOKEN:name;out.push({name:storedName,detail,duration_seconds:parseCountdownSeconds(detail,name),distance_m:parseDistanceMeters(detail),weight_kg:null,reps:null,block_index:bi+1,block_rounds:Math.max(1,Number(block.rounds)||1),block_rest:String(block.rest||'—')})}}));return out}
 function openDailyTemplateEditor(t){
   ensureDailyTemplateEditorModal();editingDailyTemplateId=t.id;const sourceItems=rawTemplateItems(t,t.id==='coreSculpt'?DAILY_CARDIO_PLACEHOLDER:selectedDailyCardio());dailyEditorBlocks=dailyEditorBlocksFromItems(sourceItems);if(!dailyEditorBlocks.length)dailyEditorBlocks=[{id:uid(),rounds:1,rest:'—',collapsed:false,items:[]}];dailyEditorActiveBlock=0;q('#dailyEditorName').value=t.label||'';q('#dailyEditorLevel').value=String(Number(t.intensity)||1);q('#dailyEditorDuration').value=t.duration||'';q('#dailyEditorDescription').value=t.description||'';q('#dailyEditorEquipment').value=t.equipment||'';renderDailyEditorBlocks();q('#dailyTemplateEditorModal').classList.add('open');
 }
