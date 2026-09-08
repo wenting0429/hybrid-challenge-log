@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- PRODUCTION BUILD · locked engineBuilder pull-up correction · 2026-09-08 -->
 <!-- PRODUCTION FIX · Level-only UI + robust time-based item countdown · 2026-09-08 -->
 <!-- PRODUCTION BUILD · single numeric Level scale fix · 2026-09-07 -->
 <!-- RECOVERY PRODUCTION BUILD · last-known-working block editor · 2026-09-07 -->
@@ -4671,7 +4672,11 @@ function groupLabel(key){
 
 function getChallengeItems(r){
   const items=r?.stations?.challenge_items;
-  if(Array.isArray(items)&&items.length)return [...items].sort((a,b)=>(a.order||0)-(b.order||0));
+  if(Array.isArray(items)&&items.length){
+    const templateId=String(r?.stations?.challenge_template?.id||'');
+    return applyLockedTemplateCorrections(templateId, items)
+      .sort((a,b)=>(a.order||0)-(b.order||0));
+  }
 
   if(isStandardRaceType(r?.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
     return standardRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
@@ -4943,8 +4948,36 @@ function templateHasCompletedResult(templateId) {
   );
 }
 
+
+/* ===== LOCKED TEMPLATE DATA CORRECTIONS =====
+   These are factual corrections to already-completed/locked templates.
+   They do NOT unlock the template or allow general editing.
+*/
+function applyLockedTemplateCorrections(templateId, items) {
+  const id = String(templateId || '');
+  const list = Array.isArray(items) ? items.map(x => ({...x})) : [];
+
+  // 平凡的一次訓練 (engineBuilder):
+  // The completed session used 10 reps for Band Assisted Pull Up,
+  // but the saved template omitted the rep prescription.
+  if (id === 'engineBuilder') {
+    list.forEach(x => {
+      const key = String(x?.name || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
+      if (key === 'bandassistedpullup') {
+        if (!String(x?.detail || '').trim()) x.detail = '10 reps';
+        if (!(Number(x?.reps) > 0)) x.reps = 10;
+      }
+    });
+  }
+
+  return list;
+}
+
 function dailyTemplateFromCloud(row) {
-  const rawItems = Array.isArray(row?.items) ? row.items : [];
+  const rawItems = applyLockedTemplateCorrections(row?.template_id, Array.isArray(row?.items) ? row.items : []);
   return {
     id: String(row.template_id),
     label: String(row.label || row.template_id),
