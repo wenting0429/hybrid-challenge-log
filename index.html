@@ -1,4 +1,7 @@
 <!doctype html>
+<!-- PRODUCTION BUILD · classic challenge live menu preview · 2026-09-09 -->
+<!-- PRODUCTION BUILD · official HYROX + TYRUN race standards corrected · 2026-09-09 -->
+<!-- PRODUCTION BUILD · HYROX + TYRUN Season 2 classic challenge · 2026-09-09 -->
 <!-- PRODUCTION BUILD · locked engineBuilder pull-up correction · 2026-09-08 -->
 <!-- PRODUCTION FIX · Level-only UI + robust time-based item countdown · 2026-09-08 -->
 <!-- PRODUCTION BUILD · single numeric Level scale fix · 2026-09-07 -->
@@ -949,6 +952,129 @@ nav.tabs button.active{
 
 
 
+
+
+/* ===== Classic challenge pre-workout overview ===== */
+.classic-preview{
+  margin-top:14px;
+  border:1px solid #2b394b;
+  border-radius:14px;
+  background:#0b1119;
+  overflow:hidden;
+}
+.classic-preview-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-bottom:1px solid #263244;
+  background:linear-gradient(90deg,rgba(112,222,216,.08),transparent 60%),#101821;
+}
+.classic-preview-head b{
+  color:#f4f7fa;
+  font-size:13px;
+  font-weight:900;
+}
+.classic-preview-head span{
+  color:#87a0ad;
+  font-size:9.5px;
+  text-align:right;
+}
+.classic-preview-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  padding:11px 12px 12px;
+}
+.classic-preview-block{
+  --race-accent:#70ded8;
+  --race-wash:rgba(112,222,216,.08);
+  border:1px solid color-mix(in srgb,var(--race-accent) 42%,#2a3648);
+  border-radius:11px;
+  background:#0b121a;
+  overflow:hidden;
+  min-width:0;
+}
+.classic-preview-block-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding:7px 9px;
+  border-top:3px solid var(--race-accent);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:linear-gradient(90deg,var(--race-wash),transparent 68%),#111923;
+}
+.classic-preview-block-head strong{
+  color:var(--race-accent);
+  font-size:9.5px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.classic-preview-block-head span{
+  color:#7f8d9f;
+  font-size:8.5px;
+}
+.classic-preview-items{
+  display:grid;
+  padding:4px 9px 7px;
+}
+.classic-preview-item{
+  display:grid;
+  grid-template-columns:22px minmax(0,1fr);
+  gap:1px 7px;
+  padding:6px 0;
+  border-top:1px solid #1f2a39;
+}
+.classic-preview-item:first-child{border-top:0}
+.classic-preview-num{
+  grid-column:1;
+  grid-row:1/3;
+  width:19px;
+  height:19px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#16212e;
+  color:var(--race-accent);
+  font-size:8px;
+  font-weight:900;
+}
+.classic-preview-item b{
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+  color:#f1f5f8;
+  font-size:10.5px;
+  line-height:1.3;
+  font-weight:760;
+}
+.classic-preview-item span{
+  grid-column:2;
+  grid-row:2;
+  min-width:0;
+  margin-top:1px;
+  color:#798799;
+  font-size:9px;
+  line-height:1.35;
+}
+@media(max-width:640px){
+  .classic-preview{
+    margin-top:12px;
+    border-radius:12px;
+  }
+  .classic-preview-head{
+    padding:10px 11px;
+  }
+  .classic-preview-head b{font-size:12px}
+  .classic-preview-head span{font-size:8.5px}
+  .classic-preview-grid{
+    grid-template-columns:1fr;
+    gap:8px;
+    padding:9px 10px 10px;
+  }
+}
 
 /* ===== Daily challenge pre-workout overview ===== */
 .daily-preview{
@@ -2525,6 +2651,18 @@ nav.tabs button.active{
   .template-option{min-height:39px;padding:8px 9px 8px 11px;font-size:12px;border-radius:8px}
 }
 
+
+/* TYRUN score wall: Scaled / Open / Pro are ranked separately. */
+.classic-subgroup{display:grid;gap:0;margin-bottom:12px}
+.classic-subgroup:last-child{margin-bottom:0}
+.classic-subgroup-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:7px 10px;margin:0 0 5px;border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;background:rgba(255,255,255,.035);
+  color:#cbd5df;font-size:10px;font-weight:850;letter-spacing:.06em
+}
+.classic-subgroup-head b{color:#7f8d9f;font-size:9px;font-weight:750}
+
 </style>
 
   <!-- PWA -->
@@ -2561,10 +2699,17 @@ nav.tabs button.active{
           <div class="challenge-top">
             <div>
               <h3>經典挑戰</h3>
-              <p>固定 8 × 1 km 跑步，穿插 8 項挑戰；分女子、男子與 Mixed 模式。</p>
+              <p id="standardRaceDescription">HYROX：固定 8 × 1 km 跑步，穿插 8 項工作站。</p>
             </div>
           </div>
           <div class="challenge-grid">
+            <div class="field full">
+              <label>賽事版本</label>
+              <select id="standardRaceFormat">
+                <option value="hyrox">HYROX</option>
+                <option value="tyrun-s2">TYRUN Season 2</option>
+              </select>
+            </div>
             <div class="field full">
               <label>挑戰模式</label>
               <select id="standardDivision">
@@ -2575,11 +2720,19 @@ nav.tabs button.active{
             </div>
           </div>
           <div class="challenge-info">
-            <div class="mini-stat"><b>8.0 km</b><span>跑步總距離</span></div>
-            <div class="mini-stat"><b>8</b><span>工作站</span></div>
-            <div class="mini-stat"><b>16</b><span>總項目</span></div>
+            <div class="mini-stat"><b id="standardRunStat">8.0 km</b><span>跑步總距離</span></div>
+            <div class="mini-stat"><b id="standardStationStat">8</b><span>工作站</span></div>
+            <div class="mini-stat"><b id="standardItemStat">16</b><span>總項目</span></div>
           </div>
-          
+
+          <div class="classic-preview" id="standardRacePreview">
+            <div class="classic-preview-head">
+              <b>菜單內容</b>
+              <span id="standardRacePreviewLabel"></span>
+            </div>
+            <div class="classic-preview-grid" id="standardRacePreviewGrid"></div>
+          </div>
+
           <button class="btn primary standard-start-mobile" id="startStandardRaceBtn">挑戰開始</button>
         </div>
 
@@ -2709,6 +2862,39 @@ nav.tabs button.active{
             <span class="ranking-count" id="mixedCount">0 筆</span>
           </div>
           <div class="ranking-scroll" id="mixedResults"></div>
+        </section>
+
+        <section class="ranking-card ranking-women ranking-tyrun" data-wall-card="tyrun-women">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">TYRUN SEASON 2</div>
+              <h3>經典挑戰｜TYRUN｜女子</h3>
+            </div>
+            <span class="ranking-count" id="tyrunWomenCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="tyrunWomenResults"></div>
+        </section>
+
+        <section class="ranking-card ranking-men ranking-tyrun" data-wall-card="tyrun-men">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">TYRUN SEASON 2</div>
+              <h3>經典挑戰｜TYRUN｜男子</h3>
+            </div>
+            <span class="ranking-count" id="tyrunMenCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="tyrunMenResults"></div>
+        </section>
+
+        <section class="ranking-card ranking-mixed ranking-tyrun" data-wall-card="tyrun-mixed">
+          <div class="ranking-card-head">
+            <div>
+              <div class="ranking-card-kicker">TYRUN SEASON 2</div>
+              <h3>經典挑戰｜TYRUN｜Mixed</h3>
+            </div>
+            <span class="ranking-count" id="tyrunMixedCount">0 筆</span>
+          </div>
+          <div class="ranking-scroll" id="tyrunMixedResults"></div>
         </section>
 
         <section class="ranking-card ranking-daily" data-wall-card="daily">
@@ -2851,6 +3037,27 @@ const cloudConfig={
 const CHALLENGE_COOLDOWN_KEY='hyroxChallengeCountCooldown_v1';
 const CHALLENGE_COOLDOWN_MS=60*60*1000; // same device + same source: count at most once per hour
 const STATIONS=['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Row','Farmers Carry','Sandbag Lunges','Wall Balls'];
+const TYRUN_TEMPLATE_ID='tyrunSeason2';
+
+const HYROX_DIVISIONS=[
+  {value:'Women Open',label:'女子 Open'},
+  {value:'Women Pro',label:'女子 Pro'},
+  {value:'Men Open',label:'男子 Open'},
+  {value:'Men Pro',label:'男子 Pro'},
+  {value:'Mixed Doubles',label:'Mixed Doubles Open'}
+];
+
+const TYRUN_DIVISIONS=[
+  {value:'Women Scaled',label:'女子 Scaled'},
+  {value:'Women Open',label:'女子 Open'},
+  {value:'Women Pro',label:'女子 Pro'},
+  {value:'Men Scaled',label:'男子 Scaled'},
+  {value:'Men Open',label:'男子 Open'},
+  {value:'Men Pro',label:'男子 Pro'},
+  {value:'Mixed Scaled',label:'Mixed Doubles Scaled'},
+  {value:'Mixed Open',label:'Mixed Doubles Open'},
+  {value:'Mixed Pro',label:'Mixed Doubles Pro'}
+];
 const CUSTOM_EXERCISES=[
   {name:'SkiErg',cat:'Race Stations'},
   {name:'Sled Push',cat:'Race Stations'},
@@ -2860,6 +3067,12 @@ const CUSTOM_EXERCISES=[
   {name:'Farmers Carry',cat:'Race Stations'},
   {name:'Sandbag Lunges',cat:'Race Stations'},
   {name:'Wall Balls',cat:'Race Stations'},
+  {name:'Echo Bike',cat:'Race Stations'},
+  {name:'Seated Sled Pull',cat:'Race Stations'},
+  {name:'Weighted Box Step Ups',cat:'Race Stations'},
+  {name:'Medball Abmat Sit Ups',cat:'Race Stations'},
+  {name:'Devil Press',cat:'Race Stations'},
+  {name:'Sandbag Carry Over The Yoke',cat:'Race Stations'},
   {name:'Load Crawl',cat:'Race Stations'},
   {name:'Strength Erg Chest',cat:'Race Stations'},
   {name:'Weighted Lunges',cat:'Race Stations'},
@@ -3047,14 +3260,62 @@ function registerUserExercise(name,cat='我的動作'){
 }
 
 const DETAILS={
- 'SkiErg':{'Women Open':'1000 m','Men Open':'1000 m','Mixed Doubles':'1000 m'},
- 'Sled Push':{'Women Open':'50 m · 102 kg','Men Open':'50 m · 152 kg','Mixed Doubles':'50 m · 152 kg'},
- 'Sled Pull':{'Women Open':'50 m · 78 kg','Men Open':'50 m · 103 kg','Mixed Doubles':'50 m · 103 kg'},
- 'Burpee Broad Jump':{'Women Open':'80 m','Men Open':'80 m','Mixed Doubles':'80 m'},
- 'Row':{'Women Open':'1000 m','Men Open':'1000 m','Mixed Doubles':'1000 m'},
- 'Farmers Carry':{'Women Open':'200 m · 2×16 kg','Men Open':'200 m · 2×24 kg','Mixed Doubles':'200 m · 2×24 kg'},
- 'Sandbag Lunges':{'Women Open':'100 m · 10 kg','Men Open':'100 m · 20 kg','Mixed Doubles':'100 m · 20 kg'},
- 'Wall Balls':{'Women Open':'100 · 4 kg','Men Open':'100 · 6 kg','Mixed Doubles':'100 · 6 kg'}
+ 'SkiErg':{
+   'Women Open':'1000 m',
+   'Women Pro':'1000 m',
+   'Men Open':'1000 m',
+   'Men Pro':'1000 m',
+   'Mixed Doubles':'1000 m'
+ },
+ 'Sled Push':{
+   'Women Open':'50 m · 102 kg incl. sled',
+   'Women Pro':'50 m · 152 kg incl. sled',
+   'Men Open':'50 m · 152 kg incl. sled',
+   'Men Pro':'50 m · 202 kg incl. sled',
+   'Mixed Doubles':'50 m · 152 kg incl. sled'
+ },
+ 'Sled Pull':{
+   'Women Open':'50 m · 78 kg incl. sled',
+   'Women Pro':'50 m · 103 kg incl. sled',
+   'Men Open':'50 m · 103 kg incl. sled',
+   'Men Pro':'50 m · 153 kg incl. sled',
+   'Mixed Doubles':'50 m · 103 kg incl. sled'
+ },
+ 'Burpee Broad Jump':{
+   'Women Open':'80 m',
+   'Women Pro':'80 m',
+   'Men Open':'80 m',
+   'Men Pro':'80 m',
+   'Mixed Doubles':'80 m'
+ },
+ 'Row':{
+   'Women Open':'1000 m',
+   'Women Pro':'1000 m',
+   'Men Open':'1000 m',
+   'Men Pro':'1000 m',
+   'Mixed Doubles':'1000 m'
+ },
+ 'Farmers Carry':{
+   'Women Open':'200 m · 2×16 kg',
+   'Women Pro':'200 m · 2×24 kg',
+   'Men Open':'200 m · 2×24 kg',
+   'Men Pro':'200 m · 2×32 kg',
+   'Mixed Doubles':'200 m · 2×24 kg'
+ },
+ 'Sandbag Lunges':{
+   'Women Open':'100 m · 10 kg',
+   'Women Pro':'100 m · 20 kg',
+   'Men Open':'100 m · 20 kg',
+   'Men Pro':'100 m · 30 kg',
+   'Mixed Doubles':'100 m · 20 kg'
+ },
+ 'Wall Balls':{
+   'Women Open':'100 reps · 4 kg',
+   'Women Pro':'100 reps · 6 kg',
+   'Men Open':'100 reps · 6 kg',
+   'Men Pro':'100 reps · 9 kg',
+   'Mixed Doubles':'100 reps · 6 kg'
+ }
 };
 const RACE_TEMPLATES={
   easyHybrid:{
@@ -3577,8 +3838,254 @@ function standardRaceItems(division){
   });
   return out;
 }
-function standardDivisionLabel(division){
-  return division==='Women Open'?'女子':division==='Men Open'?'男子':division==='Mixed Doubles'?'Mixed':String(division||'');
+function hyroxDivisionParts(division){
+  const raw=String(division||'Women Open').trim();
+  const group=raw.startsWith('Mixed')?'Mixed':raw.startsWith('Men')?'Men':'Women';
+  const level=raw.includes('Pro')?'Pro':'Open';
+  const doubles=raw.includes('Doubles');
+  return {group,level,doubles};
+}
+function hyroxDivisionLabel(division){
+  const {group,level,doubles}=hyroxDivisionParts(division);
+  if(group==='Mixed')return `Mixed Doubles ${level}`;
+  const groupLabel=group==='Women'?'女子':'男子';
+  return `${groupLabel}${doubles?' Doubles':''} ${level}`;
+}
+
+function tyrunDivisionParts(division){
+  const raw=String(division||'Women Open').trim();
+  const group=raw.startsWith('Mixed')?'Mixed':raw.startsWith('Men')?'Men':'Women';
+  const level=raw.includes('Scaled')?'Scaled':raw.includes('Pro')?'Pro':'Open';
+  return {group,level};
+}
+function tyrunDivisionLabel(division){
+  const {group,level}=tyrunDivisionParts(division);
+  const groupLabel=group==='Women'?'女子':group==='Men'?'男子':'Mixed Doubles';
+  return `${groupLabel} ${level}`;
+}
+function standardDivisionLabel(division,format='hyrox'){
+  return format==='tyrun-s2'
+    ?tyrunDivisionLabel(division)
+    :hyroxDivisionLabel(division);
+}
+function tyrunUsesMenWeights(group){return group==='Men'||group==='Mixed'}
+
+function tyrunRaceItems(division){
+  const {group,level}=tyrunDivisionParts(division);
+  const male=tyrunUsesMenWeights(group);
+  const key=level.toLowerCase();
+
+  const calories={scaled:60,open:80,pro:100}[key];
+
+  const sledWeight=male
+    ?{scaled:80,open:100,pro:120}[key]
+    :{scaled:60,open:80,pro:100}[key];
+
+  const stepWeight=key==='scaled'
+    ?null
+    :(male?{open:10,pro:15}[key]:{open:7.5,pro:10}[key]);
+
+  const situpWeight=key==='scaled'
+    ?null
+    :(male?{open:6,pro:9}[key]:{open:3,pro:6}[key]);
+
+  const devilWeight=male
+    ?{scaled:7.5,open:10,pro:15}[key]
+    :{scaled:5,open:7.5,pro:10}[key];
+
+  const sandbagWeight=male
+    ?{scaled:30,open:50,pro:70}[key]
+    :{scaled:20,open:30,pro:50}[key];
+
+  return [
+    {name:'Run',detail:'600 m',distance_m:600},
+
+    {name:'Echo Bike',detail:`${calories} cal`},
+
+    {
+      name:'Seated Sled Pull',
+      detail:`90 m · 6×15 m · ${sledWeight} kg`,
+      distance_m:90,
+      weight_kg:String(sledWeight)
+    },
+
+    {name:'Run',detail:'600 m',distance_m:600},
+
+    {
+      name:'Weighted Box Step Ups',
+      detail:stepWeight==null
+        ?'100 reps · BW · 20 in box'
+        :`100 reps · 2×${stepWeight} kg · 20 in box`,
+      reps:100,
+      weight_kg:stepWeight==null?null:String(stepWeight)
+    },
+
+    {
+      name:'Medball Abmat Sit Ups',
+      detail:situpWeight==null
+        ?'100 reps · BW'
+        :`100 reps · ${situpWeight} kg med ball`,
+      reps:100,
+      weight_kg:situpWeight==null?null:String(situpWeight)
+    },
+
+    {name:'Run',detail:'600 m',distance_m:600},
+
+    {name:'Row',detail:'1000 m · Rogue Echo Row',distance_m:1000},
+
+    {
+      name:'Devil Press',
+      detail:`100 m · 2×${devilWeight} kg`,
+      distance_m:100,
+      weight_kg:String(devilWeight)
+    },
+
+    {name:'Run',detail:'600 m',distance_m:600},
+
+    {name:'SkiErg',detail:'1000 m · Rogue Echo Ski',distance_m:1000},
+
+    {
+      name:'Sandbag Carry Over The Yoke',
+      detail:`100 m · 24 yokes @ 1 m · ${sandbagWeight} kg`,
+      distance_m:100,
+      weight_kg:String(sandbagWeight)
+    }
+  ];
+}
+function currentStandardRaceFormat(){
+  return q('#standardRaceFormat')?.value==='tyrun-s2'?'tyrun-s2':'hyrox';
+}
+function standardRaceTemplateId(format=currentStandardRaceFormat()){
+  return format==='tyrun-s2'?TYRUN_TEMPLATE_ID:'standardRace';
+}
+function standardRaceFormatLabel(format=currentStandardRaceFormat()){
+  return format==='tyrun-s2'?'TYRUN S2':'HYROX';
+}
+
+function classicPreviewAccent(index){
+  const palette=[
+    ['#64d8d0','rgba(100,216,208,.09)'],
+    ['#ff9b78','rgba(255,155,120,.09)'],
+    ['#b894ff','rgba(184,148,255,.09)'],
+    ['#7ed9a9','rgba(126,217,169,.09)'],
+    ['#efc96f','rgba(239,201,111,.09)'],
+    ['#7bb7ff','rgba(123,183,255,.09)'],
+    ['#f08fc2','rgba(240,143,194,.09)'],
+    ['#8bd0ff','rgba(139,208,255,.09)']
+  ];
+  return palette[(Math.max(1,Number(index)||1)-1)%palette.length];
+}
+
+function standardRacePreviewGroups(format,division){
+  const items=format==='tyrun-s2'
+    ?tyrunRaceItems(division)
+    :standardRaceItems(division);
+
+  if(format==='tyrun-s2'){
+    // TYRUN Season 2 = 4 runs, each followed by 2 work stations.
+    const groups=[];
+    for(let i=0;i<items.length;i+=3){
+      groups.push({
+        label:`ROUND ${groups.length+1}`,
+        meta:'600 m RUN + 2 STATIONS',
+        items:items.slice(i,i+3)
+      });
+    }
+    return groups;
+  }
+
+  // HYROX = 8 × (1 km run + 1 work station).
+  const groups=[];
+  for(let i=0;i<items.length;i+=2){
+    groups.push({
+      label:`ROUND ${groups.length+1}`,
+      meta:'1 KM RUN + 1 STATION',
+      items:items.slice(i,i+2)
+    });
+  }
+  return groups;
+}
+
+function renderStandardRacePreview(){
+  const grid=q('#standardRacePreviewGrid');
+  const label=q('#standardRacePreviewLabel');
+  const divisionSelect=q('#standardDivision');
+  if(!grid||!label||!divisionSelect)return;
+
+  const format=currentStandardRaceFormat();
+  const division=divisionSelect.value;
+  const groups=standardRacePreviewGroups(format,division);
+
+  label.textContent=`${standardRaceFormatLabel(format)} · ${standardDivisionLabel(division,format)}`;
+
+  grid.innerHTML=groups.map((group,gi)=>{
+    const [accent,wash]=classicPreviewAccent(gi+1);
+    return `<div class="classic-preview-block" style="--race-accent:${accent};--race-wash:${wash}">
+      <div class="classic-preview-block-head">
+        <strong>${esc(group.label)}</strong>
+        <span>${esc(group.meta)}</span>
+      </div>
+      <div class="classic-preview-items">
+        ${group.items.map((item,ii)=>`<div class="classic-preview-item">
+          <div class="classic-preview-num">${ii+1}</div>
+          <b>${esc(item.name)}</b>
+          <span>${esc(item.detail||'')}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStandardRaceUI(){
+  const format=currentStandardRaceFormat();
+  const divisionSelect=q('#standardDivision');
+  if(!divisionSelect)return;
+  const previous=String(divisionSelect.value||'Women Open');
+
+  if(format==='tyrun-s2'){
+    divisionSelect.innerHTML=TYRUN_DIVISIONS
+      .map(x=>`<option value="${x.value}">${x.label}</option>`)
+      .join('');
+
+    if(TYRUN_DIVISIONS.some(x=>x.value===previous)){
+      divisionSelect.value=previous;
+    }else if(previous.startsWith('Men')){
+      divisionSelect.value='Men Open';
+    }else if(previous.startsWith('Mixed')){
+      divisionSelect.value='Mixed Open';
+    }else{
+      divisionSelect.value='Women Open';
+    }
+
+    q('#standardRaceDescription').textContent=
+      'TYRUN Season 2：4 × 600 m 跑步；每段跑步後接 2 個工作站。Scaled / Open / Pro 依官方標準切換負重與 Echo Bike calories。';
+    q('#standardRunStat').textContent='2.4 km';
+    q('#standardStationStat').textContent='8';
+    q('#standardItemStat').textContent='12';
+
+  }else{
+    divisionSelect.innerHTML=HYROX_DIVISIONS
+      .map(x=>`<option value="${x.value}">${x.label}</option>`)
+      .join('');
+
+    if(HYROX_DIVISIONS.some(x=>x.value===previous)){
+      divisionSelect.value=previous;
+    }else if(previous.startsWith('Men')){
+      divisionSelect.value='Men Open';
+    }else if(previous.startsWith('Mixed')){
+      divisionSelect.value='Mixed Doubles';
+    }else{
+      divisionSelect.value='Women Open';
+    }
+
+    q('#standardRaceDescription').textContent=
+      'HYROX：8 × 1 km 跑步＋8 個固定工作站。HYROX 沒有 Scaled；Singles 為 Open / Pro，Mixed Doubles 為 Open。';
+    q('#standardRunStat').textContent='8.0 km';
+    q('#standardStationStat').textContent='8';
+    q('#standardItemStat').textContent='16';
+  }
+
+  renderStandardRacePreview();
 }
 function currentRaceTemplate(){return RACE_TEMPLATES[q('#raceTemplate')?.value]||RACE_TEMPLATES.lowerBlast}
 function selectedDailyCardio(){return q('#dailyCardioChoice')?.value||'Bike'}
@@ -3789,7 +4296,7 @@ function clearActiveSession(){
 }
 function sessionMetaText(s){
   if(!s)return '';
-  if(isStandardRaceType(s.challengeType))return `標準模式 · ${standardDivisionLabel(s.division)}`;
+  if(isStandardRaceType(s.challengeType)){const format=s.raceFormat||((s.templateId===TYRUN_TEMPLATE_ID)?'tyrun-s2':'hyrox');return `${standardRaceFormatLabel(format)} · ${standardDivisionLabel(s.division,format)}`;}
   if(isSimulationType(s.challengeType))return s.templateLabel||s.title||'日常訓練';
   return 'Custom Challenge';
 }
@@ -4217,11 +4724,12 @@ function startSession(type){
   let division='Custom',title='',items=[],templateId=null,templateLabel=null;
 
   if(isStandard){
+    const raceFormat=currentStandardRaceFormat();
     division=q('#standardDivision').value;
-    title=`經典挑戰｜${standardDivisionLabel(division)}`;
-    items=standardRaceItems(division);
-    templateId='standardRace';
-    templateLabel='經典挑戰';
+    title=`經典挑戰｜${standardRaceFormatLabel(raceFormat)}｜${standardDivisionLabel(division,raceFormat)}`;
+    items=raceFormat==='tyrun-s2'?tyrunRaceItems(division):standardRaceItems(division);
+    templateId=standardRaceTemplateId(raceFormat);
+    templateLabel=raceFormat==='tyrun-s2'?'經典挑戰｜TYRUN Season 2':'經典挑戰｜HYROX';
   }else if(isSimulation){
     const t=currentRaceTemplate();
     division='Open';
@@ -4239,7 +4747,7 @@ function startSession(type){
   if(!items.length){toast('請至少設定一個挑戰項目');return}
 
   session={
-    id:uid(),challengeType:type,division,title,templateId,templateLabel,
+    id:uid(),challengeType:type,division,title,templateId,templateLabel,raceFormat:isStandard?currentStandardRaceFormat():null,
     items:items.map((x,i)=>({...x,id:uid(),done:false,index:i+1})),
     startedAt:Date.now(),pausedAt:null,pausedTotal:0,running:true,pageLocked:false
   };
@@ -4644,12 +5152,14 @@ function simulationTemplateIdForRow(r){
 function wallGroup(r){
   if(r.workout_type==='自訂挑戰')return 'custom';
 
-  if(isStandardRaceType(r.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
+  if(isStandardRaceType(r.workout_type) || ['standardRace',TYRUN_TEMPLATE_ID].includes(String(r?.stations?.challenge_template?.id||''))){
+    const templateId=String(r?.stations?.challenge_template?.id||'standardRace');
+    const prefix=templateId===TYRUN_TEMPLATE_ID?'tyrun':'standard';
     const d=String(r.division||'').toLowerCase();
-    if(d.includes('women'))return 'standard-women';
-    if(d.includes('men'))return 'standard-men';
-    if(d.includes('mixed'))return 'standard-mixed';
-    return 'standard-other';
+    if(d.includes('mixed'))return `${prefix}-mixed`;
+    if(d.includes('women'))return `${prefix}-women`;
+    if(d.includes('men'))return `${prefix}-men`;
+    return `${prefix}-other`;
   }
 
   if(isSimulationType(r.workout_type)){
@@ -4660,9 +5170,12 @@ function wallGroup(r){
 }
 
 function groupLabel(key){
-  if(key==='standard-women')return '女子';
-  if(key==='standard-men')return '男子';
-  if(key==='standard-mixed')return 'Mixed';
+  if(key==='standard-women')return 'HYROX｜女子';
+  if(key==='standard-men')return 'HYROX｜男子';
+  if(key==='standard-mixed')return 'HYROX｜Mixed';
+  if(key==='tyrun-women')return 'TYRUN｜女子';
+  if(key==='tyrun-men')return 'TYRUN｜男子';
+  if(key==='tyrun-mixed')return 'TYRUN｜Mixed';
   if(String(key||'').startsWith('simulation-')){
     const id=String(key).replace('simulation-','');
     return RACE_TEMPLATES[id]?.label||'日常訓練';
@@ -4678,7 +5191,11 @@ function getChallengeItems(r){
       .sort((a,b)=>(a.order||0)-(b.order||0));
   }
 
-  if(isStandardRaceType(r?.workout_type) || r?.stations?.challenge_template?.id==='standardRace'){
+  const standardTemplateId=String(r?.stations?.challenge_template?.id||'');
+  if(standardTemplateId===TYRUN_TEMPLATE_ID){
+    return tyrunRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
+  }
+  if(isStandardRaceType(r?.workout_type) || standardTemplateId==='standardRace'){
     return standardRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
   }
 
@@ -4744,7 +5261,7 @@ function dailyTemplateRankMap(){
 
 function publicChallengeTitle(value){
   let s=String(value||'Challenge');
-  const legacy=/\b(?:STYREKX|HARCO|HYROX)\b/gi;
+  const legacy=/\b(?:STYREKX|HARCO)\b/gi;
   return s.replace(legacy,'Hybrid');
 }
 
@@ -4808,7 +5325,10 @@ function renderClassicWall(){
   const groups=[
     ['standard-women','#womenResults','#womenCount'],
     ['standard-men','#menResults','#menCount'],
-    ['standard-mixed','#mixedResults','#mixedCount']
+    ['standard-mixed','#mixedResults','#mixedCount'],
+    ['tyrun-women','#tyrunWomenResults','#tyrunWomenCount'],
+    ['tyrun-men','#tyrunMenResults','#tyrunMenCount'],
+    ['tyrun-mixed','#tyrunMixedResults','#tyrunMixedCount']
   ];
 
   groups.forEach(([groupKey,boxSel,countSel])=>{
@@ -4818,9 +5338,39 @@ function renderClassicWall(){
     if(count)count.textContent=`${rows.length} 筆`;
     if(!box)return;
 
-    box.innerHTML=rows.length
-      ?rows.map((r,i)=>classicResultRow(r,i+1,groupKey)).join('')
-      :'<div class="score-empty compact-empty">目前還沒有成績。</div>';
+    if(groupKey.startsWith('tyrun-')){
+      if(!rows.length){
+        box.innerHTML='<div class="score-empty compact-empty">目前還沒有成績。</div>';
+        return;
+      }
+      box.innerHTML=['Scaled','Open','Pro'].map(level=>{
+        const levelRows=rows.filter(r=>tyrunDivisionParts(r.division).level===level);
+        if(!levelRows.length)return '';
+        return `<div class="classic-subgroup">
+          <div class="classic-subgroup-head"><span>${level}</span><b>${levelRows.length} 筆</b></div>
+          ${levelRows.map((r,i)=>classicResultRow(r,i+1,groupKey)).join('')}
+        </div>`;
+      }).join('');
+      return;
+    }
+
+    if(groupKey.startsWith('standard-')){
+      if(!rows.length){
+        box.innerHTML='<div class="score-empty compact-empty">目前還沒有成績。</div>';
+        return;
+      }
+
+      const levels=groupKey==='standard-mixed'?['Open']:['Open','Pro'];
+      box.innerHTML=levels.map(level=>{
+        const levelRows=rows.filter(r=>hyroxDivisionParts(r.division).level===level);
+        if(!levelRows.length)return '';
+        return `<div class="classic-subgroup">
+          <div class="classic-subgroup-head"><span>${level}</span><b>${levelRows.length} 筆</b></div>
+          ${levelRows.map((r,i)=>classicResultRow(r,i+1,groupKey)).join('')}
+        </div>`;
+      }).join('');
+      return;
+    }
   });
 }
 
@@ -4859,6 +5409,9 @@ function wallCardStats(){
     {key:'standard-women',rows:classicRows('standard-women'),fallback:1},
     {key:'standard-men',rows:classicRows('standard-men'),fallback:2},
     {key:'standard-mixed',rows:classicRows('standard-mixed'),fallback:3},
+    {key:'tyrun-women',rows:classicRows('tyrun-women'),fallback:4},
+    {key:'tyrun-men',rows:classicRows('tyrun-men'),fallback:5},
+    {key:'tyrun-mixed',rows:classicRows('tyrun-mixed'),fallback:6},
     {key:'daily',rows:dailyRows(),fallback:0}
   ];
   return configs.map(cfg=>{
@@ -5640,10 +6193,12 @@ async function initDailyTemplateAdmin() {
 }
 
 
-renderPicker();updateCustomPreview();setDefaultCustomName(true);initDailyTemplateAdmin();
+renderPicker();updateCustomPreview();setDefaultCustomName(true);updateStandardRaceUI();initDailyTemplateAdmin();
 q('#publicConfigWarning').classList.toggle('show',!isConfigured());
 q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
 q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
+q('#standardRaceFormat').addEventListener('change',updateStandardRaceUI);
+q('#standardDivision').addEventListener('change',renderStandardRacePreview);
 q('#dailyCardioChoice').addEventListener('change',updateRaceTemplateUI);
 q('#wall').addEventListener('click',e=>{
   const row=e.target.closest('[data-result-id]');
