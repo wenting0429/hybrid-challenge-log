@@ -3826,7 +3826,7 @@ zeroRunEndurance:{
     intensity:6,
     description:'TYRUN Scaled 專項測試。4 個 Block，跑步穿插拉力、核心、Erg 與 Sandbag。',
     equipment:'Sled／Cable／Kettlebell／Box／Medicine Ball／TRX／Row／SkiErg／Sandbag',
-    total:'總 Run：1.6 km｜Row：1000 m｜SkiErg：1000 m｜Sandbag Carry：100 m',
+    total:'總 Run：1.6 km｜Row：1000 m｜SkiErg：1000 m｜Sandbag Bear Hug Carry：100 m',
     build(){
       const item=(block,name,detail,distance_m=null)=>({
         name,detail,distance_m,
@@ -3851,7 +3851,7 @@ zeroRunEndurance:{
 
         item(4,'Run','400 m',400),
         item(4,'SkiErg','1000 m',1000),
-        item(4,'Sandbag Carry','100 m · 20 kg · Put down & Ground-to-Shoulder every 10 m',100)
+        item(4,'Sandbag Bear Hug Carry','100 m · 20 kg · Put down & Ground-to-Shoulder every 10 m',100)
       ];
     }
   },
@@ -3952,8 +3952,8 @@ function tyrunRaceItems(division){
     {
       name:'Weighted Box Step Ups',
       detail:stepWeight==null
-        ?'100 reps · BW · 20 in box'
-        :`100 reps · 2×${stepWeight} kg · 20 in box`,
+        ?'100 reps · BW · 20-inch box'
+        :`100 reps · 2×${stepWeight} kg · 20-inch box`,
       reps:100,
       weight_kg:stepWeight==null?null:String(stepWeight)
     },
