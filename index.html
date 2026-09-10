@@ -2755,6 +2755,7 @@ nav.tabs button.active{
                 <option value="strengthBoost" data-level="4">Level 4 | 力量強化</option>
                 <option value="lineBoost" data-level="4">Level 4 | 線條強化</option>
                 <option value="lowerBlast" data-level="6">Level 6 | 下肢炸裂 Run</option>
+                <option value="tyrunTest" data-level="6">Level 6 | Tyrun 測試</option>
                 <option value="shoulderBackSculpt" data-level="5">Level 5 | 肩背線條雕塑</option>
                 <option value="slimWaist" data-level="5">Level 5 | 小蠻腰挑戰</option>
                 <option value="balanced8" data-level="8">Level 8 | 全能 8 站</option>
@@ -3817,6 +3818,43 @@ zeroRunEndurance:{
     return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
   }
 },
+
+  tyrunTest:{
+    id:'tyrunTest',
+    label:'Tyrun 測試',
+    duration:'約 55–70 分鐘',
+    intensity:6,
+    description:'TYRUN Scaled 專項測試。4 個 Block，跑步穿插拉力、核心、Erg 與 Sandbag。',
+    equipment:'Sled／Cable／Kettlebell／Box／Medicine Ball／TRX／Row／SkiErg／Sandbag',
+    total:'總 Run：1.6 km｜Row：1000 m｜SkiErg：1000 m｜Sandbag Carry：100 m',
+    build(){
+      const item=(block,name,detail,distance_m=null)=>({
+        name,detail,distance_m,
+        block_index:block,
+        block_rounds:1,
+        block_rest:'—'
+      });
+      return [
+        item(1,'Run','400 m',400),
+        item(1,'Sled Pull','80 m · 70 kg',80),
+        item(1,'Seated Cable Row','12–15 reps'),
+        item(1,'KB Plank Drag','12 reps / side'),
+
+        item(2,'Run','400 m',400),
+        item(2,'Weighted Box Step-Up','40 reps · 5–10 kg'),
+        item(2,'Medicine Ball Sit-Up','30 reps · 4–6 kg'),
+        item(2,'TRX Row','12–15 reps'),
+
+        item(3,'Run','400 m',400),
+        item(3,'Row','1000 m',1000),
+        item(3,'Devil Press','20 reps · 2×5 kg'),
+
+        item(4,'Run','400 m',400),
+        item(4,'SkiErg','1000 m',1000),
+        item(4,'Sandbag Carry','100 m · 20 kg · Put down & Ground-to-Shoulder every 10 m',100)
+      ];
+    }
+  },
 
   // Legacy aliases keep old saved results readable after the rename.
   heavyDay:null,
@@ -5618,6 +5656,17 @@ async function detectDailyMenuAdmin() {
   }
 }
 
+async function ensureDailyMenuAdminDetected(maxAttempts=3) {
+  for (let attempt=1; attempt<=maxAttempts; attempt++) {
+    await detectDailyMenuAdmin();
+    if (dailyMenuAdminName) return true;
+    if (attempt < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 450 * attempt));
+    }
+  }
+  return false;
+}
+
 function injectDailyAdminStyles() {
   if (q('#dailyMenuAdminStyles')) return;
 
@@ -6188,7 +6237,7 @@ async function initDailyTemplateAdmin() {
   buildTemplatePicker();
   updateRaceTemplateUI();
 
-  await detectDailyMenuAdmin();
+  await ensureDailyMenuAdminDetected();
   updateDailyAdminUI();
 }
 
