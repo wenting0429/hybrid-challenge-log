@@ -1,4 +1,4 @@
-const CACHE_NAME = "hybrid-challenge-log-v11-score-block-fix-20260913";
+const CACHE_NAME = "hybrid-challenge-log-v13-one-tap-inline-timer-20260913";
 
 const APP_SHELL = [
   "/",

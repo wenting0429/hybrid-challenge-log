@@ -4035,3 +4035,488 @@ nav.tabs button.active{
     min-height:42px;
   }
 }
+/* =========================================================
+   UI V8 · Active training completion control repair
+   ========================================================= */
+
+/*
+  Critical interaction rule:
+  every exercise always has one dedicated completion toggle.
+  Countdown controls live on their own row and can never push the
+  completion control off-screen.
+*/
+#trainingModal .session-item{
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr) auto!important;
+  grid-template-areas:
+    "index copy complete"
+    ". countdown countdown"!important;
+  column-gap:10px!important;
+  row-gap:7px!important;
+  align-items:center!important;
+}
+
+#trainingModal .session-index{
+  grid-area:index;
+}
+
+#trainingModal .session-copy{
+  grid-area:copy;
+  min-width:0;
+}
+
+#trainingModal .session-complete-toggle{
+  grid-area:complete;
+  min-width:104px;
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:8px 11px;
+  border:1px solid #3a485a;
+  border-radius:10px;
+  background:#151e29;
+  color:#d8e0e8;
+  font-size:11px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:
+    background .14s ease,
+    border-color .14s ease,
+    color .14s ease,
+    transform .08s ease;
+}
+
+#trainingModal .session-complete-toggle:active{
+  transform:scale(.97);
+}
+
+#trainingModal .session-complete-icon{
+  width:20px;
+  height:20px;
+  display:grid;
+  place-items:center;
+  flex:0 0 20px;
+  border:1px solid #59687a;
+  border-radius:999px;
+  color:#95a2b2;
+  font-size:13px;
+  line-height:1;
+  background:#0e151e;
+}
+
+#trainingModal .session-complete-toggle.is-done{
+  border-color:rgba(102,218,164,.52);
+  background:rgba(45,128,91,.20);
+  color:#a2ebc7;
+}
+
+#trainingModal .session-complete-toggle.is-done .session-complete-icon{
+  border-color:#68dba5;
+  background:#2d805b;
+  color:#f2fff8;
+}
+
+#trainingModal .session-countdown-row{
+  grid-area:countdown;
+  min-width:0;
+  display:flex;
+  justify-content:flex-end;
+}
+
+#trainingModal .session-countdown-row .countdown-wrap{
+  width:min(250px,100%);
+  justify-content:flex-end;
+}
+
+#trainingModal .session-countdown-row .countdown-btn{
+  flex:1 1 auto;
+}
+
+/* Completed rows stay readable instead of becoming visually disabled. */
+#trainingModal .session-item.done .session-copy{
+  opacity:.78;
+}
+#trainingModal .session-item.done .countdown-btn,
+#trainingModal .session-item.done .countdown-reset{
+  opacity:.42;
+}
+
+/* Retire the old shared action layout inside active-session items. */
+#trainingModal .session-actions{
+  display:none!important;
+}
+
+@media(max-width:640px){
+  #trainingModal .session-item{
+    grid-template-columns:34px minmax(0,1fr) 94px!important;
+    grid-template-areas:
+      "index copy complete"
+      ". countdown countdown"!important;
+    column-gap:8px!important;
+    row-gap:7px!important;
+    padding:10px!important;
+  }
+
+  #trainingModal .session-complete-toggle{
+    min-width:94px;
+    min-height:44px;
+    padding:7px 8px;
+    font-size:10.5px;
+  }
+
+  #trainingModal .session-complete-icon{
+    width:20px;
+    height:20px;
+    flex-basis:20px;
+  }
+
+  #trainingModal .session-countdown-row{
+    justify-content:stretch;
+  }
+
+  #trainingModal .session-countdown-row .countdown-wrap{
+    width:100%;
+  }
+
+  #trainingModal .session-countdown-row .countdown-btn{
+    min-height:38px;
+  }
+
+  #trainingModal .session-countdown-row .countdown-reset{
+    min-height:38px;
+  }
+}
+
+@media(max-width:380px){
+  #trainingModal .session-item{
+    grid-template-columns:30px minmax(0,1fr) 84px!important;
+    column-gap:6px!important;
+    padding:9px 8px!important;
+  }
+
+  #trainingModal .session-complete-toggle{
+    min-width:84px;
+    min-height:42px;
+    padding:6px 6px;
+    gap:4px;
+    font-size:10px;
+  }
+
+  #trainingModal .session-complete-icon{
+    width:18px;
+    height:18px;
+    flex-basis:18px;
+    font-size:12px;
+  }
+}
+/* =========================================================
+   UI V9 · one-tap active training + inline timer controls
+   IMPORTANT: visual/session-control change only.
+   Menu data, template order, reps, distance, time and Block
+   boundaries are not modified here.
+   ========================================================= */
+
+#trainingModal .session-item.session-one-line{
+  display:grid!important;
+  grid-template-columns:28px minmax(0,1fr) 34px!important;
+  grid-template-areas:"index info complete"!important;
+  align-items:center!important;
+  column-gap:8px!important;
+  row-gap:0!important;
+  min-height:50px!important;
+  padding:8px 9px!important;
+
+  /* Same Block = same frame color. */
+  border:1.5px solid color-mix(in srgb,var(--round-accent,#546274) 70%,#253141)!important;
+  border-radius:11px!important;
+  background:#0e151e!important;
+  overflow:hidden!important;
+}
+
+/* Timed rows stay on ONE line:
+   index | movement/spec | start/pause | reset | done */
+#trainingModal .session-item.session-one-line.timed{
+  grid-template-columns:28px minmax(0,1fr) 68px 30px 34px!important;
+  grid-template-areas:"index info timer reset complete"!important;
+  column-gap:6px!important;
+}
+
+/* No extra colored stripe/badge: the FRAME is the Block cue. */
+#trainingModal .session-item.session-one-line.round-coded::before{
+  display:none!important;
+}
+#trainingModal .session-item.session-one-line.round-start{
+  margin-top:8px!important;
+}
+
+#trainingModal .session-item.session-one-line .session-index{
+  grid-area:index!important;
+  width:26px!important;
+  height:26px!important;
+  min-width:26px!important;
+  display:grid!important;
+  place-items:center!important;
+  margin:0!important;
+  border:1px solid color-mix(in srgb,var(--round-accent,#59687a) 55%,#314052)!important;
+  border-radius:999px!important;
+  background:#121a24!important;
+  color:var(--round-accent,#a4afbc)!important;
+  font-size:9px!important;
+  font-weight:950!important;
+}
+
+#trainingModal .session-inline-info{
+  grid-area:info;
+  min-width:0;
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+#trainingModal .session-inline-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#edf2f6;
+  font-size:12.5px;
+  line-height:1.2;
+  font-weight:820;
+}
+
+#trainingModal .session-inline-detail{
+  flex:0 0 auto;
+  max-width:44%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#8290a0;
+  font-size:9px;
+  line-height:1.2;
+}
+
+/* Compact start / pause countdown control. */
+#trainingModal .session-inline-countdown{
+  grid-area:timer;
+  min-width:68px;
+  width:68px;
+  height:32px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  padding:0 5px;
+  border:1px solid color-mix(in srgb,var(--round-accent,#59687a) 46%,#354254);
+  border-radius:9px;
+  background:#111923;
+  color:#cfd7e1;
+  font-size:9px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#trainingModal .session-inline-countdown.running{
+  color:var(--round-accent,#70ded8);
+  border-color:color-mix(in srgb,var(--round-accent,#70ded8) 72%,#354254);
+  background:color-mix(in srgb,var(--round-accent,#70ded8) 10%,#111923);
+}
+
+#trainingModal .session-inline-countdown.expired{
+  color:#ffd0c3;
+  border-color:#9b5b4e;
+  background:#281816;
+}
+
+/* Dedicated reset remains available if the timer was started by mistake. */
+#trainingModal .session-inline-reset{
+  grid-area:reset;
+  width:30px;
+  height:32px;
+  min-width:30px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid #384556;
+  border-radius:9px;
+  background:#141c26;
+  color:#9ba8b7;
+  font-size:14px;
+  line-height:1;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#trainingModal .session-inline-reset:active{
+  transform:scale(.96);
+}
+
+/* Completion is intentionally tiny: one tap, no word label. */
+#trainingModal .session-item.session-one-line .session-complete-toggle{
+  grid-area:complete!important;
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  margin:0!important;
+  border:1px solid #3a4758!important;
+  border-radius:9px!important;
+  background:#151e28!important;
+  color:#98a5b4!important;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#trainingModal .session-item.session-one-line .session-complete-icon{
+  width:auto!important;
+  height:auto!important;
+  min-width:0!important;
+  display:block!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:inherit!important;
+  font-size:15px!important;
+  line-height:1!important;
+}
+
+#trainingModal .session-item.session-one-line .session-complete-toggle.is-done{
+  border-color:color-mix(in srgb,var(--round-accent,#68dba5) 75%,#334052)!important;
+  background:color-mix(in srgb,var(--round-accent,#68dba5) 18%,#101720)!important;
+  color:var(--round-accent,#68dba5)!important;
+}
+
+#trainingModal .session-item.session-one-line.done{
+  background:
+    linear-gradient(90deg,color-mix(in srgb,var(--round-accent,#68dba5) 7%,transparent),transparent 45%),
+    #0e151e!important;
+}
+
+#trainingModal .session-item.session-one-line.done .session-inline-name{
+  color:#b9c2cb;
+}
+
+/* V8's second-row timer layout is no longer used. */
+#trainingModal .session-countdown-row,
+#trainingModal .session-copy,
+#trainingModal .session-complete-text{
+  display:none!important;
+}
+
+/* Timers in a completed row are visibly inactive; reset still remains visible. */
+#trainingModal .session-item.session-one-line.done .session-inline-countdown{
+  opacity:.42;
+}
+
+@media(max-width:640px){
+  #trainingModal .session-item.session-one-line{
+    grid-template-columns:24px minmax(0,1fr) 30px!important;
+    grid-template-areas:"index info complete"!important;
+    column-gap:6px!important;
+    min-height:48px!important;
+    padding:8px 7px!important;
+  }
+
+  #trainingModal .session-item.session-one-line.timed{
+    grid-template-columns:24px minmax(0,1fr) 60px 28px 30px!important;
+    grid-template-areas:"index info timer reset complete"!important;
+    column-gap:5px!important;
+  }
+
+  #trainingModal .session-item.session-one-line .session-index{
+    width:23px!important;
+    height:23px!important;
+    min-width:23px!important;
+    font-size:8.5px!important;
+  }
+
+  #trainingModal .session-inline-info{
+    gap:5px;
+  }
+
+  #trainingModal .session-inline-name{
+    font-size:11.3px;
+  }
+
+  #trainingModal .session-inline-detail{
+    max-width:42%;
+    font-size:8px;
+  }
+
+  #trainingModal .session-inline-countdown{
+    min-width:60px;
+    width:60px;
+    height:30px;
+    padding:0 3px;
+    font-size:8.2px;
+  }
+
+  #trainingModal .session-inline-reset{
+    width:28px;
+    height:30px;
+    min-width:28px;
+    font-size:13px;
+  }
+
+  #trainingModal .session-item.session-one-line .session-complete-toggle{
+    width:30px!important;
+    height:30px!important;
+    min-width:30px!important;
+    min-height:30px!important;
+  }
+
+  #trainingModal .session-item.session-one-line .session-complete-icon{
+    font-size:13px!important;
+  }
+}
+
+@media(max-width:380px){
+  #trainingModal .session-item.session-one-line.timed{
+    grid-template-columns:22px minmax(0,1fr) 56px 27px 28px!important;
+    column-gap:4px!important;
+    padding-left:6px!important;
+    padding-right:6px!important;
+  }
+
+  #trainingModal .session-inline-name{
+    font-size:10.7px;
+  }
+
+  #trainingModal .session-inline-detail{
+    max-width:38%;
+    font-size:7.7px;
+  }
+
+  #trainingModal .session-inline-countdown{
+    min-width:56px;
+    width:56px;
+    font-size:7.8px;
+  }
+
+  #trainingModal .session-inline-reset{
+    width:27px;
+    min-width:27px;
+  }
+
+  #trainingModal .session-item.session-one-line .session-complete-toggle{
+    width:28px!important;
+    min-width:28px!important;
+  }
+}

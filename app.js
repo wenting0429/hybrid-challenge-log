@@ -1503,45 +1503,68 @@ function renderSession(){
   q('#sessionList').innerHTML=session.items.map((it,itemIndex)=>{
     const duration=ensureCountdown(it);
     const remaining=duration?getCountdownRemaining(it):null;
-    const timerControls=duration
-      ?`<div class="countdown-wrap">
-          <button class="countdown-btn ${it.countdownRunning?'running':''} ${it.countdownExpired?'expired':''}" data-countdown-id="${it.id}" type="button">
-            ${it.countdownExpired?'時間到':`${it.countdownRunning?'Ⅱ':'▶'} ${countdownFormat(remaining)}`}
-          </button>
-          <button class="countdown-reset" data-countdown-reset="${it.id}" type="button" aria-label="重設 ${esc(it.name)} 倒數">↺</button>
-        </div>`
-      :'';
 
     const round=roundIndexForItem(it,itemIndex,null);
-    const prevRound=itemIndex>0?roundIndexForItem(session.items[itemIndex-1],itemIndex-1,null):null;
-    const roundStart=round&&round!==prevRound;
-    const roundLabel=roundLabelForItem(it,itemIndex,null);
+    const roundStart=round && (
+      itemIndex===0 ||
+      roundIndexForItem(session.items[itemIndex-1],itemIndex-1,null)!==round
+    );
 
-    return `<div class="session-item ${it.done?'done':''} ${round?'round-coded':''} ${roundStart?'round-start':''}" ${round?`style="${roundStyle(round)}"`:''}>
+    const timerControls=duration
+      ?`<button
+          class="session-inline-countdown ${it.countdownRunning?'running':''} ${it.countdownExpired?'expired':''}"
+          data-countdown-id="${it.id}"
+          type="button"
+          aria-label="${it.countdownRunning?`${esc(it.name)} 倒數暫停`:`${esc(it.name)} 倒數開始`}">
+          ${it.countdownExpired?'時間到':`${it.countdownRunning?'Ⅱ':'▶'} ${countdownFormat(remaining)}`}
+        </button>
+        <button
+          class="session-inline-reset"
+          data-countdown-reset="${it.id}"
+          type="button"
+          aria-label="重設 ${esc(it.name)} 倒數">↺</button>`
+      :'';
+
+    return `<div
+      class="session-item session-one-line ${duration?'timed':''} ${it.done?'done':''} ${round?'round-coded':''} ${roundStart?'round-start':''}"
+      ${round?`style="${roundStyle(round)}"`:''}>
+
       <div class="session-index">${it.index}</div>
-      <div>
-        <div class="session-name">${roundLabel?`<span class="session-round-badge">${esc(roundLabel)}</span>`:''}${esc(it.name)}</div>
-        <div class="session-detail">${esc(it.detail)}</div>
+
+      <div class="session-inline-info">
+        <span class="session-inline-name">${esc(it.name)}</span>
+        ${it.detail?`<span class="session-inline-detail">${esc(it.detail)}</span>`:''}
       </div>
-      <div class="session-actions">
-        ${timerControls}
-        <button class="btn check-btn ${it.done?'primary':''}" data-item-done="${it.id}">${it.done?'已完成':'完成'}</button>
-      </div>
+
+      ${timerControls}
+
+      <button
+        class="session-complete-toggle ${it.done?'is-done':''}"
+        data-item-done="${it.id}"
+        type="button"
+        aria-pressed="${it.done?'true':'false'}"
+        aria-label="${it.done?`取消 ${esc(it.name)} 已完成狀態`:`標記 ${esc(it.name)} 完成`}">
+        <span class="session-complete-icon" aria-hidden="true">${it.done?'✓':'○'}</span>
+      </button>
     </div>`;
   }).join('');
 
   qa('[data-item-done]').forEach(b=>b.onclick=()=>{
     const it=session.items.find(x=>x.id===b.dataset.itemDone);
     if(!it)return;
+
     it.done=!it.done;
+
     if(it.done&&ensureCountdown(it)){
       it.countdownRemaining=getCountdownRemaining(it);
       it.countdownRunning=false;
       it.countdownEndAt=null;
       it.countdownResumeAfterSessionPause=false;
     }
+
     renderSession();
   });
+
   qa('[data-countdown-id]').forEach(b=>b.onclick=()=>toggleCountdown(b.dataset.countdownId));
   qa('[data-countdown-reset]').forEach(b=>b.onclick=()=>resetCountdown(b.dataset.countdownReset));
 
