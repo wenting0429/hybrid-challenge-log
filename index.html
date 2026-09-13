@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MODULAR PRODUCTION BUILD · workouts/app/style split · 2026-09-13 -->
+<!-- MODULAR UI V2 · round colors + popup daily menu · 2026-09-13 -->
 <!-- PRODUCTION BUILD · classic challenge live menu preview · 2026-09-09 -->
 <!-- PRODUCTION BUILD · official HYROX + TYRUN race standards corrected · 2026-09-09 -->
 <!-- PRODUCTION BUILD · HYROX + TYRUN Season 2 classic challenge · 2026-09-09 -->
@@ -76,10 +76,13 @@
             <div class="mini-stat"><b id="standardItemStat">16</b><span>總項目</span></div>
           </div>
 
-          <div class="classic-preview" id="standardRacePreview">
+          <div class="classic-preview classic-preview-collapsed" id="standardRacePreview">
             <div class="classic-preview-head">
-              <b>菜單內容</b>
-              <span id="standardRacePreviewLabel"></span>
+              <div>
+                <b>菜單內容</b>
+                <span id="standardRacePreviewLabel"></span>
+              </div>
+              <button class="btn small ghost classic-preview-toggle" id="toggleClassicPreviewBtn" type="button" aria-expanded="false">查看菜單</button>
             </div>
             <div class="classic-preview-grid" id="standardRacePreviewGrid"></div>
           </div>
@@ -116,17 +119,14 @@
                 <option value="aerobicMax" data-level="9">Level 9 | 有氧拉滿</option>
                 <option value="hellDay" data-level="10">Level 10 | 地獄日</option>
               </select>
-              <div class="template-picker" id="templatePicker">
-                <button type="button" class="template-picker-trigger" id="templatePickerTrigger" aria-haspopup="listbox" aria-expanded="false">
-                  <span class="template-trigger-copy">
-                    <span class="template-trigger-level" id="templateTriggerLevel">Level 1</span>
-                    <span class="template-trigger-divider">|</span>
-                    <span class="template-trigger-name" id="templateTriggerName">加減練一下</span>
-                  </span>
-                  <span class="template-trigger-chevron" aria-hidden="true">⌄</span>
-                </button>
-                <div class="template-picker-menu" id="templatePickerMenu" role="listbox" aria-label="日常訓練模板"></div>
-              </div>
+              <button type="button" class="daily-template-launcher" id="openDailyMenuBtn">
+                <span class="daily-launcher-copy">
+                  <span class="daily-launcher-level" id="dailyLauncherLevel">Level 1</span>
+                  <strong class="daily-launcher-name" id="dailyLauncherName">加減練一下</strong>
+                  <span class="daily-launcher-meta" id="dailyLauncherMeta">點開查看菜單與開始訓練</span>
+                </span>
+                <span class="daily-launcher-arrow" aria-hidden="true">›</span>
+              </button>
             </div>
             <div class="field full" id="dailyCardioChoiceWrap" style="display:none">
               <label>有氧選擇</label>
@@ -141,7 +141,7 @@
               </select>
             </div>
           </div>
-          <div class="daily-preview" id="dailyPreview">
+          <div class="daily-preview daily-preview-source" id="dailyPreview">
             <div class="daily-preview-head" id="dailyPreviewHead"></div>
             <div class="daily-preview-desc" id="dailyPreviewDesc"></div>
             <div class="daily-preview-equipment" id="dailyPreviewEquipment"></div>
@@ -309,6 +309,53 @@
         <div class="mini-stat"><b id="failureTargetTime">—</b><span>目標時間</span></div>
       </div>
       <button class="btn primary" id="closeFailureBtn">知道了</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="dailyMenuModal">
+  <div class="modal-card daily-menu-modal-card">
+    <div class="modal-head">
+      <div>
+        <h3>日常訓練</h3>
+        <div class="modal-sub">選一份菜單，確認內容後直接開始。</div>
+      </div>
+      <button class="btn small ghost" id="closeDailyMenuBtn" type="button">關閉</button>
+    </div>
+
+    <div class="daily-menu-modal-layout">
+      <aside class="daily-menu-catalog-wrap">
+        <div class="daily-menu-catalog-title">選擇菜單</div>
+        <div class="daily-menu-catalog" id="dailyMenuCatalog"></div>
+      </aside>
+
+      <section class="daily-menu-modal-preview">
+        <div class="daily-modal-title-row">
+          <div>
+            <div class="daily-modal-level" id="dailyModalLevel">Level 1</div>
+            <h4 id="dailyModalTitle">加減練一下</h4>
+          </div>
+          <span class="daily-modal-lock" id="dailyModalLockState"></span>
+        </div>
+
+        <div class="daily-modal-description" id="dailyModalDescription"></div>
+        <div class="daily-modal-equipment" id="dailyModalEquipment"></div>
+
+        <div class="daily-modal-cardio" id="dailyModalCardioWrap" hidden>
+          <label for="dailyModalCardioChoice">有氧選擇</label>
+          <select id="dailyModalCardioChoice"></select>
+        </div>
+
+        <div class="daily-modal-blocks" id="dailyModalBlocks"></div>
+        <div class="daily-modal-total" id="dailyModalTotal"></div>
+      </section>
+    </div>
+
+    <div class="daily-menu-modal-footer">
+      <button class="btn" id="dailyModalCloseBtn" type="button">關閉</button>
+      <button class="btn" id="dailyModalEditBtn" type="button">修改菜單</button>
+      <button class="btn coral" id="dailyModalStartBtn" type="button">開始訓練</button>
     </div>
   </div>
 </div>

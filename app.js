@@ -744,6 +744,8 @@ function updateRaceTemplateUI(){
   q('#dailyPreviewEquipment').textContent=`器材：${t.equipment}`;
   renderDailyPreviewBlocks(rawItems);
   q('#dailyPreviewTotal').textContent=t.total;
+  if(typeof syncDailyLauncher==='function')syncDailyLauncher();
+  if(q('#dailyMenuModal')?.classList.contains('open')&&typeof renderDailyMenuModal==='function')renderDailyMenuModal();
 }
 
 const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
@@ -1194,7 +1196,7 @@ function startSession(type){
     const raceFormat=currentStandardRaceFormat();
     division=q('#standardDivision').value;
     title=`經典挑戰｜${standardRaceFormatLabel(raceFormat)}｜${standardDivisionLabel(division,raceFormat)}`;
-    items=raceFormat==='tyrun-s2'?tyrunRaceItems(division):standardRaceItems(division);
+    items=annotateClassicRounds(raceFormat==='tyrun-s2'?tyrunRaceItems(division):standardRaceItems(division),raceFormat);
     templateId=standardRaceTemplateId(raceFormat);
     templateLabel=raceFormat==='tyrun-s2'?'經典挑戰｜TYRUN Season 2':'經典挑戰｜HYROX';
   }else if(isSimulation){
@@ -1426,13 +1428,78 @@ function startTicker(){
   },250);
 }
 
+
+function roundVisual(index){
+  const palette=[
+    ['#64d8d0','rgba(100,216,208,.10)'],
+    ['#ff9b78','rgba(255,155,120,.10)'],
+    ['#b894ff','rgba(184,148,255,.10)'],
+    ['#7ed9a9','rgba(126,217,169,.10)'],
+    ['#efc96f','rgba(239,201,111,.10)'],
+    ['#7bb7ff','rgba(123,183,255,.10)'],
+    ['#f08fc2','rgba(240,143,194,.10)'],
+    ['#9fd073','rgba(159,208,115,.10)']
+  ];
+  return palette[(Math.max(1,Number(index)||1)-1)%palette.length];
+}
+function roundStyle(index){
+  const [accent,wash]=roundVisual(index);
+  return `--round-accent:${accent};--round-wash:${wash}`;
+}
+function annotateClassicRounds(items,format){
+  const groupSize=format==='tyrun-s2'?3:2;
+  return (items||[]).map((x,i)=>({
+    ...x,
+    block_index:Number(x?.block_index)>0?Number(x.block_index):Math.floor(i/groupSize)+1,
+    block_round:Number(x?.block_round)>0?Number(x.block_round):1,
+    block_rounds:Number(x?.block_rounds)>0?Number(x.block_rounds):1,
+    block_rest:x?.block_rest||'—'
+  }));
+}
+function roundIndexForItem(item,index=0,result=null){
+  const explicit=Number(item?.block_index);
+  if(explicit>0)return explicit;
+
+  const templateId=String(result?.stations?.challenge_template?.id||'');
+  if(templateId===TYRUN_TEMPLATE_ID)return Math.floor(index/3)+1;
+  if(templateId==='standardRace'||isStandardRaceType(result?.workout_type))return Math.floor(index/2)+1;
+
+  return null;
+}
+function roundLabelForItem(item,index=0,result=null){
+  const round=roundIndexForItem(item,index,result);
+  if(!round)return '';
+
+  const totalRounds=Math.max(1,Number(item?.block_rounds)||1);
+  const currentRound=Math.max(1,Number(item?.block_round)||1);
+
+  if(result && (isStandardRaceType(result?.workout_type) ||
+     ['standardRace',TYRUN_TEMPLATE_ID].includes(String(result?.stations?.challenge_template?.id||'')))){
+    return `ROUND ${round}`;
+  }
+
+  if(totalRounds>1)return `BLOCK ${round} · R${currentRound}/${totalRounds}`;
+  return `BLOCK ${round}`;
+}
+function roundStripHtml(items,result=null){
+  const rounds=[];
+  (items||[]).forEach((item,i)=>{
+    const round=roundIndexForItem(item,i,result);
+    if(round&&!rounds.includes(round))rounds.push(round);
+  });
+  if(!rounds.length)return '';
+  return `<div class="wall-round-strip" aria-label="${rounds.length} 個 Round / Block">
+    ${rounds.map(r=>`<span style="${roundStyle(r)};background:var(--round-accent)" title="Round / Block ${r}"></span>`).join('')}
+  </div>`;
+}
+
 function renderSession(){
   if(!session)return;
   const done=session.items.filter(x=>x.done).length;
   q('#sessionProgress').textContent=`${done} / ${session.items.length}`;
   q('#sessionTimer').textContent=fmt(elapsedMs()/1000);
 
-  q('#sessionList').innerHTML=session.items.map(it=>{
+  q('#sessionList').innerHTML=session.items.map((it,itemIndex)=>{
     const duration=ensureCountdown(it);
     const remaining=duration?getCountdownRemaining(it):null;
     const timerControls=duration
@@ -1444,11 +1511,16 @@ function renderSession(){
         </div>`
       :'';
 
-    return `<div class="session-item ${it.done?'done':''}">
+    const round=roundIndexForItem(it,itemIndex,null);
+    const prevRound=itemIndex>0?roundIndexForItem(session.items[itemIndex-1],itemIndex-1,null):null;
+    const roundStart=round&&round!==prevRound;
+    const roundLabel=roundLabelForItem(it,itemIndex,null);
+
+    return `<div class="session-item ${it.done?'done':''} ${round?'round-coded':''} ${roundStart?'round-start':''}" ${round?`style="${roundStyle(round)}"`:''}>
       <div class="session-index">${it.index}</div>
       <div>
-        <div class="session-name">${esc(it.name)}</div>
-        <div class="session-detail">${it.block_index?`BLOCK ${it.block_index}${Number(it.block_rounds)>1?` · Round ${it.block_round||1}/${it.block_rounds}`:''}${it.detail?' · ':''}`:''}${esc(it.detail)}</div>
+        <div class="session-name">${roundLabel?`<span class="session-round-badge">${esc(roundLabel)}</span>`:''}${esc(it.name)}</div>
+        <div class="session-detail">${esc(it.detail)}</div>
       </div>
       <div class="session-actions">
         ${timerControls}
@@ -1761,6 +1833,7 @@ function classicResultRow(r,rank,groupKey){
           <span class="wall-entry-date">${esc(r.session_date||'')}</span>
         </div>
         ${note?`<div class="wall-entry-note">${esc(note)}</div>`:''}
+        ${roundStripHtml(getChallengeItems(r),r)}
       </div>
       <div class="wall-entry-result">
         <span>完成時間</span><strong>${fmt(r.total_seconds)}</strong>
@@ -1785,6 +1858,7 @@ function dailyResultRow(r,templateRank){
           <span class="wall-entry-date">${esc(r.session_date||'')}</span>
         </div>
         ${note?`<div class="wall-entry-note">${esc(note)}</div>`:''}
+        ${roundStripHtml(getChallengeItems(r),r)}
       </div>
       <div class="wall-entry-result">
         <span>完成時間</span><strong>${fmt(r.total_seconds)}</strong>
@@ -1870,11 +1944,27 @@ function openWorkoutDetail(resultId){
   q('#workoutDetailTitle').textContent=title||'菜單內容';
   q('#workoutDetailMeta').textContent=[r.nickname||'未命名選手',r.session_date||'',`完成時間 ${fmt(r.total_seconds)}`].filter(Boolean).join(' · ');
   q('#workoutDetailSummary').textContent=`共 ${items.length} 個項目${Number(r.run_distance_m)>0?` · Run ${(Number(r.run_distance_m)/1000).toFixed(1)} km`:' · No Run'}`;
+
   q('#workoutDetailList').innerHTML=items.length
-    ?items.map((x,i)=>`<div class="workout-detail-item"><div class="workout-detail-index">${i+1}</div><div><div class="workout-detail-name">${esc(x.name||'Training')}</div>${x.detail?`<div class="workout-detail-spec">${esc(x.detail)}</div>`:''}</div></div>`).join('')
+    ?items.map((x,i)=>{
+      const round=roundIndexForItem(x,i,r);
+      const prevRound=i>0?roundIndexForItem(items[i-1],i-1,r):null;
+      const start=round&&round!==prevRound;
+      const label=roundLabelForItem(x,i,r);
+      return `<div class="workout-detail-item ${round?'round-coded':''} ${start?'round-start':''}" ${round?`style="${roundStyle(round)}"`:''}>
+        <div class="workout-detail-index">${i+1}</div>
+        <div>
+          ${label?`<div class="workout-detail-round">${esc(label)}</div>`:''}
+          <div class="workout-detail-name">${esc(x.name||'Training')}</div>
+          ${x.detail?`<div class="workout-detail-spec">${esc(x.detail)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('')
     :'<div class="score-empty compact-empty">這筆舊紀錄沒有保存菜單內容。</div>';
+
   q('#workoutDetailModal').classList.add('open');
 }
+
 function closeWorkoutDetail(){q('#workoutDetailModal').classList.remove('open')}
 
 function wallCardStats(){
@@ -1943,6 +2033,158 @@ document.addEventListener('visibilitychange',()=>{
     renderSession();
   }
 });
+
+
+/* ===== CLEAN CHALLENGE HOME + DAILY MENU POPUP ===== */
+function syncClassicPreviewToggle(){
+  const preview=q('#standardRacePreview');
+  const btn=q('#toggleClassicPreviewBtn');
+  if(!preview||!btn)return;
+  const collapsed=preview.classList.contains('classic-preview-collapsed');
+  btn.textContent=collapsed?'查看菜單':'收起菜單';
+  btn.setAttribute('aria-expanded',collapsed?'false':'true');
+}
+function toggleClassicPreview(){
+  const preview=q('#standardRacePreview');
+  if(!preview)return;
+  preview.classList.toggle('classic-preview-collapsed');
+  syncClassicPreviewToggle();
+}
+
+function syncDailyLauncher(){
+  const t=currentRaceTemplate();
+  if(!t)return;
+  const level=q('#dailyLauncherLevel');
+  const name=q('#dailyLauncherName');
+  const meta=q('#dailyLauncherMeta');
+  if(level)level.textContent=`Level ${levelNumber(t.intensity)}`;
+  if(name)name.textContent=t.label||t.id;
+  if(meta)meta.textContent=[t.duration,t.total].filter(Boolean).join(' · ')||'點開查看菜單與開始訓練';
+}
+
+function dailyModalCatalogHtml(){
+  const select=q('#raceTemplate');
+  if(!select)return '';
+  const groups=new Map();
+
+  [...select.options].forEach(opt=>{
+    const t=RACE_TEMPLATES[opt.value];
+    if(!t)return;
+    const level=levelNumber(Number(opt.dataset.level)||Number(t.intensity)||1);
+    if(!groups.has(level))groups.set(level,[]);
+    groups.get(level).push({id:opt.value,label:t.label||opt.value,level});
+  });
+
+  return [...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([level,rows])=>`
+    <div class="daily-menu-level-group">
+      <div class="daily-menu-level-head">LEVEL ${level}</div>
+      ${rows.map(row=>`<button type="button" class="daily-menu-choice ${q('#raceTemplate')?.value===row.id?'selected':''}" data-daily-menu-choice="${esc(row.id)}">
+        <span>${esc(row.label)}</span><span class="daily-menu-choice-level">L${row.level}</span>
+      </button>`).join('')}
+    </div>
+  `).join('');
+}
+
+function syncDailyModalCardio(){
+  const source=q('#dailyCardioChoice');
+  const modal=q('#dailyModalCardioChoice');
+  if(!source||!modal)return;
+
+  if(!modal.options.length){
+    modal.innerHTML=[...source.options].map(opt=>`<option value="${esc(opt.value)}">${esc(opt.textContent||opt.value)}</option>`).join('');
+  }
+  modal.value=source.value;
+}
+
+function dailyModalBlocksHtml(t){
+  const blocks=templateItemsToBlocks(rawTemplateItems(t,selectedDailyCardio()));
+  return blocks.map((block,bi)=>{
+    const [accent,wash]=roundVisual(bi+1);
+    const rounds=Math.max(1,Number(block.rounds)||1);
+    const rest=String(block.rest||'—');
+    const meta=[
+      `${rounds} round${rounds>1?'s':''}`,
+      rest&&rest!=='—'?`休息 ${rest}`:''
+    ].filter(Boolean).join(' · ');
+
+    return `<div class="daily-modal-block" style="--round-accent:${accent};--round-wash:${wash}">
+      <div class="daily-modal-block-head"><strong>BLOCK ${bi+1}</strong><span>${esc(meta)}</span></div>
+      <div>
+        ${block.items.map((x,ii)=>`<div class="daily-modal-item">
+          <div class="daily-modal-item-num">${ii+1}</div>
+          <b>${esc(x.name)}</b>
+          <span>${esc(x.detail||'')}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function syncDailyMenuModalActions(){
+  const t=currentRaceTemplate();
+  const edit=q('#dailyModalEditBtn');
+  const lock=q('#dailyModalLockState');
+  if(!t)return;
+
+  const locked=typeof templateHasCompletedResult==='function'
+    ?templateHasCompletedResult(t.id)
+    :false;
+  const isAdmin=!!dailyMenuAdminName;
+
+  if(lock){
+    lock.textContent=locked?'🔒 已鎖定':'可修改';
+    lock.classList.toggle('locked',locked);
+    lock.hidden=!isAdmin&&!locked;
+  }
+
+  if(edit){
+    edit.hidden=!isAdmin;
+    edit.disabled=locked;
+    edit.classList.toggle('locked',locked);
+    edit.textContent=locked?'🔒 已鎖定':'修改菜單';
+  }
+}
+
+function renderDailyMenuModal(){
+  const t=currentRaceTemplate();
+  if(!t)return;
+
+  syncDailyLauncher();
+  syncDailyModalCardio();
+
+  const catalog=q('#dailyMenuCatalog');
+  if(catalog){
+    catalog.innerHTML=dailyModalCatalogHtml();
+    qa('[data-daily-menu-choice]').forEach(btn=>btn.onclick=()=>{
+      const select=q('#raceTemplate');
+      if(!select)return;
+      select.value=btn.dataset.dailyMenuChoice;
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+      renderDailyMenuModal();
+    });
+  }
+
+  q('#dailyModalLevel').textContent=`Level ${levelNumber(t.intensity)}`;
+  q('#dailyModalTitle').textContent=t.label||t.id;
+  q('#dailyModalDescription').textContent=t.description||'';
+  q('#dailyModalEquipment').textContent=t.equipment?`器材：${t.equipment}`:'';
+  q('#dailyModalBlocks').innerHTML=dailyModalBlocksHtml(t);
+  q('#dailyModalTotal').textContent=t.total||'';
+
+  const cardioWrap=q('#dailyModalCardioWrap');
+  if(cardioWrap)cardioWrap.hidden=t.id!=='coreSculpt';
+
+  syncDailyMenuModalActions();
+}
+
+function openDailyMenuModal(){
+  renderDailyMenuModal();
+  q('#dailyMenuModal')?.classList.add('open');
+}
+function closeDailyMenuModal(){
+  q('#dailyMenuModal')?.classList.remove('open');
+}
+
 
 /* ===== DAILY MENU ADMIN INTEGRATION v1 ===== */
 /* ============================================================
@@ -2355,6 +2597,9 @@ function updateDailyAdminUI() {
       ? `正在修改：${RACE_TEMPLATES[editingDailyTemplateId]?.label || editingDailyTemplateId}`
       : '建立完成後可加入日常訓練。';
   }
+
+  if(typeof syncDailyMenuModalActions==='function')syncDailyMenuModalActions();
+  if(typeof syncDailyLauncher==='function')syncDailyLauncher();
 }
 
 function customItemForEditor(x) {
@@ -2746,6 +2991,35 @@ q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
 q('#standardRaceFormat').addEventListener('change',updateStandardRaceUI);
 q('#standardDivision').addEventListener('change',renderStandardRacePreview);
 q('#dailyCardioChoice').addEventListener('change',updateRaceTemplateUI);
+q('#toggleClassicPreviewBtn').addEventListener('click',toggleClassicPreview);
+syncClassicPreviewToggle();
+q('#openDailyMenuBtn').addEventListener('click',openDailyMenuModal);
+q('#closeDailyMenuBtn').addEventListener('click',closeDailyMenuModal);
+q('#dailyModalCloseBtn').addEventListener('click',closeDailyMenuModal);
+q('#dailyMenuModal').addEventListener('click',e=>{if(e.target===q('#dailyMenuModal'))closeDailyMenuModal()});
+q('#dailyModalStartBtn').addEventListener('click',()=>{
+  closeDailyMenuModal();
+  startSession('日常訓練');
+});
+q('#dailyModalEditBtn').addEventListener('click',()=>{
+  const t=currentRaceTemplate();
+  if(!t)return;
+  if(templateHasCompletedResult(t.id)){
+    toast('這份菜單已有完成紀錄，不能修改');
+    syncDailyMenuModalActions();
+    return;
+  }
+  closeDailyMenuModal();
+  editCurrentDailyTemplate();
+});
+q('#dailyModalCardioChoice').addEventListener('change',e=>{
+  const source=q('#dailyCardioChoice');
+  if(source){
+    source.value=e.target.value;
+    source.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  renderDailyMenuModal();
+});
 q('#wall').addEventListener('click',e=>{
   const row=e.target.closest('[data-result-id]');
   if(row)openWorkoutDetail(row.dataset.resultId);
