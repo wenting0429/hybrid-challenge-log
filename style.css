@@ -3651,3 +3651,147 @@ nav.tabs button.active{
     width:100%;
   }
 }
+/* =========================================================
+   UI V5 · balanced classic / daily cards
+   ========================================================= */
+
+/* Same action hierarchy everywhere:
+   secondary = view menu, primary = start. */
+.challenge-home-actions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  width:100%;
+  margin-top:12px!important;
+}
+.challenge-home-actions .btn{
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+}
+#openClassicMenuBtn,
+#openDailyMenuBtn{
+  background:#171e29!important;
+  border-color:#344053!important;
+  color:#eef2f6!important;
+  box-shadow:none!important;
+}
+#openClassicMenuBtn:hover,
+#openDailyMenuBtn:hover{
+  background:#1d2632!important;
+  border-color:#536177!important;
+}
+#startStandardRaceBtn,
+#startSimulationBtn,
+#classicModalStartBtn,
+#dailyModalStartBtn{
+  background:linear-gradient(135deg,#2b9690,#4fd2ca)!important;
+  border-color:#54d8d0!important;
+  color:#071113!important;
+  box-shadow:none!important;
+}
+
+/* Preserve warm/cool section identity in the card itself,
+   not in button semantics. */
+.challenge-card.standard-race,
+.challenge-card.simulation{
+  overflow:hidden;
+}
+
+/* Mobile-specific rebalance. */
+@media(max-width:640px){
+
+  /* Both main cards use the same vertical rhythm. */
+  .challenge-card.standard-race,
+  .challenge-card.simulation{
+    padding:14px!important;
+  }
+
+  .challenge-card.standard-race h3,
+  .challenge-card.simulation h3{
+    margin:0 0 2px!important;
+    font-size:20px!important;
+  }
+
+  /* Classic had two full-width selector rows; on phone put them side by side.
+     This removes the visually empty/tall upper half. */
+  .challenge-card.standard-race .challenge-grid{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:8px!important;
+    margin-top:12px!important;
+  }
+  .challenge-card.standard-race .field.full{
+    grid-column:auto!important;
+    min-width:0;
+  }
+  .challenge-card.standard-race label{
+    font-size:9.5px!important;
+    white-space:nowrap;
+  }
+  .challenge-card.standard-race select{
+    min-height:42px!important;
+    padding:8px 28px 8px 10px!important;
+    font-size:13px!important;
+    border-radius:10px!important;
+  }
+
+  /* Daily has only one selector, so keep it full width. */
+  .challenge-card.simulation .challenge-grid{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    margin-top:12px!important;
+  }
+
+  /* Matching stat rhythm for both cards. */
+  .challenge-card.standard-race .challenge-info,
+  .challenge-card.simulation .challenge-info{
+    margin-top:11px!important;
+    padding-top:10px!important;
+  }
+  .challenge-card.standard-race .challenge-info .mini-stat,
+  .challenge-card.simulation .challenge-info .mini-stat{
+    padding-top:0!important;
+    padding-bottom:0!important;
+  }
+  .challenge-card.standard-race .mini-stat b,
+  .challenge-card.simulation .mini-stat b{
+    font-size:16px!important;
+    line-height:1.15!important;
+  }
+
+  /* Equal-width action buttons directly under stats. */
+  .challenge-home-actions{
+    margin-top:11px!important;
+    gap:8px!important;
+  }
+  .challenge-home-actions .btn{
+    min-height:44px!important;
+    padding:9px 8px!important;
+    font-size:12.5px!important;
+    border-radius:11px!important;
+  }
+
+  /* Daily summary should not add extra top margin beyond classic. */
+  .daily-home-summary{
+    margin-top:11px!important;
+  }
+}
+
+/* Very narrow phones: still keep the same two-button layout,
+   but reduce text/padding instead of stacking. */
+@media(max-width:380px){
+  .challenge-home-actions{
+    grid-template-columns:1fr 1fr!important;
+  }
+  .challenge-home-actions .btn{
+    font-size:11.5px!important;
+    padding-left:6px!important;
+    padding-right:6px!important;
+  }
+  .challenge-card.standard-race .challenge-grid{
+    gap:6px!important;
+  }
+  .challenge-card.standard-race select{
+    font-size:12px!important;
+  }
+}
