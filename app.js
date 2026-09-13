@@ -2527,8 +2527,8 @@ async function importKettlebellSweatNoRunTemplate(){
   }
 
   if(cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID)){
-    toast('壺鈴爆汗日已經匯入');
-    updateDailyAdminUI();
+    q('#dailyQuickImportWrap')?.classList.remove('show');
+    toast('壺鈴爆汗日已經在日常訓練中');
     return;
   }
 
@@ -2578,7 +2578,9 @@ async function importKettlebellSweatNoRunTemplate(){
       return;
     }
 
-    toast('壺鈴爆汗日已匯入；舊「代謝耐力」將不再出現在新訓練選單');
+    const quickImportWrap=q('#dailyQuickImportWrap');
+    if(quickImportWrap)quickImportWrap.classList.remove('show');
+    toast('壺鈴爆汗日已匯入');
     setTimeout(()=>location.reload(),550);
   }catch(e){
     console.error(e);
@@ -3014,16 +3016,15 @@ function updateDailyAdminUI() {
   tools?.classList.toggle('show', isAdmin);
   customSettings?.classList.toggle('show', isAdmin);
   saveBtn?.classList.toggle('show', isAdmin);
-  quickImportWrap?.classList.toggle('show', isAdmin);
+
+  const alreadyImported=cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID);
+  quickImportWrap?.classList.toggle('show', isAdmin && !alreadyImported);
 
   if (!isAdmin) return;
 
-  const alreadyImported=cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID);
   if(quickImportBtn){
-    quickImportBtn.disabled=alreadyImported;
-    quickImportBtn.textContent=alreadyImported
-      ? '✓ 壺鈴爆汗日已匯入'
-      : '⇩ 匯入｜壺鈴爆汗日';
+    quickImportBtn.disabled=false;
+    quickImportBtn.textContent='⇩ 匯入｜壺鈴爆汗日';
   }
 
   const t = currentRaceTemplate();
