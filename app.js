@@ -2712,6 +2712,129 @@ async function importMoverDayV2Template(){
 }
 
 
+const STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID = 'strengthCardioConditioningL9';
+const STRENGTH_CARDIO_CONDITIONING_REPLACES_TEMPLATE_ID = 'aerobicMax';
+
+function strengthCardioConditioningL9Items(){
+  const item=(name,detail,block_index,extra={})=>({
+    name,
+    detail,
+    duration_seconds:extra.duration_seconds ?? null,
+    distance_m:extra.distance_m ?? null,
+    weight_kg:extra.weight_kg ?? null,
+    reps:extra.reps ?? null,
+    block_index,
+    block_rounds:1,
+    block_rest:'—'
+  });
+
+  return [
+    // BLOCK 1
+    item('RowErg','1,000 m',1,{distance_m:1000}),
+    item('Dumbbell Floor Press','15 reps · RPE 8',1,{reps:15}),
+    item('Kettlebell Swing','30 reps',1,{reps:30}),
+    item('Weighted Sit-Up','25 reps',1,{reps:25}),
+
+    // BLOCK 2
+    item('Run','800 m',2,{distance_m:800}),
+    item('Heavy Sled Push','120 m · RPE 8',2,{distance_m:120}),
+    item('Box Step-Up','30 total',2,{reps:30}),
+    item('TRX Knee Tuck','30 reps',2,{reps:30}),
+
+    // BLOCK 3
+    item('Stair Climber','6 min · RPE 8–9',3,{duration_seconds:360}),
+    item('Dumbbell Front Rack Reverse Lunge','24 total · RPE 8',3,{reps:24}),
+    item('TRX Row','30 reps',3,{reps:30}),
+    item('Sandbag Bear Hug Carry','120 m',3,{distance_m:120}),
+
+    // BLOCK 4
+    item('BikeErg','6 min · RPE 8–9',4,{duration_seconds:360}),
+    item('Heavy Sled Pull','120 m · RPE 8',4,{distance_m:120}),
+    item('Dumbbell Renegade Row','20 total',4,{reps:20}),
+    item('TRX Fallout','20 reps',4,{reps:20}),
+
+    // BLOCK 5 — FINAL PUSH
+    item('SkiErg','800 m',5,{distance_m:800}),
+    item('Dumbbell Push Press','35 reps',5,{reps:35}),
+    item('Dumbbell Devil Press','40 reps',5,{reps:40}),
+    item('Dumbbell Suitcase Carry','120 m total · 60 m / side',5,{distance_m:120})
+  ];
+}
+
+async function importStrengthCardioConditioningL9Template(){
+  if(!dailyMenuAdminName){
+    toast('這台裝置沒有菜單管理權限');
+    return;
+  }
+
+  if(cloudDailyTemplateIds.includes(STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID)){
+    q('#level9QuickImportWrap')?.classList.remove('show');
+    toast('新版 Level 9 已經在日常訓練中');
+    return;
+  }
+
+  const btn=q('#importLevel9StrengthCardioBtn');
+  if(btn){
+    btn.disabled=true;
+    btn.textContent='修正中…';
+  }
+
+  const items=strengthCardioConditioningL9Items();
+
+  // Hard safety assertion: exactly 5 blocks × 4 items.
+  const blockCounts=[1,2,3,4,5].map(block=>
+    items.filter(x=>Number(x.block_index)===block).length
+  );
+
+  if(items.length!==20 || blockCounts.some(n=>n!==4)){
+    console.error('Level 9 structure invalid',{items,blockCounts});
+    toast('修正停止：Block 結構驗證失敗');
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='⇩ 修正｜Level 9';
+    }
+    return;
+  }
+
+  try{
+    const result=await api('rpc/save_daily_template',{
+      method:'POST',
+      body:JSON.stringify({
+        p_device_secret:getNicknameDeviceSecret(),
+        p_template_id:STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID,
+        p_label:'力量 × 有氧 × Conditioning',
+        p_intensity:9,
+        p_duration:'約 75–95 分鐘',
+        p_description:'5 Blocks × 4 items。每個 Block 依序為 Cardio opener → Heavy Strength → Conditioning → Core / Carry；目標是在高心率與累積疲勞下維持力量輸出與全身 conditioning。',
+        p_equipment:'RowErg／跑步機／Stair Climber／BikeErg／SkiErg／Sled／啞鈴／壺鈴／TRX／Sandbag',
+        p_total:'Row 1,000 m｜Run 800 m｜Stair Climber 6 min｜BikeErg 6 min｜SkiErg 800 m｜Sled Push 120 m｜Sled Pull 120 m',
+        p_items:items
+      })
+    });
+
+    if(!result?.ok){
+      const reason=String(result?.reason||'unknown');
+      if(reason==='locked')toast('新版 Level 9 已經有完成紀錄，現在已鎖定');
+      else if(reason==='forbidden')toast('這台裝置沒有菜單管理權限');
+      else toast(`無法修正 Level 9：${reason}`);
+      return;
+    }
+
+    q('#level9QuickImportWrap')?.classList.remove('show');
+    toast('Level 9 已更新為「力量 × 有氧 × Conditioning」');
+    setTimeout(()=>location.reload(),550);
+  }catch(e){
+    console.error(e);
+    toast('Level 9 修正失敗，請檢查 Supabase 連線');
+  }finally{
+    if(btn && !cloudDailyTemplateIds.includes(STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID)){
+      btn.disabled=false;
+      btn.textContent='⇩ 修正｜Level 9';
+    }
+  }
+}
+
+
 // Let the existing Custom Builder represent a replaceable cardio station.
 if (!CUSTOM_EXERCISES.some(x => x.name === DAILY_CARDIO_PLACEHOLDER)) {
   CUSTOM_EXERCISES.push({name: DAILY_CARDIO_PLACEHOLDER, cat: 'Cardio'});
@@ -2872,10 +2995,15 @@ function rebuildDailyTemplateSelect() {
     cloudDailyTemplateIds.includes(MOVER_DAY_V2_TEMPLATE_ID) &&
     !!RACE_TEMPLATES[MOVER_DAY_V2_TEMPLATE_ID];
 
+  const level9ReplacementLoaded =
+    cloudDailyTemplateIds.includes(STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID) &&
+    !!RACE_TEMPLATES[STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID];
+
   const ids = [...new Set([...baseDailyTemplateIds, ...cloudDailyTemplateIds])]
     .filter(id => RACE_TEMPLATES[id])
     .filter(id => !(replacementLoaded && id === KETTLEBELL_SWEAT_REPLACES_TEMPLATE_ID))
-    .filter(id => !(moverDayV2Loaded && id === MOVER_DAY_V2_REPLACES_TEMPLATE_ID));
+    .filter(id => !(moverDayV2Loaded && id === MOVER_DAY_V2_REPLACES_TEMPLATE_ID))
+    .filter(id => !(level9ReplacementLoaded && id === STRENGTH_CARDIO_CONDITIONING_REPLACES_TEMPLATE_ID));
 
   select.innerHTML = ids.map(id => {
     const t = RACE_TEMPLATES[id];
@@ -3085,6 +3213,24 @@ function ensureDailyAdminUI() {
     }
   }
 
+  if(!q('#level9QuickImportWrap')){
+    const dailyCard=q('#raceTemplate')?.closest('.challenge-card.simulation');
+    const actions=dailyCard?.querySelector('.challenge-home-actions');
+    if(actions){
+      const wrap=document.createElement('div');
+      wrap.id='level9QuickImportWrap';
+      wrap.className='daily-quick-import';
+      wrap.innerHTML=`
+        <div class="daily-quick-import-copy">
+          Level 9 全面重做｜力量 × 有氧 × Conditioning｜5 Blocks × 4 items
+        </div>
+        <button type="button" class="btn small" id="importLevel9StrengthCardioBtn">⇩ 修正｜Level 9</button>
+      `;
+      actions.insertAdjacentElement('afterend',wrap);
+      q('#importLevel9StrengthCardioBtn').addEventListener('click',importStrengthCardioConditioningL9Template);
+    }
+  }
+
   const customCard = q('#customName')?.closest('.challenge-card.custom');
   const customGrid = customCard?.querySelector('.challenge-grid');
 
@@ -3154,6 +3300,8 @@ function updateDailyAdminUI() {
   const quickImportBtn = q('#importKettlebellSweatBtn');
   const moverDayQuickImportWrap = q('#moverDayQuickImportWrap');
   const moverDayQuickImportBtn = q('#importMoverDayV2Btn');
+  const level9QuickImportWrap = q('#level9QuickImportWrap');
+  const level9QuickImportBtn = q('#importLevel9StrengthCardioBtn');
 
   const isAdmin = !!dailyMenuAdminName;
   tools?.classList.toggle('show', isAdmin);
@@ -3166,6 +3314,9 @@ function updateDailyAdminUI() {
   const moverDayV2Imported=cloudDailyTemplateIds.includes(MOVER_DAY_V2_TEMPLATE_ID);
   moverDayQuickImportWrap?.classList.toggle('show', isAdmin && !moverDayV2Imported);
 
+  const level9Imported=cloudDailyTemplateIds.includes(STRENGTH_CARDIO_CONDITIONING_TEMPLATE_ID);
+  level9QuickImportWrap?.classList.toggle('show', isAdmin && !level9Imported);
+
   if (!isAdmin) return;
 
   if(quickImportBtn){
@@ -3176,6 +3327,11 @@ function updateDailyAdminUI() {
   if(moverDayQuickImportBtn){
     moverDayQuickImportBtn.disabled=false;
     moverDayQuickImportBtn.textContent='⇩ 修正｜搬運工的一天';
+  }
+
+  if(level9QuickImportBtn){
+    level9QuickImportBtn.disabled=false;
+    level9QuickImportBtn.textContent='⇩ 修正｜Level 9';
   }
 
   const t = currentRaceTemplate();

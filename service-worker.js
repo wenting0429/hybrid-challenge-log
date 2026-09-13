@@ -1,4 +1,4 @@
-const CACHE_NAME = "hybrid-challenge-log-v16-mover-day-v2-20260913";
+const CACHE_NAME = "hybrid-challenge-log-v17-level9-strength-cardio-conditioning-20260913";
 
 const APP_SHELL = [
   "/",
