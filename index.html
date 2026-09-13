@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MODULAR UI V5 · balanced home cards + unified actions · 2026-09-13 -->
+<!-- MODULAR UI V6 · styled daily dropdown + visible start · 2026-09-13 -->
 <!-- PRODUCTION BUILD · classic challenge live menu preview · 2026-09-09 -->
 <!-- PRODUCTION BUILD · official HYROX + TYRUN race standards corrected · 2026-09-09 -->
 <!-- PRODUCTION BUILD · HYROX + TYRUN Season 2 classic challenge · 2026-09-09 -->
@@ -92,7 +92,7 @@
           <div class="challenge-grid">
             <div class="field full">
               <label>訓練模板</label>
-              <select id="raceTemplate">
+              <select id="raceTemplate" class="daily-native-select" aria-hidden="true" tabindex="-1">
                 <option value="easyHybrid" data-level="1">Level 1 | 加減練一下</option>
                 <option value="coreTraining" data-level="2">Level 2 | 核心也要練</option>
                 <option value="engineBuilder" data-level="3">Level 3 | 平凡的一次訓練</option>
@@ -111,6 +111,28 @@
                 <option value="aerobicMax" data-level="9">Level 9 | 有氧拉滿</option>
                 <option value="hellDay" data-level="10">Level 10 | 地獄日</option>
               </select>
+
+              <div class="daily-template-custom-wrap">
+                <button
+                  type="button"
+                  class="daily-template-trigger"
+                  id="dailyTemplateTrigger"
+                  aria-haspopup="listbox"
+                  aria-expanded="false">
+                  <span class="daily-template-trigger-copy">
+                    <span class="daily-template-trigger-level" id="dailyTemplateTriggerLevel">Level 1</span>
+                    <strong class="daily-template-trigger-name" id="dailyTemplateTriggerName">加減練一下</strong>
+                  </span>
+                  <span class="daily-template-trigger-chevron" aria-hidden="true">⌄</span>
+                </button>
+
+                <div
+                  class="daily-template-menu"
+                  id="dailyTemplateMenu"
+                  role="listbox"
+                  aria-label="日常訓練模板">
+                </div>
+              </div>
 
             </div>
             <div class="field full" id="dailyCardioChoiceWrap" style="display:none">

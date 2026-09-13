@@ -1,4 +1,4 @@
-const CACHE_NAME = "hybrid-challenge-log-v9-balanced-home-20260913";
+const CACHE_NAME = "hybrid-challenge-log-v10-styled-dropdown-20260913";
 
 const APP_SHELL = [
   "/",

@@ -2043,6 +2043,103 @@ function dailyTemplateLockedForHome(templateId){
     :false;
 }
 
+
+function dailyStyledSelectRows(){
+  const select=q('#raceTemplate');
+  if(!select)return [];
+
+  return [...select.options]
+    .map(opt=>{
+      const t=RACE_TEMPLATES[opt.value];
+      const rawLevel=Number(opt.dataset.level)||Number(t?.intensity)||1;
+      return {
+        id:opt.value,
+        level:levelNumber(rawLevel),
+        label:t?.label || String(opt.textContent||opt.value).replace(/^Level\s*\d+\s*\|\s*/i,'').trim()
+      };
+    })
+    .filter(row=>row.id)
+    .sort((a,b)=>a.level-b.level || a.label.localeCompare(b.label,'zh-Hant'));
+}
+
+function closeDailyStyledSelect(){
+  q('#dailyTemplateMenu')?.classList.remove('open');
+  q('#dailyTemplateTrigger')?.setAttribute('aria-expanded','false');
+  q('.challenge-card.simulation')?.classList.remove('daily-menu-open');
+}
+
+function syncDailyStyledSelect(){
+  const select=q('#raceTemplate');
+  const trigger=q('#dailyTemplateTrigger');
+  const menu=q('#dailyTemplateMenu');
+  if(!select||!trigger||!menu)return;
+
+  const current=RACE_TEMPLATES[select.value];
+  const currentLevel=levelNumber(Number(current?.intensity)||Number(select.selectedOptions?.[0]?.dataset.level)||1);
+
+  const levelEl=q('#dailyTemplateTriggerLevel');
+  const nameEl=q('#dailyTemplateTriggerName');
+  if(levelEl)levelEl.textContent=`Level ${currentLevel}`;
+  if(nameEl)nameEl.textContent=current?.label || select.selectedOptions?.[0]?.textContent || select.value;
+
+  const rows=dailyStyledSelectRows();
+  const groups=new Map();
+  rows.forEach(row=>{
+    if(!groups.has(row.level))groups.set(row.level,[]);
+    groups.get(row.level).push(row);
+  });
+
+  menu.innerHTML=[...groups.entries()].map(([level,items])=>`
+    <div class="daily-template-level-group">
+      <div class="daily-template-level-heading">LEVEL ${level}</div>
+      ${items.map(row=>`
+        <button
+          type="button"
+          class="daily-template-option ${row.id===select.value?'selected':''}"
+          data-daily-template-id="${esc(row.id)}"
+          role="option"
+          aria-selected="${row.id===select.value?'true':'false'}">
+          <span class="daily-template-option-copy">
+            <span class="daily-template-option-level">L${row.level}</span>
+            <span class="daily-template-option-name">${esc(row.label)}</span>
+          </span>
+          <span class="daily-template-option-check">${row.id===select.value?'✓':''}</span>
+        </button>
+      `).join('')}
+    </div>
+  `).join('');
+
+  qa('[data-daily-template-id]').forEach(btn=>btn.onclick=()=>{
+    const id=btn.dataset.dailyTemplateId;
+    if(!id||!RACE_TEMPLATES[id])return;
+    select.value=id;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    closeDailyStyledSelect();
+  });
+}
+
+function toggleDailyStyledSelect(){
+  const menu=q('#dailyTemplateMenu');
+  const trigger=q('#dailyTemplateTrigger');
+  const card=q('.challenge-card.simulation');
+  if(!menu||!trigger)return;
+
+  const open=!menu.classList.contains('open');
+  closeDailyStyledSelect();
+
+  if(open){
+    syncDailyStyledSelect();
+    menu.classList.add('open');
+    trigger.setAttribute('aria-expanded','true');
+    card?.classList.add('daily-menu-open');
+
+    const selected=menu.querySelector('.daily-template-option.selected');
+    if(selected){
+      requestAnimationFrame(()=>selected.scrollIntoView({block:'nearest'}));
+    }
+  }
+}
+
 function syncDailyHomeSummary(){
   const t=currentRaceTemplate();
   if(!t)return;
@@ -2065,6 +2162,7 @@ function syncDailyHomeSummary(){
 
 function syncDailyLauncher(){
   syncDailyHomeSummary();
+  if(typeof syncDailyStyledSelect==='function')syncDailyStyledSelect();
 }
 function syncDailyModalCardio(){
   const source=q('#dailyCardioChoice');
@@ -2355,6 +2453,8 @@ function rebuildDailyTemplateSelect() {
 
   if (ids.includes(previous)) select.value = previous;
   else if (ids.length) select.value = ids[0];
+
+  if(typeof syncDailyStyledSelect==='function')syncDailyStyledSelect();
 }
 
 function rpcStringValue(value) {
@@ -2978,6 +3078,14 @@ renderPicker();updateCustomPreview();setDefaultCustomName(true);updateStandardRa
 q('#publicConfigWarning').classList.toggle('show',!isConfigured());
 q('#customName').addEventListener('input',()=>{q('#customName').dataset.autoName='0'});
 q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
+q('#dailyTemplateTrigger').addEventListener('click',e=>{
+  e.stopPropagation();
+  toggleDailyStyledSelect();
+});
+q('#dailyTemplateMenu').addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.daily-template-custom-wrap'))closeDailyStyledSelect();
+});
 q('#standardRaceFormat').addEventListener('change',updateStandardRaceUI);
 q('#standardDivision').addEventListener('change',renderStandardRacePreview);
 q('#dailyCardioChoice').addEventListener('change',updateRaceTemplateUI);
@@ -2995,6 +3103,7 @@ q('#dailyModalCloseBtn').addEventListener('click',closeDailyMenuModal);
 q('#dailyMenuModal').addEventListener('click',e=>{if(e.target===q('#dailyMenuModal'))closeDailyMenuModal()});
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
+  closeDailyStyledSelect();
   if(q('#classicMenuModal')?.classList.contains('open'))closeClassicMenuModal();
   if(q('#dailyMenuModal')?.classList.contains('open'))closeDailyMenuModal();
 });

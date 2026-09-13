@@ -3795,3 +3795,243 @@ nav.tabs button.active{
     font-size:12px!important;
   }
 }
+/* =========================================================
+   UI V6 · styled Daily Training dropdown
+   ========================================================= */
+
+/* Fix regression: an older V4 rule still hid this button. */
+.challenge-card.simulation #startSimulationBtn{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+/* Keep the native select only as the app's data source.
+   Android's system picker is intentionally bypassed. */
+.challenge-card.simulation #raceTemplate.daily-native-select{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  min-height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  clip:rect(0 0 0 0)!important;
+  clip-path:inset(50%)!important;
+  white-space:nowrap!important;
+}
+
+/* The card must allow the custom dropdown to float above content below it. */
+.challenge-card.simulation{
+  position:relative!important;
+  overflow:visible!important;
+}
+.challenge-card.simulation.daily-menu-open{
+  z-index:40;
+}
+
+.daily-template-custom-wrap{
+  position:relative;
+  width:100%;
+}
+
+.daily-template-trigger{
+  width:100%;
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 13px;
+  border:1px solid #303b4d;
+  border-radius:11px;
+  background:#0a1017;
+  color:#f5f7f9;
+  text-align:left;
+  transition:border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+.daily-template-trigger:hover,
+.daily-template-trigger[aria-expanded="true"]{
+  border-color:rgba(255,151,105,.60);
+  background:#0d141d;
+  box-shadow:0 0 0 3px rgba(255,143,104,.07);
+}
+.daily-template-trigger-copy{
+  min-width:0;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+}
+.daily-template-trigger-level{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid rgba(255,151,105,.28);
+  border-radius:999px;
+  background:rgba(255,126,82,.08);
+  color:#ffad8d;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.055em;
+  white-space:nowrap;
+}
+.daily-template-trigger-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#f5f7f9;
+  font-size:13px;
+  line-height:1.25;
+  font-weight:850;
+}
+.daily-template-trigger-chevron{
+  flex:0 0 auto;
+  color:#aeb8c4;
+  font-size:19px;
+  line-height:1;
+  transform:translateY(-1px);
+  transition:transform .15s ease;
+}
+.daily-template-trigger[aria-expanded="true"] .daily-template-trigger-chevron{
+  transform:rotate(180deg) translateY(1px);
+}
+
+/* App-owned dropdown: dark, scrollable, no Android white system sheet. */
+.daily-template-menu{
+  position:absolute;
+  z-index:100;
+  left:0;
+  right:0;
+  top:calc(100% + 7px);
+  display:none;
+  max-height:min(390px,58vh);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:7px;
+  border:1px solid rgba(255,151,105,.24);
+  border-radius:14px;
+  background:rgba(12,17,25,.985);
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.58),
+    0 0 0 1px rgba(255,255,255,.025) inset;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  scrollbar-width:thin;
+  scrollbar-color:#68443d transparent;
+}
+.daily-template-menu.open{
+  display:block;
+}
+.daily-template-menu::-webkit-scrollbar{
+  width:6px;
+}
+.daily-template-menu::-webkit-scrollbar-track{
+  background:transparent;
+}
+.daily-template-menu::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:#68443d;
+}
+
+.daily-template-level-group + .daily-template-level-group{
+  margin-top:6px;
+  padding-top:6px;
+  border-top:1px solid rgba(255,255,255,.055);
+}
+.daily-template-level-heading{
+  padding:4px 7px 5px;
+  color:#8f726b;
+  font-size:8px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+.daily-template-option{
+  width:100%;
+  min-height:43px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:8px 9px 8px 10px;
+  border:1px solid transparent;
+  border-radius:9px;
+  background:transparent;
+  color:#cfd7e1;
+  text-align:left;
+}
+.daily-template-option:hover{
+  background:#151d28;
+  border-color:#2c3949;
+}
+.daily-template-option.selected{
+  background:
+    linear-gradient(90deg,rgba(255,126,82,.13),rgba(255,126,82,.025));
+  border-color:rgba(255,151,105,.32);
+}
+.daily-template-option-copy{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.daily-template-option-level{
+  flex:0 0 auto;
+  min-width:31px;
+  color:#ff9e7d;
+  font-size:9px;
+  font-weight:950;
+}
+.daily-template-option-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#e8edf3;
+  font-size:11.5px;
+  font-weight:800;
+}
+.daily-template-option.selected .daily-template-option-name{
+  color:#fff3ee;
+}
+.daily-template-option-check{
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  border:1px solid #354254;
+  border-radius:999px;
+  color:transparent;
+  font-size:11px;
+  font-weight:950;
+}
+.daily-template-option.selected .daily-template-option-check{
+  border-color:#ff9e7d;
+  background:rgba(255,126,82,.12);
+  color:#ffad8d;
+}
+
+@media(max-width:640px){
+  .daily-template-trigger{
+    min-height:46px;
+    padding:9px 11px;
+  }
+  .daily-template-trigger-name{
+    font-size:12.5px;
+  }
+  .daily-template-menu{
+    max-height:min(360px,54vh);
+    border-radius:12px;
+  }
+  .daily-template-option{
+    min-height:42px;
+  }
+}
