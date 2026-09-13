@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MODULAR UI V3 · clean single-menu popup · 2026-09-13 -->
+<!-- MODULAR UI V4 · dropdown + true popup menus · 2026-09-13 -->
 <!-- PRODUCTION BUILD · classic challenge live menu preview · 2026-09-09 -->
 <!-- PRODUCTION BUILD · official HYROX + TYRUN race standards corrected · 2026-09-09 -->
 <!-- PRODUCTION BUILD · HYROX + TYRUN Season 2 classic challenge · 2026-09-09 -->
@@ -76,18 +76,10 @@
             <div class="mini-stat"><b id="standardItemStat">16</b><span>總項目</span></div>
           </div>
 
-          <div class="classic-preview classic-preview-collapsed" id="standardRacePreview">
-            <div class="classic-preview-head">
-              <div>
-                <b>菜單內容</b>
-                <span id="standardRacePreviewLabel"></span>
-              </div>
-              <button class="btn small ghost classic-preview-toggle" id="toggleClassicPreviewBtn" type="button" aria-expanded="false">查看菜單</button>
-            </div>
-            <div class="classic-preview-grid" id="standardRacePreviewGrid"></div>
+          <div class="challenge-actions challenge-home-actions">
+            <button class="btn" id="openClassicMenuBtn" type="button">查看菜單</button>
+            <button class="btn primary" id="startStandardRaceBtn">挑戰開始</button>
           </div>
-
-          <button class="btn primary standard-start-mobile" id="startStandardRaceBtn">挑戰開始</button>
         </div>
 
         <div class="challenge-card simulation">
@@ -100,7 +92,7 @@
           <div class="challenge-grid">
             <div class="field full">
               <label>訓練模板</label>
-              <select id="raceTemplate" class="native-template-select" aria-hidden="true" tabindex="-1">
+              <select id="raceTemplate">
                 <option value="easyHybrid" data-level="1">Level 1 | 加減練一下</option>
                 <option value="coreTraining" data-level="2">Level 2 | 核心也要練</option>
                 <option value="engineBuilder" data-level="3">Level 3 | 平凡的一次訓練</option>
@@ -119,10 +111,7 @@
                 <option value="aerobicMax" data-level="9">Level 9 | 有氧拉滿</option>
                 <option value="hellDay" data-level="10">Level 10 | 地獄日</option>
               </select>
-              <div class="daily-home-strip-wrap">
-                <div class="daily-home-strip-title">選擇菜單</div>
-                <div class="daily-home-strip" id="dailyHomeMenuStrip" aria-label="日常訓練菜單"></div>
-              </div>
+
             </div>
             <div class="field full" id="dailyCardioChoiceWrap" style="display:none">
               <label>有氧選擇</label>
@@ -137,6 +126,13 @@
               </select>
             </div>
           </div>
+          <div class="challenge-info daily-home-summary">
+            <div class="mini-stat"><b id="dailyLevelStat">Level 1</b><span>難度</span></div>
+            <div class="mini-stat"><b id="dailyDurationStat">—</b><span>預估時間</span></div>
+            <div class="mini-stat"><b id="dailyBlockStat">—</b><span>Blocks</span></div>
+          </div>
+
+          <!-- Kept in DOM for compatibility with existing preview/update logic. -->
           <div class="daily-preview daily-preview-source" id="dailyPreview">
             <div class="daily-preview-head" id="dailyPreviewHead"></div>
             <div class="daily-preview-desc" id="dailyPreviewDesc"></div>
@@ -144,7 +140,13 @@
             <ol class="daily-preview-list" id="dailyPreviewList"></ol>
             <div class="daily-preview-total" id="dailyPreviewTotal"></div>
           </div>
-          <button class="btn coral standard-start-mobile" id="startSimulationBtn">開始訓練</button>
+
+          <div class="challenge-actions challenge-home-actions">
+            <button class="btn coral" id="openDailyMenuBtn" type="button">查看菜單</button>
+          </div>
+
+          <!-- Legacy start control kept hidden for compatibility. -->
+          <button class="btn coral standard-start-mobile" id="startSimulationBtn" hidden>開始訓練</button>
         </div>
 
         <div class="challenge-card custom">
@@ -310,22 +312,41 @@
 </div>
 
 
-<div class="modal" id="dailyMenuModal">
-  <div class="modal-card daily-menu-modal-card">
-    <div class="modal-head">
+
+<div class="modal menu-popup-overlay" id="classicMenuModal">
+  <div class="modal-card menu-popup-card classic-menu-popup-card">
+    <div class="modal-head menu-popup-head">
       <div>
-        <h3>日常訓練</h3>
-        <div class="modal-sub">選一份菜單，確認內容後直接開始。</div>
+        <div class="menu-popup-kicker">CLASSIC CHALLENGE</div>
+        <h3 id="classicMenuModalTitle">HYROX</h3>
+        <div class="modal-sub" id="standardRacePreviewLabel"></div>
       </div>
-      <button class="btn small ghost" id="closeDailyMenuBtn" type="button">關閉</button>
+      <button class="menu-popup-x" id="closeClassicMenuBtn" type="button" aria-label="關閉">×</button>
+    </div>
+
+    <div class="menu-popup-body">
+      <div class="classic-preview-grid popup-classic-grid" id="standardRacePreviewGrid"></div>
+    </div>
+
+    <div class="menu-popup-footer">
+      <button class="btn" id="classicModalCloseBtn" type="button">關閉</button>
+      <button class="btn primary" id="classicModalStartBtn" type="button">挑戰開始</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal menu-popup-overlay" id="dailyMenuModal">
+  <div class="modal-card menu-popup-card daily-menu-modal-card">
+    <div class="modal-head menu-popup-head">
+      <div>
+        <div class="daily-modal-level menu-popup-kicker" id="dailyModalLevel">Level 1</div>
+        <h3 id="dailyModalTitle">加減練一下</h3>
+      </div>
+      <button class="menu-popup-x" id="closeDailyMenuBtn" type="button" aria-label="關閉">×</button>
     </div>
 
     <section class="daily-menu-modal-preview single-menu-preview">
-      <div class="daily-modal-title-row">
-        <div>
-          <div class="daily-modal-level" id="dailyModalLevel">Level 1</div>
-          <h4 id="dailyModalTitle">加減練一下</h4>
-        </div>
+      <div class="daily-modal-status-row">
         <span class="daily-modal-lock" id="dailyModalLockState"></span>
       </div>
 
@@ -337,14 +358,12 @@
         <select id="dailyModalCardioChoice"></select>
       </div>
 
-      <div class="daily-modal-block-scroll" id="dailyModalBlockScroll">
-        <div class="daily-modal-blocks" id="dailyModalBlocks"></div>
-      </div>
+      <div class="daily-modal-blocks popup-daily-blocks" id="dailyModalBlocks"></div>
 
       <div class="daily-modal-total" id="dailyModalTotal"></div>
     </section>
 
-    <div class="daily-menu-modal-footer">
+    <div class="daily-menu-modal-footer menu-popup-footer">
       <button class="btn" id="dailyModalCloseBtn" type="button">關閉</button>
       <button class="btn" id="dailyModalEditBtn" type="button">修改菜單</button>
       <button class="btn coral" id="dailyModalStartBtn" type="button">開始訓練</button>

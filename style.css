@@ -3416,3 +3416,238 @@ nav.tabs button.active{
     width:84vw;
   }
 }
+/* =========================================================
+   UI V4 · approved dropdown + true modal interaction
+   ========================================================= */
+
+/* Retire V3 horizontal menu strip entirely. */
+.daily-home-strip-wrap,
+.daily-home-strip,
+.daily-home-strip-title,
+.daily-home-menu-card{
+  display:none!important;
+}
+
+/* Daily selector is a normal visible selector again. */
+.challenge-card.simulation #raceTemplate{
+  position:static!important;
+  width:100%!important;
+  height:auto!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  clip:auto!important;
+}
+.daily-home-summary{
+  margin-top:14px;
+}
+.challenge-home-actions{
+  margin-top:15px;
+}
+.challenge-home-actions .btn{
+  min-width:130px;
+}
+
+/* Hide compatibility-only preview and legacy direct start. */
+.challenge-card.simulation .daily-preview-source,
+.challenge-card.simulation #startSimulationBtn,
+.challenge-card.simulation #dailyCardioChoiceWrap{
+  display:none!important;
+}
+
+/* ---------- TRUE POP-UP LAYER ---------- */
+.menu-popup-overlay{
+  place-items:center!important;
+  padding:22px!important;
+  background:rgba(2,5,9,.82)!important;
+  backdrop-filter:blur(9px);
+  -webkit-backdrop-filter:blur(9px);
+}
+.menu-popup-card{
+  width:min(760px,100%)!important;
+  max-height:min(84vh,800px)!important;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:22px!important;
+  background:
+    linear-gradient(145deg,rgba(255,126,82,.045),transparent 34%),
+    #121923!important;
+  box-shadow:
+    0 35px 120px rgba(0,0,0,.78),
+    0 0 0 1px rgba(255,255,255,.035) inset!important;
+}
+.classic-menu-popup-card{
+  background:
+    linear-gradient(145deg,rgba(112,222,216,.045),transparent 34%),
+    #121923!important;
+}
+.menu-popup-head{
+  flex:0 0 auto;
+  padding:18px 19px 14px!important;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:rgba(17,23,34,.97);
+}
+.menu-popup-head h3{
+  margin:4px 0 0!important;
+  font-size:24px!important;
+  line-height:1.15;
+  letter-spacing:-.03em;
+}
+.menu-popup-kicker{
+  color:#ffab8b;
+  font-size:9px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+.classic-menu-popup-card .menu-popup-kicker{
+  color:#86e6e0;
+}
+.menu-popup-x{
+  flex:0 0 auto;
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid #394657;
+  border-radius:10px;
+  background:#171e29;
+  color:#cbd4df;
+  font-size:20px;
+  line-height:1;
+}
+.menu-popup-x:hover{
+  border-color:#536177;
+  color:#fff;
+}
+.menu-popup-body{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  padding:15px 18px 18px;
+  -webkit-overflow-scrolling:touch;
+}
+.menu-popup-footer{
+  flex:0 0 auto;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:0!important;
+  padding:12px 18px calc(16px + env(safe-area-inset-bottom))!important;
+  border-top:1px solid rgba(255,255,255,.07)!important;
+  background:rgba(17,23,34,.97)!important;
+  backdrop-filter:none!important;
+}
+
+/* ---------- Classic popup ---------- */
+.popup-classic-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  padding:0!important;
+}
+
+/* ---------- Daily popup ---------- */
+.daily-menu-modal-card{
+  width:min(760px,100%)!important;
+}
+.single-menu-preview{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  margin:0!important;
+  padding:15px 18px 18px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  -webkit-overflow-scrolling:touch;
+}
+.daily-modal-status-row{
+  display:flex;
+  justify-content:flex-end;
+  min-height:24px;
+}
+.daily-modal-description{
+  margin-top:4px!important;
+  font-size:10.5px!important;
+  line-height:1.5!important;
+}
+.daily-modal-equipment{
+  margin-top:6px!important;
+  font-size:9.5px!important;
+}
+.popup-daily-blocks{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  width:auto!important;
+  min-width:0!important;
+  margin-top:14px!important;
+}
+.popup-daily-blocks .daily-modal-block{
+  width:auto!important;
+  flex:none!important;
+  min-width:0;
+}
+.daily-modal-total{
+  margin-top:10px!important;
+}
+
+/* V3 horizontal block scroller is no longer used. */
+.daily-modal-block-scroll{
+  display:contents!important;
+}
+
+@media(max-width:640px){
+  .menu-popup-overlay{
+    padding:12px!important;
+    place-items:center!important;
+  }
+  .menu-popup-card{
+    width:100%!important;
+    height:auto!important;
+    max-height:88vh!important;
+    border-radius:18px!important;
+    padding:0!important;
+  }
+  .menu-popup-head{
+    padding:15px 15px 12px!important;
+  }
+  .menu-popup-head h3{
+    font-size:21px!important;
+  }
+  .menu-popup-body,
+  .single-menu-preview{
+    padding:12px 14px 15px!important;
+  }
+  .popup-classic-grid,
+  .popup-daily-blocks{
+    grid-template-columns:1fr!important;
+  }
+  .menu-popup-footer{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    padding:10px 14px calc(12px + env(safe-area-inset-bottom))!important;
+  }
+  #classicModalStartBtn,
+  #dailyModalStartBtn{
+    grid-column:1/-1;
+  }
+  #dailyModalEditBtn[hidden]{
+    display:none!important;
+  }
+}
+
+@media(max-width:380px){
+  .challenge-home-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .challenge-home-actions .btn{
+    width:100%;
+  }
+}

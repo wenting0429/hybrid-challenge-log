@@ -553,6 +553,7 @@ function updateStandardRaceUI(){
   }
 
   renderStandardRacePreview();
+  if(typeof syncClassicMenuModalTitle==='function')syncClassicMenuModalTitle();
 }
 function currentRaceTemplate(){return RACE_TEMPLATES[q('#raceTemplate')?.value]||RACE_TEMPLATES.lowerBlast}
 function selectedDailyCardio(){return q('#dailyCardioChoice')?.value||'Bike'}
@@ -2036,64 +2037,35 @@ document.addEventListener('visibilitychange',()=>{
 
 
 /* ===== CLEAN CHALLENGE HOME + DAILY MENU POPUP ===== */
-function syncClassicPreviewToggle(){
-  const preview=q('#standardRacePreview');
-  const btn=q('#toggleClassicPreviewBtn');
-  if(!preview||!btn)return;
-  const collapsed=preview.classList.contains('classic-preview-collapsed');
-  btn.textContent=collapsed?'查看菜單':'收起菜單';
-  btn.setAttribute('aria-expanded',collapsed?'false':'true');
-}
-function toggleClassicPreview(){
-  const preview=q('#standardRacePreview');
-  if(!preview)return;
-  preview.classList.toggle('classic-preview-collapsed');
-  syncClassicPreviewToggle();
-}
-
 function dailyTemplateLockedForHome(templateId){
   return typeof templateHasCompletedResult==='function'
     ?templateHasCompletedResult(templateId)
     :false;
 }
 
-function renderDailyHomeMenuStrip(){
-  const select=q('#raceTemplate');
-  const strip=q('#dailyHomeMenuStrip');
-  if(!select||!strip)return;
+function syncDailyHomeSummary(){
+  const t=currentRaceTemplate();
+  if(!t)return;
 
-  const rows=[...select.options].map(opt=>{
-    const t=RACE_TEMPLATES[opt.value];
-    if(!t)return null;
-    return {
-      id:opt.value,
-      label:t.label||opt.value,
-      level:levelNumber(Number(opt.dataset.level)||Number(t.intensity)||1),
-      locked:dailyTemplateLockedForHome(opt.value)
-    };
-  }).filter(Boolean);
+  const blocks=templateItemsToBlocks(rawTemplateItems(t,selectedDailyCardio()));
+  const level=q('#dailyLevelStat');
+  const duration=q('#dailyDurationStat');
+  const block=q('#dailyBlockStat');
 
-  strip.innerHTML=rows.map(row=>`
-    <button type="button"
-      class="daily-home-menu-card ${select.value===row.id?'selected':''} ${row.locked?'locked':''}"
-      data-home-template-id="${esc(row.id)}"
-      aria-pressed="${select.value===row.id?'true':'false'}">
-      <span class="daily-home-menu-level">Level ${row.level}</span>
-      <strong class="daily-home-menu-name">${esc(row.label)}</strong>
-    </button>
-  `).join('');
-
-  qa('[data-home-template-id]').forEach(btn=>btn.onclick=()=>{
-    select.value=btn.dataset.homeTemplateId;
-    select.dispatchEvent(new Event('change',{bubbles:true}));
-    openDailyMenuModal();
-  });
+  if(level)level.textContent=`Level ${levelNumber(t.intensity)}`;
+  if(duration){
+    const raw=String(t.duration||'').trim();
+    duration.textContent=raw
+      .replace(/^約\s*/,'')
+      .replace(/\s*分鐘$/,'')
+      || '—';
+  }
+  if(block)block.textContent=String(blocks.length||0);
 }
 
 function syncDailyLauncher(){
-  renderDailyHomeMenuStrip();
+  syncDailyHomeSummary();
 }
-
 function syncDailyModalCardio(){
   const source=q('#dailyCardioChoice');
   const modal=q('#dailyModalCardioChoice');
@@ -2174,14 +2146,30 @@ function renderDailyMenuModal(){
   syncDailyMenuModalActions();
 }
 
+function syncClassicMenuModalTitle(){
+  const title=q('#classicMenuModalTitle');
+  if(!title)return;
+  title.textContent=standardRaceFormatLabel(currentStandardRaceFormat());
+}
+
+function openClassicMenuModal(){
+  renderStandardRacePreview();
+  syncClassicMenuModalTitle();
+  q('#classicMenuModal')?.classList.add('open');
+  const body=q('#classicMenuModal .menu-popup-body');
+  if(body)body.scrollTop=0;
+}
+
+function closeClassicMenuModal(){
+  q('#classicMenuModal')?.classList.remove('open');
+}
+
 function openDailyMenuModal(){
   renderDailyMenuModal();
   const modal=q('#dailyMenuModal');
   modal?.classList.add('open');
   const preview=q('#dailyMenuModal .single-menu-preview');
   if(preview)preview.scrollTop=0;
-  const blockScroll=q('#dailyModalBlockScroll');
-  if(blockScroll)blockScroll.scrollLeft=0;
 }
 function closeDailyMenuModal(){
   q('#dailyMenuModal')?.classList.remove('open');
@@ -2993,11 +2981,23 @@ q('#raceTemplate').addEventListener('change',updateRaceTemplateUI);
 q('#standardRaceFormat').addEventListener('change',updateStandardRaceUI);
 q('#standardDivision').addEventListener('change',renderStandardRacePreview);
 q('#dailyCardioChoice').addEventListener('change',updateRaceTemplateUI);
-q('#toggleClassicPreviewBtn').addEventListener('click',toggleClassicPreview);
-syncClassicPreviewToggle();
+q('#openClassicMenuBtn').addEventListener('click',openClassicMenuModal);
+q('#closeClassicMenuBtn').addEventListener('click',closeClassicMenuModal);
+q('#classicModalCloseBtn').addEventListener('click',closeClassicMenuModal);
+q('#classicMenuModal').addEventListener('click',e=>{if(e.target===q('#classicMenuModal'))closeClassicMenuModal()});
+q('#classicModalStartBtn').addEventListener('click',()=>{
+  closeClassicMenuModal();
+  startSession('經典挑戰');
+});
+q('#openDailyMenuBtn').addEventListener('click',openDailyMenuModal);
 q('#closeDailyMenuBtn').addEventListener('click',closeDailyMenuModal);
 q('#dailyModalCloseBtn').addEventListener('click',closeDailyMenuModal);
 q('#dailyMenuModal').addEventListener('click',e=>{if(e.target===q('#dailyMenuModal'))closeDailyMenuModal()});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(q('#classicMenuModal')?.classList.contains('open'))closeClassicMenuModal();
+  if(q('#dailyMenuModal')?.classList.contains('open'))closeDailyMenuModal();
+});
 q('#dailyModalStartBtn').addEventListener('click',()=>{
   closeDailyMenuModal();
   startSession('日常訓練');
