@@ -3160,3 +3160,259 @@ nav.tabs button.active{
   }
   .daily-launcher-name{font-size:15px}
 }
+/* =========================================================
+   UI V3 · Home menu strip + clean single-menu popup
+   ========================================================= */
+
+/* Hide V2 launcher styles by replacing the component with a menu strip. */
+.daily-home-strip-wrap{
+  margin-top:2px;
+  min-width:0;
+}
+.daily-home-strip-title{
+  margin:0 2px 7px;
+  color:#9b7e75;
+  font-size:9px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+.daily-home-strip{
+  display:flex;
+  gap:8px;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:1px 1px 7px;
+  scroll-snap-type:x proximity;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:#5a4040 transparent;
+}
+.daily-home-strip::-webkit-scrollbar{height:5px}
+.daily-home-strip::-webkit-scrollbar-track{background:transparent}
+.daily-home-strip::-webkit-scrollbar-thumb{
+  background:#5a4040;
+  border-radius:999px;
+}
+.daily-home-menu-card{
+  flex:0 0 auto;
+  min-width:150px;
+  max-width:190px;
+  min-height:62px;
+  display:grid;
+  gap:4px;
+  align-content:center;
+  padding:10px 12px;
+  scroll-snap-align:start;
+  border:1px solid #342e34;
+  border-radius:12px;
+  background:
+    linear-gradient(145deg,rgba(255,126,82,.055),transparent 52%),
+    #11161d;
+  color:#eef2f6;
+  text-align:left;
+  transition:.14s ease;
+}
+.daily-home-menu-card:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,151,105,.44);
+  background:
+    linear-gradient(145deg,rgba(255,126,82,.09),transparent 52%),
+    #151a22;
+}
+.daily-home-menu-card.selected{
+  border-color:rgba(255,151,105,.62);
+  box-shadow:inset 3px 0 0 #ff8f68;
+  background:
+    linear-gradient(145deg,rgba(255,126,82,.12),transparent 52%),
+    #17191f;
+}
+.daily-home-menu-level{
+  color:#ffab8b;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+}
+.daily-home-menu-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#fff2ed;
+  font-size:13px;
+  line-height:1.2;
+  font-weight:900;
+}
+.daily-home-menu-card.locked .daily-home-menu-name::after{
+  content:"  🔒";
+  color:#c99d92;
+  font-size:10px;
+}
+
+/* Single-menu popup only. */
+.daily-menu-modal-card{
+  width:min(760px,100%);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.single-menu-preview{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:72vh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  margin-top:14px;
+  padding:14px 14px 12px;
+  border:1px solid #313c4d;
+  border-radius:14px;
+  background:
+    linear-gradient(145deg,rgba(255,126,82,.045),transparent 35%),
+    #0d131c;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Horizontal swipe zone for Blocks. */
+.daily-modal-block-scroll{
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  margin-top:13px;
+  padding-bottom:7px;
+  scroll-snap-type:x proximity;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:#544454 #111923;
+}
+.daily-modal-block-scroll::-webkit-scrollbar{height:6px}
+.daily-modal-block-scroll::-webkit-scrollbar-track{
+  background:#111923;
+  border-radius:999px;
+}
+.daily-modal-block-scroll::-webkit-scrollbar-thumb{
+  background:#544454;
+  border-radius:999px;
+}
+
+.daily-modal-blocks{
+  display:flex!important;
+  gap:10px;
+  width:max-content;
+  min-width:100%;
+  margin-top:0!important;
+}
+.daily-modal-block{
+  flex:0 0 280px;
+  width:280px;
+  scroll-snap-align:start;
+}
+
+/* Keep the header lean. */
+.daily-modal-description{
+  margin-top:8px;
+  color:#aab5c1;
+  font-size:10.5px;
+  line-height:1.5;
+}
+.daily-modal-equipment{
+  margin-top:5px;
+  color:#7f8c9d;
+  font-size:9.5px;
+  line-height:1.4;
+}
+.daily-modal-total{
+  margin-top:7px;
+  font-size:10px;
+}
+
+/* Sticky actions, no extra menu UI. */
+.daily-menu-modal-footer{
+  flex:0 0 auto;
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  margin:12px -17px -17px;
+  padding:10px 17px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid #2d3949;
+  background:rgba(16,22,32,.97);
+  backdrop-filter:blur(10px);
+}
+
+/* Retire old catalog styles from actual layout. */
+.daily-menu-modal-layout,
+.daily-menu-catalog-wrap,
+.daily-menu-catalog,
+.daily-menu-catalog-title,
+.daily-menu-level-group,
+.daily-menu-level-head,
+.daily-menu-choice{
+  display:none!important;
+}
+
+@media(max-width:760px){
+  .daily-home-menu-card{
+    min-width:138px;
+    max-width:166px;
+    min-height:58px;
+    padding:9px 10px;
+  }
+  .daily-home-menu-name{font-size:12px}
+
+  .daily-menu-modal-card{
+    height:100dvh;
+    max-height:100dvh;
+    padding-top:calc(14px + env(safe-area-inset-top));
+    border-radius:0;
+  }
+  .single-menu-preview{
+    flex:1 1 auto;
+    max-height:none;
+    margin-top:10px;
+    padding:12px 11px;
+    border-radius:12px;
+  }
+  .daily-modal-title-row h4{font-size:20px}
+  .daily-modal-description{font-size:10px}
+  .daily-modal-equipment{font-size:9px}
+
+  /* On phones a Block is almost full-width, ideal for left/right swipe. */
+  .daily-modal-block{
+    flex-basis:min(82vw,300px);
+    width:min(82vw,300px);
+  }
+  .daily-modal-block-scroll{
+    margin-left:-2px;
+    margin-right:-2px;
+    padding-left:2px;
+    padding-right:2px;
+  }
+
+  .daily-menu-modal-footer{
+    margin:9px -16px calc(-18px - env(safe-area-inset-bottom));
+    padding:9px 16px calc(10px + env(safe-area-inset-bottom));
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  #dailyModalStartBtn{
+    grid-column:1/-1;
+    min-height:46px;
+  }
+}
+
+@media(max-width:380px){
+  .daily-home-menu-card{
+    min-width:128px;
+    max-width:150px;
+  }
+  .daily-modal-block{
+    flex-basis:84vw;
+    width:84vw;
+  }
+}

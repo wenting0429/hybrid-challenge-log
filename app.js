@@ -2051,38 +2051,47 @@ function toggleClassicPreview(){
   syncClassicPreviewToggle();
 }
 
-function syncDailyLauncher(){
-  const t=currentRaceTemplate();
-  if(!t)return;
-  const level=q('#dailyLauncherLevel');
-  const name=q('#dailyLauncherName');
-  const meta=q('#dailyLauncherMeta');
-  if(level)level.textContent=`Level ${levelNumber(t.intensity)}`;
-  if(name)name.textContent=t.label||t.id;
-  if(meta)meta.textContent=[t.duration,t.total].filter(Boolean).join(' · ')||'點開查看菜單與開始訓練';
+function dailyTemplateLockedForHome(templateId){
+  return typeof templateHasCompletedResult==='function'
+    ?templateHasCompletedResult(templateId)
+    :false;
 }
 
-function dailyModalCatalogHtml(){
+function renderDailyHomeMenuStrip(){
   const select=q('#raceTemplate');
-  if(!select)return '';
-  const groups=new Map();
+  const strip=q('#dailyHomeMenuStrip');
+  if(!select||!strip)return;
 
-  [...select.options].forEach(opt=>{
+  const rows=[...select.options].map(opt=>{
     const t=RACE_TEMPLATES[opt.value];
-    if(!t)return;
-    const level=levelNumber(Number(opt.dataset.level)||Number(t.intensity)||1);
-    if(!groups.has(level))groups.set(level,[]);
-    groups.get(level).push({id:opt.value,label:t.label||opt.value,level});
-  });
+    if(!t)return null;
+    return {
+      id:opt.value,
+      label:t.label||opt.value,
+      level:levelNumber(Number(opt.dataset.level)||Number(t.intensity)||1),
+      locked:dailyTemplateLockedForHome(opt.value)
+    };
+  }).filter(Boolean);
 
-  return [...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([level,rows])=>`
-    <div class="daily-menu-level-group">
-      <div class="daily-menu-level-head">LEVEL ${level}</div>
-      ${rows.map(row=>`<button type="button" class="daily-menu-choice ${q('#raceTemplate')?.value===row.id?'selected':''}" data-daily-menu-choice="${esc(row.id)}">
-        <span>${esc(row.label)}</span><span class="daily-menu-choice-level">L${row.level}</span>
-      </button>`).join('')}
-    </div>
+  strip.innerHTML=rows.map(row=>`
+    <button type="button"
+      class="daily-home-menu-card ${select.value===row.id?'selected':''} ${row.locked?'locked':''}"
+      data-home-template-id="${esc(row.id)}"
+      aria-pressed="${select.value===row.id?'true':'false'}">
+      <span class="daily-home-menu-level">Level ${row.level}</span>
+      <strong class="daily-home-menu-name">${esc(row.label)}</strong>
+    </button>
   `).join('');
+
+  qa('[data-home-template-id]').forEach(btn=>btn.onclick=()=>{
+    select.value=btn.dataset.homeTemplateId;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    openDailyMenuModal();
+  });
+}
+
+function syncDailyLauncher(){
+  renderDailyHomeMenuStrip();
 }
 
 function syncDailyModalCardio(){
@@ -2152,18 +2161,6 @@ function renderDailyMenuModal(){
   syncDailyLauncher();
   syncDailyModalCardio();
 
-  const catalog=q('#dailyMenuCatalog');
-  if(catalog){
-    catalog.innerHTML=dailyModalCatalogHtml();
-    qa('[data-daily-menu-choice]').forEach(btn=>btn.onclick=()=>{
-      const select=q('#raceTemplate');
-      if(!select)return;
-      select.value=btn.dataset.dailyMenuChoice;
-      select.dispatchEvent(new Event('change',{bubbles:true}));
-      renderDailyMenuModal();
-    });
-  }
-
   q('#dailyModalLevel').textContent=`Level ${levelNumber(t.intensity)}`;
   q('#dailyModalTitle').textContent=t.label||t.id;
   q('#dailyModalDescription').textContent=t.description||'';
@@ -2179,7 +2176,12 @@ function renderDailyMenuModal(){
 
 function openDailyMenuModal(){
   renderDailyMenuModal();
-  q('#dailyMenuModal')?.classList.add('open');
+  const modal=q('#dailyMenuModal');
+  modal?.classList.add('open');
+  const preview=q('#dailyMenuModal .single-menu-preview');
+  if(preview)preview.scrollTop=0;
+  const blockScroll=q('#dailyModalBlockScroll');
+  if(blockScroll)blockScroll.scrollLeft=0;
 }
 function closeDailyMenuModal(){
   q('#dailyMenuModal')?.classList.remove('open');
@@ -2993,7 +2995,6 @@ q('#standardDivision').addEventListener('change',renderStandardRacePreview);
 q('#dailyCardioChoice').addEventListener('change',updateRaceTemplateUI);
 q('#toggleClassicPreviewBtn').addEventListener('click',toggleClassicPreview);
 syncClassicPreviewToggle();
-q('#openDailyMenuBtn').addEventListener('click',openDailyMenuModal);
 q('#closeDailyMenuBtn').addEventListener('click',closeDailyMenuModal);
 q('#dailyModalCloseBtn').addEventListener('click',closeDailyMenuModal);
 q('#dailyMenuModal').addEventListener('click',e=>{if(e.target===q('#dailyMenuModal'))closeDailyMenuModal()});
