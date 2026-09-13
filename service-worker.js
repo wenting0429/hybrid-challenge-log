@@ -1,4 +1,4 @@
-const CACHE_NAME = "hybrid-challenge-log-v4-recovery-20260907";
+const CACHE_NAME = "hybrid-challenge-log-v5-modular-20260913";
 
 const APP_SHELL = [
   "/",
@@ -8,7 +8,10 @@ const APP_SHELL = [
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",
-  "/exercise-media.js"
+  "/exercise-media.js",
+  "/style.css",
+  "/workouts.js",
+  "/app.js",
 ];
 
 async function cacheAvailableShell() {
@@ -89,6 +92,9 @@ self.addEventListener("fetch", event => {
   // Files that may change during app updates:
   // always try the network first.
   if (
+    url.pathname === "/style.css" ||
+    url.pathname === "/workouts.js" ||
+    url.pathname === "/app.js" ||
     url.pathname === "/config.js" ||
     url.pathname === "/manifest.webmanifest" ||
     url.pathname === "/exercise-media.js" ||
