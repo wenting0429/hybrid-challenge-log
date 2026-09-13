@@ -1,4 +1,4 @@
-const CACHE_NAME = "hybrid-challenge-log-v15-import-auto-hide-20260913";
+const CACHE_NAME = "hybrid-challenge-log-v16-mover-day-v2-20260913";
 
 const APP_SHELL = [
   "/",

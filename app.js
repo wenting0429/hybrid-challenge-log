@@ -2594,6 +2594,124 @@ async function importKettlebellSweatNoRunTemplate(){
 }
 
 
+const MOVER_DAY_V2_TEMPLATE_ID = 'moverDayV2';
+const MOVER_DAY_V2_REPLACES_TEMPLATE_ID = 'moverDay';
+
+function moverDayV2Items(){
+  const item=(name,detail,block_index,extra={})=>({
+    name,
+    detail,
+    duration_seconds:extra.duration_seconds ?? null,
+    distance_m:extra.distance_m ?? null,
+    weight_kg:extra.weight_kg ?? null,
+    reps:extra.reps ?? null,
+    block_index,
+    block_rounds:1,
+    block_rest:'—'
+  });
+
+  return [
+    // BLOCK 1
+    item('Heavy Walk','800 m · 快走／坡度走／輕中負重',1,{distance_m:800}),
+    item('Heavy Sled Push','50 m · RPE 7–8',1,{distance_m:50}),
+    item('Dumbbell Deadlift','30 reps',1,{reps:30}),
+
+    // BLOCK 2
+    item('BikeErg','4 min',2,{duration_seconds:240}),
+    item('Heavy Sled Pull','50 m · RPE 7–8',2,{distance_m:50}),
+    item('Front Rack Carry','120 m · RPE 7–8',2,{distance_m:120}),
+
+    // BLOCK 3
+    item('Run','500 m',3,{distance_m:500}),
+    item('Kettlebell Goblet Squat','30 reps',3,{reps:30}),
+    item('Heavy Farmers Carry','160 m · RPE 7–8',3,{distance_m:160}),
+
+    // BLOCK 4
+    item('BikeErg','4 min',4,{duration_seconds:240}),
+    item('Dumbbell Walking Lunge','80 m',4,{distance_m:80}),
+    item('Kettlebell Thruster','30 reps',4,{reps:30}),
+
+    // BLOCK 5
+    item('Run','500 m',5,{distance_m:500}),
+    item('Heavy Walk','800 m · 快走／坡度走／輕中負重',5,{distance_m:800}),
+    item('Kettlebell Suitcase Carry','100 m total · 50 m / side',5,{distance_m:100})
+  ];
+}
+
+async function importMoverDayV2Template(){
+  if(!dailyMenuAdminName){
+    toast('這台裝置沒有菜單管理權限');
+    return;
+  }
+
+  if(cloudDailyTemplateIds.includes(MOVER_DAY_V2_TEMPLATE_ID)){
+    q('#moverDayQuickImportWrap')?.classList.remove('show');
+    toast('新版搬運工的一天已經在日常訓練中');
+    return;
+  }
+
+  const btn=q('#importMoverDayV2Btn');
+  if(btn){
+    btn.disabled=true;
+    btn.textContent='修正中…';
+  }
+
+  const items=moverDayV2Items();
+
+  // Hard safety assertion: exactly 5 blocks × 3 items.
+  const blockCounts=[1,2,3,4,5].map(block=>
+    items.filter(x=>Number(x.block_index)===block).length
+  );
+
+  if(items.length!==15 || blockCounts.some(n=>n!==3)){
+    console.error('Mover Day V2 structure invalid',{items,blockCounts});
+    toast('修正停止：Block 結構驗證失敗');
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='⇩ 修正｜搬運工的一天';
+    }
+    return;
+  }
+
+  try{
+    const result=await api('rpc/save_daily_template',{
+      method:'POST',
+      body:JSON.stringify({
+        p_device_secret:getNicknameDeviceSecret(),
+        p_template_id:MOVER_DAY_V2_TEMPLATE_ID,
+        p_label:'搬運工的一天',
+        p_intensity:8,
+        p_duration:'約 80–100 分鐘',
+        p_description:'5 Blocks × 3 items。每個 Block 以有氧／locomotion 開頭，再接兩個負重 station；除有氧基底外，其餘動作不重複。Heavy 以 RPE 7–8 為原則。',
+        p_equipment:'Sled／BikeErg／跑步機／啞鈴／壺鈴／可負重步行',
+        p_total:'Run：1 km｜Heavy Walk：1.6 km｜Suitcase Carry：100 m',
+        p_items:items
+      })
+    });
+
+    if(!result?.ok){
+      const reason=String(result?.reason||'unknown');
+      if(reason==='locked')toast('新版菜單已經有完成紀錄，現在已鎖定');
+      else if(reason==='forbidden')toast('這台裝置沒有菜單管理權限');
+      else toast(`無法修正菜單：${reason}`);
+      return;
+    }
+
+    q('#moverDayQuickImportWrap')?.classList.remove('show');
+    toast('搬運工的一天已修正為 5 Blocks × 3 items');
+    setTimeout(()=>location.reload(),550);
+  }catch(e){
+    console.error(e);
+    toast('搬運工的一天修正失敗，請檢查 Supabase 連線');
+  }finally{
+    if(btn && !cloudDailyTemplateIds.includes(MOVER_DAY_V2_TEMPLATE_ID)){
+      btn.disabled=false;
+      btn.textContent='⇩ 修正｜搬運工的一天';
+    }
+  }
+}
+
+
 // Let the existing Custom Builder represent a replaceable cardio station.
 if (!CUSTOM_EXERCISES.some(x => x.name === DAILY_CARDIO_PLACEHOLDER)) {
   CUSTOM_EXERCISES.push({name: DAILY_CARDIO_PLACEHOLDER, cat: 'Cardio'});
@@ -2750,9 +2868,14 @@ function rebuildDailyTemplateSelect() {
     cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID) &&
     !!RACE_TEMPLATES[KETTLEBELL_SWEAT_TEMPLATE_ID];
 
+  const moverDayV2Loaded =
+    cloudDailyTemplateIds.includes(MOVER_DAY_V2_TEMPLATE_ID) &&
+    !!RACE_TEMPLATES[MOVER_DAY_V2_TEMPLATE_ID];
+
   const ids = [...new Set([...baseDailyTemplateIds, ...cloudDailyTemplateIds])]
     .filter(id => RACE_TEMPLATES[id])
-    .filter(id => !(replacementLoaded && id === KETTLEBELL_SWEAT_REPLACES_TEMPLATE_ID));
+    .filter(id => !(replacementLoaded && id === KETTLEBELL_SWEAT_REPLACES_TEMPLATE_ID))
+    .filter(id => !(moverDayV2Loaded && id === MOVER_DAY_V2_REPLACES_TEMPLATE_ID));
 
   select.innerHTML = ids.map(id => {
     const t = RACE_TEMPLATES[id];
@@ -2944,6 +3067,24 @@ function ensureDailyAdminUI() {
     }
   }
 
+  if(!q('#moverDayQuickImportWrap')){
+    const dailyCard=q('#raceTemplate')?.closest('.challenge-card.simulation');
+    const actions=dailyCard?.querySelector('.challenge-home-actions');
+    if(actions){
+      const wrap=document.createElement('div');
+      wrap.id='moverDayQuickImportWrap';
+      wrap.className='daily-quick-import';
+      wrap.innerHTML=`
+        <div class="daily-quick-import-copy">
+          Level 8 修正｜搬運工的一天 → 5 Blocks × 3 items
+        </div>
+        <button type="button" class="btn small" id="importMoverDayV2Btn">⇩ 修正｜搬運工的一天</button>
+      `;
+      actions.insertAdjacentElement('afterend',wrap);
+      q('#importMoverDayV2Btn').addEventListener('click',importMoverDayV2Template);
+    }
+  }
+
   const customCard = q('#customName')?.closest('.challenge-card.custom');
   const customGrid = customCard?.querySelector('.challenge-grid');
 
@@ -3011,6 +3152,8 @@ function updateDailyAdminUI() {
   const saveBtn = q('#saveDailyTemplateBtn');
   const quickImportWrap = q('#dailyQuickImportWrap');
   const quickImportBtn = q('#importKettlebellSweatBtn');
+  const moverDayQuickImportWrap = q('#moverDayQuickImportWrap');
+  const moverDayQuickImportBtn = q('#importMoverDayV2Btn');
 
   const isAdmin = !!dailyMenuAdminName;
   tools?.classList.toggle('show', isAdmin);
@@ -3020,11 +3163,19 @@ function updateDailyAdminUI() {
   const alreadyImported=cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID);
   quickImportWrap?.classList.toggle('show', isAdmin && !alreadyImported);
 
+  const moverDayV2Imported=cloudDailyTemplateIds.includes(MOVER_DAY_V2_TEMPLATE_ID);
+  moverDayQuickImportWrap?.classList.toggle('show', isAdmin && !moverDayV2Imported);
+
   if (!isAdmin) return;
 
   if(quickImportBtn){
     quickImportBtn.disabled=false;
     quickImportBtn.textContent='⇩ 匯入｜壺鈴爆汗日';
+  }
+
+  if(moverDayQuickImportBtn){
+    moverDayQuickImportBtn.disabled=false;
+    moverDayQuickImportBtn.textContent='⇩ 修正｜搬運工的一天';
   }
 
   const t = currentRaceTemplate();
