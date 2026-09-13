@@ -1723,13 +1723,164 @@ function groupLabel(key){
   return '挑戰';
 }
 
+
+function mergeMissingBlockMeta(item, reference){
+  const out={...(item||{})};
+  if(!reference)return out;
+
+  if(!(Number(out.block_index)>0) && Number(reference.block_index)>0){
+    out.block_index=Number(reference.block_index);
+  }
+  if(!(Number(out.block_round)>0) && Number(reference.block_round)>0){
+    out.block_round=Number(reference.block_round);
+  }
+  if(!(Number(out.block_rounds)>0) && Number(reference.block_rounds)>0){
+    out.block_rounds=Number(reference.block_rounds);
+  }
+  if(!String(out.block_rest||'').trim() && String(reference.block_rest||'').trim()){
+    out.block_rest=String(reference.block_rest);
+  }
+  return out;
+}
+
+function blockMatchName(value){
+  return String(value||'')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s_\-–—·|/\\()[\]{}:：,，.。]+/g,'')
+    .trim();
+}
+
+/*
+  Historical score records were created by several older app versions.
+  Some snapshots saved challenge_items but did not persist block_index /
+  block_round metadata. The score wall therefore showed Blocks for some
+  menus but not others.
+
+  Recovery policy:
+  1. Never overwrite block metadata already stored in the result.
+  2. For Daily Training, recover metadata from the current matching
+     template when that template still exists.
+  3. If an old Daily Training template cannot be resolved at all, use
+     the app's long-standing legacy fallback of 4 items per block.
+  4. This is display-time enrichment only. Supabase rows are not edited.
+*/
+function recoverHistoricalBlockMeta(r, items){
+  let list=(Array.isArray(items)?items:[])
+    .map(x=>({...x}))
+    .sort((a,b)=>(Number(a?.order)||0)-(Number(b?.order)||0));
+
+  if(!list.length)return list;
+
+  // Classic challenge rounds already have a deterministic structure.
+  const templateId=String(r?.stations?.challenge_template?.id||'');
+  if(isStandardRaceType(r?.workout_type) ||
+     templateId==='standardRace' ||
+     templateId===TYRUN_TEMPLATE_ID){
+    const format=templateId===TYRUN_TEMPLATE_ID?'tyrun-s2':'hyrox';
+    return annotateClassicRounds(list,format);
+  }
+
+  // Custom challenges are left untouched unless they already contain block data.
+  if(!isSimulationType(r?.workout_type))return list;
+
+  // If every item already has a block, nothing needs recovery.
+  if(list.every(x=>Number(x?.block_index)>0))return list;
+
+  const dailyId=simulationTemplateIdForRow(r);
+  let reference=[];
+
+  // Important: do not call simulationItems() for an unknown/deleted template,
+  // because simulationItems() intentionally falls back to another built-in menu.
+  if(dailyId && RACE_TEMPLATES?.[dailyId]){
+    reference=simulationItems(dailyId);
+  }
+
+  let matched=0;
+
+  if(reference.length){
+    // Locked/completed templates normally have the same item count, so position
+    // is the most reliable way to preserve repetitions and repeated movements.
+    if(reference.length===list.length){
+      list=list.map((item,i)=>{
+        const hadBlock=Number(item?.block_index)>0;
+        const merged=mergeMissingBlockMeta(item,reference[i]);
+        if(!hadBlock && Number(merged?.block_index)>0)matched++;
+        return merged;
+      });
+    }else{
+      // Legacy edge case: lengths differ. Match repeated exercise names in order.
+      const queues=new Map();
+      reference.forEach(ref=>{
+        const key=blockMatchName(ref?.name);
+        if(!key)return;
+        if(!queues.has(key))queues.set(key,[]);
+        queues.get(key).push(ref);
+      });
+
+      list=list.map(item=>{
+        if(Number(item?.block_index)>0)return item;
+        const key=blockMatchName(item?.name);
+        const queue=queues.get(key);
+        const ref=queue?.length?queue.shift():null;
+        if(!ref)return item;
+        const merged=mergeMissingBlockMeta(item,ref);
+        if(Number(merged?.block_index)>0)matched++;
+        return merged;
+      });
+    }
+  }
+
+  // If no historical structure can be recovered from a template, use the same
+  // four-items-per-block fallback used by legacy built-in Daily Training menus.
+  const hasAnyBlock=list.some(x=>Number(x?.block_index)>0);
+  if(!hasAnyBlock || (!matched && !reference.length)){
+    list=list.map((item,i)=>({
+      ...item,
+      block_index:Math.floor(i/4)+1,
+      block_round:Number(item?.block_round)>0?Number(item.block_round):1,
+      block_rounds:Number(item?.block_rounds)>0?Number(item.block_rounds):1,
+      block_rest:String(item?.block_rest||'—')
+    }));
+  }else{
+    // Very rare partially-saved snapshot: fill only remaining gaps without
+    // touching the recovered/stored blocks.
+    list=list.map((item,i)=>{
+      if(Number(item?.block_index)>0)return item;
+
+      let previous=null,next=null;
+      for(let p=i-1;p>=0;p--){
+        if(Number(list[p]?.block_index)>0){previous=Number(list[p].block_index);break}
+      }
+      for(let n=i+1;n<list.length;n++){
+        if(Number(list[n]?.block_index)>0){next=Number(list[n].block_index);break}
+      }
+
+      const inferred=(previous&&next&&previous===next)
+        ?previous
+        :(previous||next||Math.floor(i/4)+1);
+
+      return {
+        ...item,
+        block_index:inferred,
+        block_round:Number(item?.block_round)>0?Number(item.block_round):1,
+        block_rounds:Number(item?.block_rounds)>0?Number(item.block_rounds):1,
+        block_rest:String(item?.block_rest||'—')
+      };
+    });
+  }
+
+  return list;
+}
+
 function getChallengeItems(r){
   const items=r?.stations?.challenge_items;
   if(Array.isArray(items)&&items.length){
     const templateId=String(r?.stations?.challenge_template?.id||'');
+    const recovered=recoverHistoricalBlockMeta(r,items);
     return applyLockedTemplateCorrections(
       templateId,
-      items,
+      recovered,
       {
         label: r?.stations?.challenge_template?.label || r?.workout_name || '',
         intensity: RACE_TEMPLATES?.[templateId]?.intensity
@@ -1739,10 +1890,16 @@ function getChallengeItems(r){
 
   const standardTemplateId=String(r?.stations?.challenge_template?.id||'');
   if(standardTemplateId===TYRUN_TEMPLATE_ID){
-    return tyrunRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
+    return annotateClassicRounds(
+      tyrunRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1})),
+      'tyrun-s2'
+    );
   }
   if(isStandardRaceType(r?.workout_type) || standardTemplateId==='standardRace'){
-    return standardRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1}));
+    return annotateClassicRounds(
+      standardRaceItems(r.division||'Women Open').map((x,i)=>({...x,order:i+1})),
+      'hyrox'
+    );
   }
 
   if(isSimulationType(r?.workout_type)){
