@@ -2471,6 +2471,127 @@ let cloudDailyTemplateIds = [];
 const DAILY_CARDIO_PLACEHOLDER = 'Cardio 自選';
 const DAILY_CARDIO_DB_TOKEN = '__CARDIO__';
 
+const KETTLEBELL_SWEAT_TEMPLATE_ID = 'kettlebellSweatNoRun';
+const KETTLEBELL_SWEAT_REPLACES_TEMPLATE_ID = 'fatBurn';
+
+function kettlebellSweatNoRunItems(){
+  const item = (name, detail, block_index, extra={}) => ({
+    name,
+    detail,
+    duration_seconds: extra.duration_seconds ?? null,
+    distance_m: extra.distance_m ?? null,
+    weight_kg: extra.weight_kg ?? null,
+    reps: extra.reps ?? null,
+    block_index,
+    block_rounds: 1,
+    block_rest: '—'
+  });
+
+  return [
+    // BLOCK 1
+    item('Treadmill Incline Power Walk','4 min · RPE 8',1,{duration_seconds:240}),
+    item('Kettlebell Swing','30 reps',1,{reps:30}),
+    item('Dumbbell Front Rack Reverse Lunge','20 total',1,{reps:20}),
+    item('TRX Row','15–18 reps',1),
+
+    // BLOCK 2
+    item('Treadmill Incline Power Walk','4 min · RPE 8',2,{duration_seconds:240}),
+    item('Kettlebell Thruster','18 reps',2,{reps:18}),
+    item('Dumbbell Romanian Deadlift','20 reps',2,{reps:20}),
+    item('TRX Plank Reach','20 total',2,{reps:20}),
+
+    // BLOCK 3
+    item('Treadmill Incline Power Walk','4 min · RPE 8–9',3,{duration_seconds:240}),
+    item('Kettlebell Side-to-Side Swing','24 total',3,{reps:24}),
+    item('Weighted Sit-Up','20 reps',3,{reps:20}),
+    item('TRX Push-Up','15 reps',3,{reps:15}),
+
+    // BLOCK 4
+    item('Treadmill Incline Power Walk','4 min · RPE 8–9',4,{duration_seconds:240}),
+    item('Dumbbell Renegade Row','16 total',4,{reps:16}),
+    item('Kettlebell Halo','12 / side',4),
+    item('TRX Fallout','15 reps',4,{reps:15}),
+
+    // BLOCK 5 — Finisher
+    item('Treadmill Incline Power Walk','4 min · RPE 9',5,{duration_seconds:240}),
+    item('Dumbbell Devil Press','50 reps total',5,{reps:50}),
+    item('TRX Plank Shoulder Tap','20 total',5,{reps:20}),
+    item('Dumbbell Farmer Carry','80 m',5,{distance_m:80})
+  ];
+}
+
+async function importKettlebellSweatNoRunTemplate(){
+  if(!dailyMenuAdminName){
+    toast('這台裝置沒有菜單管理權限');
+    return;
+  }
+
+  if(cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID)){
+    toast('壺鈴爆汗日已經匯入');
+    updateDailyAdminUI();
+    return;
+  }
+
+  const btn=q('#importKettlebellSweatBtn');
+  if(btn){
+    btn.disabled=true;
+    btn.textContent='匯入中…';
+  }
+
+  const items=kettlebellSweatNoRunItems();
+
+  // Hard safety assertion: exactly 5 blocks × 4 items.
+  const blockCounts=[1,2,3,4,5].map(block=>
+    items.filter(x=>Number(x.block_index)===block).length
+  );
+  if(items.length!==20 || blockCounts.some(n=>n!==4)){
+    console.error('Kettlebell Sweat import structure invalid', {items,blockCounts});
+    toast('匯入停止：Block 結構驗證失敗');
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='⇩ 匯入｜壺鈴爆汗日';
+    }
+    return;
+  }
+
+  try{
+    const result=await api('rpc/save_daily_template',{
+      method:'POST',
+      body:JSON.stringify({
+        p_device_secret:getNicknameDeviceSecret(),
+        p_template_id:KETTLEBELL_SWEAT_TEMPLATE_ID,
+        p_label:'壺鈴爆汗日',
+        p_intensity:7,
+        p_duration:'約 50–65 分鐘',
+        p_description:'No Run｜5 Blocks × 4 items。跑步機高坡度快走作為每個 Block 的有氧基底，搭配壺鈴、啞鈴與 TRX；除有氧基底外，其他動作不重複。',
+        p_equipment:'Treadmill／Kettlebell／Dumbbell／TRX',
+        p_total:buildDailyTotal(items),
+        p_items:items
+      })
+    });
+
+    if(!result?.ok){
+      const reason=String(result?.reason||'unknown');
+      if(reason==='locked')toast('這份匯入菜單已經有人完成，現在已鎖定');
+      else if(reason==='forbidden')toast('這台裝置沒有菜單管理權限');
+      else toast(`無法匯入菜單：${reason}`);
+      return;
+    }
+
+    toast('壺鈴爆汗日已匯入；舊「代謝耐力」將不再出現在新訓練選單');
+    setTimeout(()=>location.reload(),550);
+  }catch(e){
+    console.error(e);
+    toast('壺鈴爆汗日匯入失敗，請檢查 Supabase 連線');
+  }finally{
+    if(btn && !cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID)){
+      btn.disabled=false;
+      btn.textContent='⇩ 匯入｜壺鈴爆汗日';
+    }
+  }
+}
+
+
 // Let the existing Custom Builder represent a replaceable cardio station.
 if (!CUSTOM_EXERCISES.some(x => x.name === DAILY_CARDIO_PLACEHOLDER)) {
   CUSTOM_EXERCISES.push({name: DAILY_CARDIO_PLACEHOLDER, cat: 'Cardio'});
@@ -2623,8 +2744,13 @@ function rebuildDailyTemplateSelect() {
   if (!select) return;
 
   const previous = select.value;
+  const replacementLoaded =
+    cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID) &&
+    !!RACE_TEMPLATES[KETTLEBELL_SWEAT_TEMPLATE_ID];
+
   const ids = [...new Set([...baseDailyTemplateIds, ...cloudDailyTemplateIds])]
-    .filter(id => RACE_TEMPLATES[id]);
+    .filter(id => RACE_TEMPLATES[id])
+    .filter(id => !(replacementLoaded && id === KETTLEBELL_SWEAT_REPLACES_TEMPLATE_ID));
 
   select.innerHTML = ids.map(id => {
     const t = RACE_TEMPLATES[id];
@@ -2741,6 +2867,34 @@ function injectDailyAdminStyles() {
     }
     #saveDailyTemplateBtn{display:none}
     #saveDailyTemplateBtn.show{display:inline-flex}
+    .daily-quick-import{
+      display:none;
+      margin-top:9px;
+      padding:8px 9px;
+      border:1px dashed rgba(255,151,105,.32);
+      border-radius:10px;
+      background:rgba(255,126,82,.035);
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .daily-quick-import.show{display:flex}
+    .daily-quick-import-copy{
+      min-width:0;
+      color:#7f8c9c;
+      font-size:8.5px;
+      line-height:1.4;
+    }
+    .daily-quick-import .btn{
+      flex:0 0 auto;
+      min-height:34px;
+      padding:7px 10px;
+      font-size:9.5px;
+    }
+    .daily-quick-import .btn:disabled{
+      opacity:.62;
+      cursor:default;
+    }
     @media(max-width:640px){
       .daily-admin-meta-grid{grid-template-columns:1fr}
       .daily-admin-meta-grid .full{grid-column:auto}
@@ -2767,6 +2921,24 @@ function ensureDailyAdminUI() {
       preview.insertAdjacentElement('afterend', wrap);
 
       q('#editDailyTemplateBtn').addEventListener('click', editCurrentDailyTemplate);
+    }
+  }
+
+  if(!q('#dailyQuickImportWrap')){
+    const dailyCard=q('#raceTemplate')?.closest('.challenge-card.simulation');
+    const actions=dailyCard?.querySelector('.challenge-home-actions');
+    if(actions){
+      const wrap=document.createElement('div');
+      wrap.id='dailyQuickImportWrap';
+      wrap.className='daily-quick-import';
+      wrap.innerHTML=`
+        <div class="daily-quick-import-copy">
+          管理員快速匯入｜5 Blocks × 4 items，Block 已明確寫入，不使用自動分組
+        </div>
+        <button type="button" class="btn small" id="importKettlebellSweatBtn">⇩ 匯入｜壺鈴爆汗日</button>
+      `;
+      actions.insertAdjacentElement('afterend',wrap);
+      q('#importKettlebellSweatBtn').addEventListener('click',importKettlebellSweatNoRunTemplate);
     }
   }
 
@@ -2835,13 +3007,24 @@ function updateDailyAdminUI() {
   const editBtn = q('#editDailyTemplateBtn');
   const customSettings = q('#dailyAdminCustomSettings');
   const saveBtn = q('#saveDailyTemplateBtn');
+  const quickImportWrap = q('#dailyQuickImportWrap');
+  const quickImportBtn = q('#importKettlebellSweatBtn');
 
   const isAdmin = !!dailyMenuAdminName;
   tools?.classList.toggle('show', isAdmin);
   customSettings?.classList.toggle('show', isAdmin);
   saveBtn?.classList.toggle('show', isAdmin);
+  quickImportWrap?.classList.toggle('show', isAdmin);
 
   if (!isAdmin) return;
+
+  const alreadyImported=cloudDailyTemplateIds.includes(KETTLEBELL_SWEAT_TEMPLATE_ID);
+  if(quickImportBtn){
+    quickImportBtn.disabled=alreadyImported;
+    quickImportBtn.textContent=alreadyImported
+      ? '✓ 壺鈴爆汗日已匯入'
+      : '⇩ 匯入｜壺鈴爆汗日';
+  }
 
   const t = currentRaceTemplate();
   const locked = templateHasCompletedResult(t?.id);
