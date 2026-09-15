@@ -482,7 +482,7 @@ zeroRunEndurance:{
       ['Dumbbell Row','15 reps / side'],
       ['Brisk Walk','5 min'],
       ['Sled Pull','40 m · RPE 7'],
-      ['Farmers Carry','150 m · RPE 6–7'],
+      ['Farmers Carry','160 m · RPE 6–7'],
       ['Sandbag Lunges','30 reps'],
       ['Incline Walk','6 min'],
       ['Dumbbell Bench Press','20 reps'],
@@ -491,9 +491,9 @@ zeroRunEndurance:{
       ['Brisk Walk','5 min'],
       ['Dumbbell Shoulder Press','20 reps'],
       ['Wall Balls','40 reps'],
-      ['Suitcase Carry','50 m / side'],
+      ['Suitcase Carry','120 m total'],
       ['Incline Walk','6 min · hard'],
-      ['Plank Dumbbell Drag','12 reps / side'],
+      ['Plank Reach','24 total'],
       ['Reverse Crunch','20 reps'],
       ['Plank','60 sec']
     ];
