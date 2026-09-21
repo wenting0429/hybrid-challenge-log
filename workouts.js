@@ -330,38 +330,38 @@ const RACE_TEMPLATES={
     }
   },
 
-strengthBoost:{
-  id:'strengthBoost',
-  label:'力量強化',
-  duration:'約 60–75 分鐘',
-  intensity:4,
-  description:'以全身力量與力量耐力為主，Row 穿插在力量區塊之間維持心肺壓力；最後以 500 m hard Row 作為 finisher，避免連續兩段 Row 重複。',
-  equipment:'Row／Sled／壺鈴／啞鈴／Sandbag',
-  total:'跑步：0 km｜Row：2.3 km｜Kettlebell + Sled strength',
-  build(){
-    const seq=[
-      ['Kettlebell Goblet Squat','20 reps'],
-      ['Kettlebell Swing','20 reps'],
-      ['Farmers Carry','100 m · RPE 6–7'],
-      ['Row','600 m'],
-      ['Sled Push','40 m · RPE 7'],
-      ['Dumbbell Bench Press','15 reps'],
-      ['Front Rack Carry','40 m / side'],
-      ['Row','600 m'],
-      ['Sled Pull','40 m · RPE 7'],
-      ['Box Step-Up','24 reps · weighted'],
-      ['Dumbbell Shoulder Press','15 reps'],
-      ['Row','600 m'],
-      ['Kettlebell Deadlift','20 reps'],
-      ['Sandbag Carry','100 m'],
-      ['Lat Pulldown','15 reps'],
-      ['Sandbag Front Squat','15 reps'],
-      ['Row','500 m · hard'],
-      ['Kettlebell Swing','20 reps']
-    ];
-    return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
-  }
-},
+  strengthBoost:{
+    id:'strengthBoost',
+    label:'力量強化',
+    duration:'約 60–75 分鐘',
+    intensity:4,
+    description:'以全身力量與力量耐力為主，Row 穿插在力量區塊之間維持心肺壓力；最後以 500 m hard Row 作為 finisher，避免連續兩段 Row 重複。',
+    equipment:'Row／Sled／壺鈴／啞鈴／Sandbag',
+    total:'跑步：0 km｜Row：2.3 km｜Kettlebell + Sled strength',
+    build(){
+      const seq=[
+        ['Kettlebell Goblet Squat','20 reps'],
+        ['Kettlebell Swing','20 reps'],
+        ['Farmers Carry','100 m · RPE 6–7'],
+        ['Row','600 m'],
+        ['Sled Push','40 m · RPE 7'],
+        ['Dumbbell Bench Press','15 reps'],
+        ['Front Rack Carry','40 m / side'],
+        ['Row','600 m'],
+        ['Sled Pull','40 m · RPE 7'],
+        ['Box Step-Up','24 reps · weighted'],
+        ['Dumbbell Shoulder Press','15 reps'],
+        ['Row','600 m'],
+        ['Kettlebell Deadlift','20 reps'],
+        ['Sandbag Carry','100 m'],
+        ['Lat Pulldown','15 reps'],
+        ['Sandbag Front Squat','15 reps'],
+        ['Row','500 m · hard'],
+        ['Kettlebell Swing','20 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
 
   lineBoost:{
     id:'lineBoost',
@@ -398,108 +398,108 @@ strengthBoost:{
     }
   },
 
-shoulderBackSculpt:{
-  id:'shoulderBackSculpt',
-  label:'肩背線條雕塑',
-  duration:'約 55–70 分鐘',
-  intensity:5,
-  description:'肩背主導的 conditioning。以 TRX、啞鈴、壺鈴、藥球、carry 與自體重量維持連續工作，著重肩胛控制、肩背肌耐力、握力與核心穩定，和一般上肢重訓做出區隔。',
-  equipment:'TRX／藥球／啞鈴／壺鈴／自體重量',
-  total:'跑步：0 km｜無固定式機械／無槓鈴｜Upper-body conditioning',
-  build(){
-    const seq=[
-      ['Medicine Ball Slam','15 reps'],
-      ['TRX Row','15 reps'],
-      ['Dumbbell Push Press','12 reps'],
-      ['Farmers Carry','80 m · RPE 6–7'],
-      ['Kettlebell Swing','20 reps'],
-      ['TRX Y Raise','12 reps'],
-      ['Bear Crawl','20 m'],
-      ['Dumbbell Lateral Raise','15 reps'],
-      ['Medicine Ball Slam','15 reps'],
-      ['Renegade Row','10 reps / side'],
-      ['Overhead Carry','30 m / side'],
-      ['TRX Face Pull','15 reps'],
-      ['Push-Up','15 reps'],
-      ['Kettlebell Halo','10 reps / side'],
-      ['TRX Reverse Fly','12 reps'],
-      ['Plank Shoulder Tap','15 reps / side'],
-      ['Farmers Carry','100 m · RPE 6–7'],
-      ['Medicine Ball Slam','20 reps']
-    ];
-    return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
-  }
-},
+  shoulderBackSculpt:{
+    id:'shoulderBackSculpt',
+    label:'肩背線條雕塑',
+    duration:'約 55–70 分鐘',
+    intensity:5,
+    description:'肩背主導的 conditioning。以 TRX、啞鈴、壺鈴、藥球、carry 與自體重量維持連續工作，著重肩胛控制、肩背肌耐力、握力與核心穩定，和一般上肢重訓做出區隔。',
+    equipment:'TRX／藥球／啞鈴／壺鈴／自體重量',
+    total:'跑步：0 km｜無固定式機械／無槓鈴｜Upper-body conditioning',
+    build(){
+      const seq=[
+        ['Medicine Ball Slam','15 reps'],
+        ['TRX Row','15 reps'],
+        ['Dumbbell Push Press','12 reps'],
+        ['Farmers Carry','80 m · RPE 6–7'],
+        ['Kettlebell Swing','20 reps'],
+        ['TRX Y Raise','12 reps'],
+        ['Bear Crawl','20 m'],
+        ['Dumbbell Lateral Raise','15 reps'],
+        ['Medicine Ball Slam','15 reps'],
+        ['Renegade Row','10 reps / side'],
+        ['Overhead Carry','30 m / side'],
+        ['TRX Face Pull','15 reps'],
+        ['Push-Up','15 reps'],
+        ['Kettlebell Halo','10 reps / side'],
+        ['TRX Reverse Fly','12 reps'],
+        ['Plank Shoulder Tap','15 reps / side'],
+        ['Farmers Carry','100 m · RPE 6–7'],
+        ['Medicine Ball Slam','20 reps']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
 
-slimWaist:{
-  id:'slimWaist',
-  label:'小蠻腰挑戰',
-  duration:'約 55–70 分鐘',
-  intensity:5,
-  description:'以 Box 原地登階維持心肺，搭配 carry、TRX、藥球、瑜珈球與核心控制。重點是軀幹穩定、腰腹肌耐力與全身 conditioning，不依賴 cable、Sled 或固定式機台。',
-  equipment:'Box／TRX／藥球／瑜珈球／啞鈴／壺鈴',
-  total:'跑步：0 km｜Box Step-Up：約 9 分鐘｜Core + Carry + Medicine Ball conditioning',
-  build(){
-    const seq=[
-      ['Box Step-Up','3 min · 穩定節奏'],
-      ['Kettlebell Swing','20 reps'],
-      ['Suitcase Carry','40 m / side'],
-      ['TRX Knee Tuck','12–15 reps'],
-      ['Medicine Ball Slam','15 reps'],
-      ['Wall Sit','45 sec · 可抱藥球'],
-      ['Box Step-Up','3 min · 穩定節奏'],
-      ['Stability Ball Stir-the-Pot','10 circles / direction'],
-      ['Dumbbell Walking Lunge','24 reps'],
-      ['Medicine Ball Russian Twist','20 reps / side'],
-      ['Front Rack Carry','60 m · RPE 6–7'],
-      ['Wall Sit','45 sec · Medicine Ball Hold'],
-      ['Box Step-Up','3 min · 稍快'],
-      ['Stability Ball Rollout','12–15 reps'],
-      ['Medicine Ball Slam','20 reps'],
-      ['Renegade Row','10 reps / side'],
-      ['TRX Body Saw','12 reps'],
-      ['Side Plank Hip Lift','12 reps / side'],
-      ['Hollow Body Hold','30–40 sec'],
-      ['Plank','60 sec']
-    ];
-    return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
-  }
-},
+  slimWaist:{
+    id:'slimWaist',
+    label:'小蠻腰挑戰',
+    duration:'約 55–70 分鐘',
+    intensity:5,
+    description:'以 Box 原地登階維持心肺，搭配 carry、TRX、藥球、瑜珈球與核心控制。重點是軀幹穩定、腰腹肌耐力與全身 conditioning，不依賴 cable、Sled 或固定式機台。',
+    equipment:'Box／TRX／藥球／瑜珈球／啞鈴／壺鈴',
+    total:'跑步：0 km｜Box Step-Up：約 9 分鐘｜Core + Carry + Medicine Ball conditioning',
+    build(){
+      const seq=[
+        ['Box Step-Up','3 min · 穩定節奏'],
+        ['Kettlebell Swing','20 reps'],
+        ['Suitcase Carry','40 m / side'],
+        ['TRX Knee Tuck','12–15 reps'],
+        ['Medicine Ball Slam','15 reps'],
+        ['Wall Sit','45 sec · 可抱藥球'],
+        ['Box Step-Up','3 min · 穩定節奏'],
+        ['Stability Ball Stir-the-Pot','10 circles / direction'],
+        ['Dumbbell Walking Lunge','24 reps'],
+        ['Medicine Ball Russian Twist','20 reps / side'],
+        ['Front Rack Carry','60 m · RPE 6–7'],
+        ['Wall Sit','45 sec · Medicine Ball Hold'],
+        ['Box Step-Up','3 min · 稍快'],
+        ['Stability Ball Rollout','12–15 reps'],
+        ['Medicine Ball Slam','20 reps'],
+        ['Renegade Row','10 reps / side'],
+        ['TRX Body Saw','12 reps'],
+        ['Side Plank Hip Lift','12 reps / side'],
+        ['Hollow Body Hold','30–40 sec'],
+        ['Plank','60 sec']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
 
-zeroRunEndurance:{
-  id:'zeroRunEndurance',
-  label:'無跑步肌耐力訓練',
-  duration:'約 75–90 分鐘',
-  intensity:6,
-  description:'高密度全身肌耐力，走路只作為短暫 transition，不是主體。Sled、Carry、Sandbag、Kettlebell、上肢推拉與核心交錯，和「今天不跑步」的長時間 walk endurance 做出區隔。',
-  equipment:'跑步機或快走空間／Sled／壺鈴／啞鈴／Sandbag／Wall Ball',
-  total:'跑步：0 km｜Brisk / Incline Walk：約 28 分鐘｜High-density muscular endurance',
-  build(){
-    const seq=[
-      ['Incline Walk','6 min'],
-      ['Sled Push','40 m · RPE 7'],
-      ['Kettlebell Goblet Squat','25 reps'],
-      ['Dumbbell Row','15 reps / side'],
-      ['Brisk Walk','5 min'],
-      ['Sled Pull','40 m · RPE 7'],
-      ['Farmers Carry','160 m · RPE 6–7'],
-      ['Sandbag Lunges','30 reps'],
-      ['Incline Walk','6 min'],
-      ['Dumbbell Bench Press','20 reps'],
-      ['Kettlebell Swing','25 reps'],
-      ['Box Step-Up','24 reps · weighted'],
-      ['Brisk Walk','5 min'],
-      ['Dumbbell Shoulder Press','20 reps'],
-      ['Wall Balls','40 reps'],
-      ['Suitcase Carry','120 m total'],
-      ['Incline Walk','6 min · hard'],
-      ['Plank Reach','24 total'],
-      ['Reverse Crunch','20 reps'],
-      ['Plank','60 sec']
-    ];
-    return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
-  }
-},
+  zeroRunEndurance:{
+    id:'zeroRunEndurance',
+    label:'無跑步肌耐力訓練',
+    duration:'約 75–90 分鐘',
+    intensity:6,
+    description:'高密度全身肌耐力，走路只作為短暫 transition，不是主體。Sled、Carry、Sandbag、Kettlebell、上肢推拉與核心交錯，和「今天不跑步」的長時間 walk endurance 做出區隔。',
+    equipment:'跑步機或快走空間／Sled／壺鈴／啞鈴／Sandbag／Wall Ball',
+    total:'跑步：0 km｜Brisk / Incline Walk：約 28 分鐘｜High-density muscular endurance',
+    build(){
+      const seq=[
+        ['Incline Walk','6 min'],
+        ['Sled Push','40 m · RPE 7'],
+        ['Kettlebell Goblet Squat','25 reps'],
+        ['Dumbbell Row','15 reps / side'],
+        ['Brisk Walk','5 min'],
+        ['Sled Pull','40 m · RPE 7'],
+        ['Farmers Carry','160 m · RPE 6–7'],
+        ['Sandbag Lunges','30 reps'],
+        ['Incline Walk','6 min'],
+        ['Dumbbell Bench Press','20 reps'],
+        ['Kettlebell Swing','25 reps'],
+        ['Box Step-Up','24 reps · weighted'],
+        ['Brisk Walk','5 min'],
+        ['Dumbbell Shoulder Press','20 reps'],
+        ['Wall Balls','40 reps'],
+        ['Suitcase Carry','120 m total'],
+        ['Incline Walk','6 min · hard'],
+        ['Plank Reach','24 total'],
+        ['Reverse Crunch','20 reps'],
+        ['Plank','60 sec']
+      ];
+      return seq.map(x=>({name:x[0],detail:x[1],distance_m:x[2]||null}));
+    }
+  },
 
   tyrunTest:{
     id:'tyrunTest',
@@ -664,43 +664,46 @@ zeroRunEndurance:{
 
   limitedGymL7:{
     id:'limitedGymL7',
-    label:'Hybrid Endurance',
-    duration:'約 45–60 分鐘',
+    label:'有限器材 HYROX',
+    duration:'約 55–70 分鐘',
     intensity:7,
-    description:'四輪較高強度 hybrid endurance，每輪動作不同。用 Bike／Elliptical 建立持續心肺壓力，再穿插 swing 變化、step-up、goblet squat、reverse lunge、上肢推拉與核心；難度提高但避免每輪都堆疊多個腿部動作。',
-    equipment:'腳踏車機／橢圓機／壺鈴／啞鈴／大木箱／自體重量',
-    total:'Cardio：16 min｜4 rounds｜高強度 Hybrid endurance',
+    description:'有限器材版 HYROX 專項 conditioning。以橢圓機取代跑步心肺負荷，使用壺鈴、TRX、Box、輔助引體與自體重量模擬 SkiErg／Sled Push／Sled Pull／Burpee Broad Jump／Row／Farmers Carry／Sandbag Lunges／Wall Ball 所需的力量耐力與疲勞下輸出。',
+    equipment:'橢圓機／壺鈴／啞鈴／TRX／Box／輔助引體設備／自體重量',
+    total:'Elliptical：16 min｜4 Blocks｜Weighted Lunges：60 reps｜Kettlebell Thruster：50 reps',
     build(){
-      const item=(round,name,detail,distance_m=null)=>({
+      const item=(block,name,detail,distance_m=null)=>({
         name,detail,distance_m,
-        block_index:round,
+        block_index:block,
         block_rounds:1,
         block_rest:'—'
       });
       return [
-        item(1,'Bike','4 min · hard but sustainable'),
-        item(1,'Kettlebell Swing','24 reps'),
-        item(1,'Kettlebell Goblet Squat','12 reps'),
-        item(1,'Single-Arm Kettlebell Row','12 reps / side'),
-        item(1,'Plank Drag','12 reps / side'),
+        // Block 1 — Run + Ski / Sled Push capacity
+        item(1,'Elliptical','4 min · RPE 7–8'),
+        item(1,'Kettlebell Swing','50 reps · 12–16 kg'),
+        item(1,'Weighted Box Step-Up','30 reps total · 10–16 kg'),
+        item(1,'Kettlebell Goblet Squat','30 reps · 12–16 kg'),
+        item(1,'TRX Fallout','25 reps'),
 
-        item(2,'Bike','4 min · hard but sustainable'),
-        item(2,'Alternating-Hand Kettlebell Swing','24 reps'),
-        item(2,'Weighted Box Step-Up','8 reps / side · bodyweight–8 kg'),
-        item(2,'Kettlebell Push Press','12 reps · 6–10 kg'),
-        item(2,'Leg Raise','15 reps'),
+        // Block 2 — Run + Sled Pull / Burpee capacity
+        item(2,'Elliptical','4 min · RPE 7–8'),
+        item(2,'Single-Arm Kettlebell Row','40 reps total · 12–16 kg'),
+        item(2,'TRX Row','30 reps'),
+        item(2,'Assisted Pull-Up','20 reps'),
+        item(2,'Devil Press','25 reps · controlled pace'),
 
-        item(3,'Elliptical','4 min · hard but sustainable'),
-        item(3,'Double Kettlebell Skier Swing','20 reps'),
-        item(3,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
-        item(3,'Single-Arm Kettlebell Row','12 reps / side'),
-        item(3,'Plank Drag','12 reps / side'),
+        // Block 3 — Run + Row / Farmers Carry capacity
+        item(3,'Elliptical','4 min · RPE 7–8'),
+        item(3,'Kettlebell Swing','40 reps · 16 kg'),
+        item(3,'Kettlebell Suitcase March','60 sec / side · heavy'),
+        item(3,'Kettlebell Front-Rack March','30 sec / side · heavy'),
+        item(3,'Plank Shoulder Tap','30 reps total'),
 
-        item(4,'Elliptical','4 min · hard but sustainable'),
-        item(4,'Side-to-Side Kettlebell Swing','24 reps'),
-        item(4,'Kettlebell Goblet Squat','12 reps'),
-        item(4,'Dumbbell Thruster','10 reps'),
-        item(4,'Leg Raise','15 reps')
+        // Block 4 — Run + Sandbag Lunge / Wall Ball capacity
+        item(4,'Elliptical','4 min · RPE 8 · final 1 min faster'),
+        item(4,'Weighted Walking Lunges','40 reps total · 10 kg'),
+        item(4,'Weighted Reverse Lunges','20 reps total · 10 kg'),
+        item(4,'Kettlebell Thruster','50 reps · 6–8 kg · Wall Ball substitute')
       ];
     }
   },
