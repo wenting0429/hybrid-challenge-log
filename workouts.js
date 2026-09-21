@@ -538,6 +538,173 @@ zeroRunEndurance:{
     }
   },
 
+  limitedGymL4:{
+    id:'limitedGymL4',
+    label:'壺鈴基礎耐力',
+    duration:'約 30–40 分鐘',
+    intensity:4,
+    description:'場地限制版基礎 hybrid conditioning。使用橢圓機、壺鈴、大木箱與核心動作；第一輪從一般 swing 開始，後續加入變化。控制腿部總量，適合每週 2–3 次 HYROX 配合兩次全身重訓。',
+    equipment:'橢圓機／壺鈴／大木箱／自體重量',
+    total:'Elliptical：9 min｜3 rounds｜全身肌耐力＋核心',
+    build(){
+      const item=(round,name,detail,distance_m=null)=>({
+        name,detail,distance_m,
+        block_index:round,
+        block_rounds:1,
+        block_rest:'—'
+      });
+      return [
+        item(1,'Elliptical','3 min'),
+        item(1,'Kettlebell Swing','20 reps · 8–12 kg'),
+        item(1,'Weighted Box Step-Up','8 reps / side · bodyweight–6 kg'),
+        item(1,'Single-Arm Kettlebell Row','10 reps / side · 8–12 kg'),
+        item(1,'Leg Raise','12 reps'),
+        item(1,'Plank Drag','10 reps / side'),
+
+        item(2,'Elliptical','3 min'),
+        item(2,'Alternating-Hand Kettlebell Swing','20 reps · 8–12 kg'),
+        item(2,'Weighted Box Step-Up','8 reps / side · bodyweight–6 kg'),
+        item(2,'Single-Arm Kettlebell Row','10 reps / side · 8–12 kg'),
+        item(2,'Leg Raise','12 reps'),
+        item(2,'Plank Drag','10 reps / side'),
+
+        item(3,'Elliptical','3 min'),
+        item(3,'Side-to-Side Kettlebell Swing','20 reps · 8–12 kg'),
+        item(3,'Weighted Box Step-Up','8 reps / side · bodyweight–6 kg'),
+        item(3,'Single-Arm Kettlebell Row','10 reps / side · 8–12 kg'),
+        item(3,'Leg Raise','12 reps'),
+        item(3,'Plank Drag','10 reps / side')
+      ];
+    }
+  },
+
+  limitedGymL5:{
+    id:'limitedGymL5',
+    label:'心肺肌耐力',
+    duration:'約 35–45 分鐘',
+    intensity:5,
+    description:'跑步與壺鈴全身肌耐力交錯。保留 squat、push、pull 與核心，但避免同一堂加入過多 lunge／step-up，降低與重訓及其他 HYROX 日的腿部量重疊。',
+    equipment:'跑步機／壺鈴／自體重量',
+    total:'Treadmill：1.5 km｜3 rounds｜Cardio + muscular endurance',
+    build(){
+      const item=(round,name,detail,distance_m=null)=>({
+        name,detail,distance_m,
+        block_index:round,
+        block_rounds:1,
+        block_rest:'—'
+      });
+      return [
+        item(1,'Treadmill','500 m',500),
+        item(1,'Kettlebell Swing','20 reps · 10–14 kg'),
+        item(1,'Kettlebell Goblet Squat','12 reps'),
+        item(1,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(1,'Single-Arm Kettlebell Row','10 reps / side · 8–12 kg'),
+        item(1,'Leg Raise','15 reps'),
+
+        item(2,'Treadmill','500 m',500),
+        item(2,'Alternating-Hand Kettlebell Swing','20 reps · 10–14 kg'),
+        item(2,'Kettlebell Goblet Squat','12 reps'),
+        item(2,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(2,'Single-Arm Kettlebell Row','10 reps / side · 8–12 kg'),
+        item(2,'Plank Drag','10 reps / side'),
+
+        item(3,'Treadmill','500 m',500),
+        item(3,'Side-to-Side Kettlebell Swing','20 reps · 10–14 kg'),
+        item(3,'Kettlebell Goblet Squat','12 reps'),
+        item(3,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(3,'Single-Arm Kettlebell Row','10 reps / side · 8–12 kg'),
+        item(3,'Leg Raise','15 reps')
+      ];
+    }
+  },
+
+  limitedGymL6:{
+    id:'limitedGymL6',
+    label:'HYROX Conditioning',
+    duration:'約 45–55 分鐘',
+    intensity:6,
+    description:'四輪場地限制版 HYROX conditioning。用橢圓機維持持續心肺，swing 變化、push press、核心與少量 reverse lunge 建立疲勞下全身輸出；不使用 Sled、Sandbag、Wall Ball 或 Farmers Carry。',
+    equipment:'橢圓機／壺鈴／瑜珈球／自體重量',
+    total:'Elliptical：16 min｜4 rounds｜全身 conditioning',
+    build(){
+      const item=(round,name,detail,distance_m=null)=>({
+        name,detail,distance_m,
+        block_index:round,
+        block_rounds:1,
+        block_rest:'—'
+      });
+      return [
+        item(1,'Elliptical','4 min'),
+        item(1,'Kettlebell Swing','20 reps · 10–14 kg'),
+        item(1,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(1,'Plank Drag','10 reps / side'),
+        item(1,'Stability Ball Knee Tuck','12 reps'),
+
+        item(2,'Elliptical','4 min'),
+        item(2,'Alternating-Hand Kettlebell Swing','20 reps · 10–14 kg'),
+        item(2,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
+        item(2,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(2,'Stability Ball Knee Tuck','12 reps'),
+
+        item(3,'Elliptical','4 min'),
+        item(3,'Double Kettlebell Skier Swing','20 reps'),
+        item(3,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(3,'Plank Drag','10 reps / side'),
+        item(3,'Stability Ball Knee Tuck','12 reps'),
+
+        item(4,'Elliptical','4 min'),
+        item(4,'Side-to-Side Kettlebell Swing','20 reps · 10–14 kg'),
+        item(4,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
+        item(4,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(4,'Plank Drag','10 reps / side'),
+        item(4,'Stability Ball Knee Tuck','12 reps')
+      ];
+    }
+  },
+
+  limitedGymL7:{
+    id:'limitedGymL7',
+    label:'Hybrid Endurance',
+    duration:'約 45–60 分鐘',
+    intensity:7,
+    description:'四輪較高強度 hybrid endurance，每輪動作不同。用 Bike／Elliptical 建立持續心肺壓力，再穿插 swing 變化、step-up、goblet squat、reverse lunge、上肢推拉與核心；難度提高但避免每輪都堆疊多個腿部動作。',
+    equipment:'腳踏車機／橢圓機／壺鈴／啞鈴／大木箱／自體重量',
+    total:'Cardio：16 min｜4 rounds｜高強度 Hybrid endurance',
+    build(){
+      const item=(round,name,detail,distance_m=null)=>({
+        name,detail,distance_m,
+        block_index:round,
+        block_rounds:1,
+        block_rest:'—'
+      });
+      return [
+        item(1,'Bike','4 min · hard but sustainable'),
+        item(1,'Kettlebell Swing','24 reps'),
+        item(1,'Kettlebell Goblet Squat','12 reps'),
+        item(1,'Single-Arm Kettlebell Row','12 reps / side'),
+        item(1,'Plank Drag','12 reps / side'),
+
+        item(2,'Bike','4 min · hard but sustainable'),
+        item(2,'Alternating-Hand Kettlebell Swing','24 reps'),
+        item(2,'Weighted Box Step-Up','8 reps / side · bodyweight–8 kg'),
+        item(2,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(2,'Leg Raise','15 reps'),
+
+        item(3,'Elliptical','4 min · hard but sustainable'),
+        item(3,'Double Kettlebell Skier Swing','20 reps'),
+        item(3,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
+        item(3,'Single-Arm Kettlebell Row','12 reps / side'),
+        item(3,'Plank Drag','12 reps / side'),
+
+        item(4,'Elliptical','4 min · hard but sustainable'),
+        item(4,'Side-to-Side Kettlebell Swing','24 reps'),
+        item(4,'Kettlebell Goblet Squat','12 reps'),
+        item(4,'Dumbbell Thruster','10 reps'),
+        item(4,'Leg Raise','15 reps')
+      ];
+    }
+  },
+
   // Legacy aliases keep old saved results readable after the rename.
   heavyDay:null,
   dualEngine:null,
