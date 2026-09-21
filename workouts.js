@@ -664,12 +664,12 @@ const RACE_TEMPLATES={
 
   limitedGymL7:{
     id:'limitedGymL7',
-    label:'有限器材 HYROX',
+    label:'有限器材疲勞適應＋腹肌線條',
     duration:'約 55–70 分鐘',
     intensity:7,
-    description:'有限器材版 HYROX 專項 conditioning。以橢圓機取代跑步心肺負荷，使用壺鈴、TRX、Box、輔助引體與自體重量模擬 SkiErg／Sled Push／Sled Pull／Burpee Broad Jump／Row／Farmers Carry／Sandbag Lunges／Wall Ball 所需的力量耐力與疲勞下輸出。',
+    description:'有限器材高疲勞 conditioning。以橢圓機反覆拉高心率，再穿插下肢、上肢與核心肌耐力動作，訓練疲勞狀態下持續輸出的能力；同時提高腹直肌、腹斜肌與核心穩定的訓練量。此菜單不是 HYROX 模擬賽，而是為 hybrid race 建立疲勞適應與腹部肌耐力。',
     equipment:'橢圓機／壺鈴／啞鈴／TRX／Box／輔助引體設備／自體重量',
-    total:'Elliptical：16 min｜4 Blocks｜Weighted Lunges：60 reps｜Kettlebell Thruster：50 reps',
+    total:'Elliptical：16 min｜4 Blocks｜High-fatigue conditioning＋Core emphasis',
     build(){
       const item=(block,name,detail,distance_m=null)=>({
         name,detail,distance_m,
@@ -678,32 +678,37 @@ const RACE_TEMPLATES={
         block_rest:'—'
       });
       return [
-        // Block 1 — Run + Ski / Sled Push capacity
-        item(1,'Elliptical','4 min · RPE 7–8'),
-        item(1,'Kettlebell Swing','50 reps · 12–16 kg'),
-        item(1,'Weighted Box Step-Up','30 reps total · 10–16 kg'),
-        item(1,'Kettlebell Goblet Squat','30 reps · 12–16 kg'),
-        item(1,'TRX Fallout','25 reps'),
+        // Block 1 — Cardio fatigue + full-body push/pull + anterior core
+        item(1,'Elliptical','4 min'),
+        item(1,'Weighted Lunges','30 reps total'),
+        item(1,'Kettlebell Thruster','50 reps'),
+        item(1,'Assisted Pull-Up','20 reps'),
+        item(1,'Plank Reach','40 reps total'),
+        item(1,'V-Up','30 reps'),
 
-        // Block 2 — Run + Sled Pull / Burpee capacity
-        item(2,'Elliptical','4 min · RPE 7–8'),
-        item(2,'Single-Arm Kettlebell Row','40 reps total · 12–16 kg'),
-        item(2,'TRX Row','30 reps'),
-        item(2,'Assisted Pull-Up','20 reps'),
-        item(2,'Devil Press','25 reps · controlled pace'),
+        // Block 2 — Lower body + upper push/pull + rotational/posterior core
+        item(2,'Elliptical','4 min'),
+        item(2,'Weighted Reverse Lunges','30 reps total'),
+        item(2,'Single-Arm Kettlebell Row','50 reps total'),
+        item(2,'Push-Up','20 reps'),
+        item(2,'Weighted Russian Twist','40 reps total'),
+        item(2,'Superman','30 reps'),
 
-        // Block 3 — Run + Row / Farmers Carry capacity
-        item(3,'Elliptical','4 min · RPE 7–8'),
-        item(3,'Kettlebell Swing','40 reps · 16 kg'),
-        item(3,'Kettlebell Suitcase March','60 sec / side · heavy'),
-        item(3,'Kettlebell Front-Rack March','30 sec / side · heavy'),
-        item(3,'Plank Shoulder Tap','30 reps total'),
+        // Block 3 — Leg endurance + hip power + lower-ab/dynamic core
+        item(3,'Elliptical','4 min'),
+        item(3,'Weighted Box Step-Up','30 reps total'),
+        item(3,'Kettlebell Swing','50 reps'),
+        item(3,'TRX Row','20 reps'),
+        item(3,'Leg Raise','40 reps'),
+        item(3,'Mountain Climber','50 reps total'),
 
-        // Block 4 — Run + Sandbag Lunge / Wall Ball capacity
-        item(4,'Elliptical','4 min · RPE 8 · final 1 min faster'),
-        item(4,'Weighted Walking Lunges','40 reps total · 10 kg'),
-        item(4,'Weighted Reverse Lunges','20 reps total · 10 kg'),
-        item(4,'Kettlebell Thruster','50 reps · 6–8 kg · Wall Ball substitute')
+        // Block 4 — Final fatigue + anti-rotation/anti-extension + finisher
+        item(4,'Elliptical','4 min'),
+        item(4,'Kettlebell Goblet Squat','30 reps'),
+        item(4,'Kettlebell Side-to-Side Swing','50 reps total'),
+        item(4,'Plank Shoulder Tap','30 reps total'),
+        item(4,'TRX Fallout','30 reps'),
+        item(4,'Devil Press','30 reps')
       ];
     }
   },
