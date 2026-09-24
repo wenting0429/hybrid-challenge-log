@@ -456,6 +456,59 @@
 <script src="./workouts.js"></script>
 <script src="./app.js"></script>
 
+<!-- Daily score wall sorting override:
+     1) Level high -> low
+     2) Same Level: workout name descending
+     3) Same workout: template rank #01 -> #02 -> #03
+     HYROX / TYRUN sorting is unchanged. -->
+<script>
+(function(){
+  if (typeof dailyRows !== 'function' || typeof dailyTemplateRankMap !== 'function') return;
+
+  dailyRows = function(){
+    const rankMap = dailyTemplateRankMap();
+
+    return allResults
+      .filter(r => isSimulationType(r.workout_type) && Number(r.total_seconds) > 0)
+      .sort((a, b) => {
+        const aId = simulationTemplateIdForRow(a);
+        const bId = simulationTemplateIdForRow(b);
+
+        const aTemplate = RACE_TEMPLATES[aId] || {};
+        const bTemplate = RACE_TEMPLATES[bId] || {};
+
+        // 1. Higher Level first.
+        const aLevel = levelNumber(Number(aTemplate.intensity) || 1);
+        const bLevel = levelNumber(Number(bTemplate.intensity) || 1);
+        if (aLevel !== bLevel) return bLevel - aLevel;
+
+        // 2. Same Level: workout name descending.
+        // This matches the requested example where "xxx" appears before "bbb".
+        const aName = String(aTemplate.label || cleanStoredTitle(a) || '');
+        const bName = String(bTemplate.label || cleanStoredTitle(b) || '');
+        const nameCompare = bName.localeCompare(aName, 'zh-Hant', {
+          numeric: true,
+          sensitivity: 'base'
+        });
+        if (nameCompare !== 0) return nameCompare;
+
+        // 3. Same Level + same workout: #01, #02, #03 ...
+        const aRank = rankMap.get(String(a.id)) || 999999;
+        const bRank = rankMap.get(String(b.id)) || 999999;
+        if (aRank !== bRank) return aRank - bRank;
+
+        // Stable final tie-breaker: newer record first.
+        return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+      });
+  };
+
+  // If results were already rendered before this override loaded, refresh once.
+  if (typeof renderWall === 'function' && typeof allResults !== 'undefined' && Array.isArray(allResults) && allResults.length) {
+    renderWall();
+  }
+})();
+</script>
+
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
