@@ -620,6 +620,50 @@ zeroRunEndurance:{
 
   limitedGymL6:{
     id:'limitedGymL6',
+    label:'HYROX Conditioning',
+    duration:'約 45–55 分鐘',
+    intensity:6,
+    description:'四輪場地限制版 HYROX conditioning。用橢圓機維持持續心肺，swing 變化、push press、核心與少量 reverse lunge 建立疲勞下全身輸出；不使用 Sled、Sandbag、Wall Ball 或 Farmers Carry。',
+    equipment:'橢圓機／壺鈴／瑜珈球／自體重量',
+    total:'Elliptical：16 min｜4 rounds｜全身 conditioning',
+    build(){
+      const item=(round,name,detail,distance_m=null)=>({
+        name,detail,distance_m,
+        block_index:round,
+        block_rounds:1,
+        block_rest:'—'
+      });
+      return [
+        item(1,'Elliptical','4 min'),
+        item(1,'Kettlebell Swing','20 reps · 10–14 kg'),
+        item(1,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(1,'Plank Drag','10 reps / side'),
+        item(1,'Stability Ball Knee Tuck','12 reps'),
+
+        item(2,'Elliptical','4 min'),
+        item(2,'Alternating-Hand Kettlebell Swing','20 reps · 10–14 kg'),
+        item(2,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
+        item(2,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(2,'Stability Ball Knee Tuck','12 reps'),
+
+        item(3,'Elliptical','4 min'),
+        item(3,'Double Kettlebell Skier Swing','20 reps'),
+        item(3,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(3,'Plank Drag','10 reps / side'),
+        item(3,'Stability Ball Knee Tuck','12 reps'),
+
+        item(4,'Elliptical','4 min'),
+        item(4,'Side-to-Side Kettlebell Swing','20 reps · 10–14 kg'),
+        item(4,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
+        item(4,'Kettlebell Push Press','12 reps · 6–10 kg'),
+        item(4,'Plank Drag','10 reps / side'),
+        item(4,'Stability Ball Knee Tuck','12 reps')
+      ];
+    }
+  },
+
+  limitedMetabolicNoRun:{
+    id:'limitedMetabolicNoRun',
     label:'有限器材 × 促進代謝 × 無跑',
     duration:'約 40–50 分鐘',
     intensity:6,
