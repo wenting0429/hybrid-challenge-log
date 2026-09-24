@@ -456,55 +456,121 @@
 <script src="./workouts.js"></script>
 <script src="./app.js"></script>
 
-<!-- Daily score wall sorting override:
+<!-- Daily score wall visual sorting patch · 2026-09-24
+     Display order only:
      1) Level high -> low
-     2) Same Level: workout name descending
-     3) Same workout: template rank #01 -> #02 -> #03
-     HYROX / TYRUN sorting is unchanged. -->
+     2) Same Level -> workout name descending
+     3) Same workout -> rank #01 -> #02 -> #03
+     HYROX / TYRUN are untouched. -->
 <script>
 (function(){
-  if (typeof dailyRows !== 'function' || typeof dailyTemplateRankMap !== 'function') return;
+  const DAILY_BOX_ID = 'dailyResults';
+  let sorting = false;
+  let scheduled = false;
 
-  dailyRows = function(){
-    const rankMap = dailyTemplateRankMap();
+  function parseDailyRow(row, originalIndex){
+    const titleEl = row.querySelector('.wall-entry-title');
+    const rankEl = row.querySelector('.wall-entry-rank strong');
+    const title = String(titleEl?.textContent || '').trim();
+    const rankText = String(rankEl?.textContent || '').trim();
 
-    return allResults
-      .filter(r => isSimulationType(r.workout_type) && Number(r.total_seconds) > 0)
-      .sort((a, b) => {
-        const aId = simulationTemplateIdForRow(a);
-        const bId = simulationTemplateIdForRow(b);
+    const levelMatch = title.match(/\bLevel\s*(\d+)\b/i);
+    const level = levelMatch ? Number(levelMatch[1]) : -1;
 
-        const aTemplate = RACE_TEMPLATES[aId] || {};
-        const bTemplate = RACE_TEMPLATES[bId] || {};
+    // dailyResultRow renders: "Level N: workout name"
+    const name = title
+      .replace(/^\s*Level\s*\d+\s*[:：|｜-]?\s*/i, '')
+      .trim();
 
-        // 1. Higher Level first.
-        const aLevel = levelNumber(Number(aTemplate.intensity) || 1);
-        const bLevel = levelNumber(Number(bTemplate.intensity) || 1);
-        if (aLevel !== bLevel) return bLevel - aLevel;
+    const rankMatch = rankText.match(/(\d+)/);
+    const rank = rankMatch ? Number(rankMatch[1]) : Number.MAX_SAFE_INTEGER;
 
-        // 2. Same Level: workout name descending.
-        // This matches the requested example where "xxx" appears before "bbb".
-        const aName = String(aTemplate.label || cleanStoredTitle(a) || '');
-        const bName = String(bTemplate.label || cleanStoredTitle(b) || '');
-        const nameCompare = bName.localeCompare(aName, 'zh-Hant', {
-          numeric: true,
-          sensitivity: 'base'
-        });
-        if (nameCompare !== 0) return nameCompare;
+    return { row, level, name, rank, originalIndex };
+  }
 
-        // 3. Same Level + same workout: #01, #02, #03 ...
-        const aRank = rankMap.get(String(a.id)) || 999999;
-        const bRank = rankMap.get(String(b.id)) || 999999;
-        if (aRank !== bRank) return aRank - bRank;
+  function compareDailyRows(a, b){
+    // 1. Higher Level first.
+    if (a.level !== b.level) return b.level - a.level;
 
-        // Stable final tie-breaker: newer record first.
-        return String(b.created_at || '').localeCompare(String(a.created_at || ''));
-      });
-  };
+    // 2. Same Level: workout name descending.
+    // Requested example: xxx before bbb.
+    const nameCompare = b.name.localeCompare(a.name, 'zh-Hant', {
+      numeric: true,
+      sensitivity: 'base'
+    });
+    if (nameCompare !== 0) return nameCompare;
 
-  // If results were already rendered before this override loaded, refresh once.
-  if (typeof renderWall === 'function' && typeof allResults !== 'undefined' && Array.isArray(allResults) && allResults.length) {
-    renderWall();
+    // 3. Same Level + same workout: #01, #02, #03 ...
+    if (a.rank !== b.rank) return a.rank - b.rank;
+
+    // Stable fallback.
+    return a.originalIndex - b.originalIndex;
+  }
+
+  function sortDailyWallNow(){
+    if (sorting) return;
+    const box = document.getElementById(DAILY_BOX_ID);
+    if (!box) return;
+
+    const rows = Array.from(box.children).filter(el => el.classList?.contains('daily-score-row'));
+    if (rows.length < 2) return;
+
+    const sorted = rows
+      .map((row, i) => parseDailyRow(row, i))
+      .sort(compareDailyRows)
+      .map(x => x.row);
+
+    const alreadySorted = sorted.every((row, i) => row === rows[i]);
+    if (alreadySorted) return;
+
+    sorting = true;
+    const frag = document.createDocumentFragment();
+    sorted.forEach(row => frag.appendChild(row));
+    box.appendChild(frag);
+    sorting = false;
+  }
+
+  function scheduleDailySort(){
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      sortDailyWallNow();
+    });
+  }
+
+  function installDailyWallSorter(){
+    const box = document.getElementById(DAILY_BOX_ID);
+    if (!box) {
+      setTimeout(installDailyWallSorter, 100);
+      return;
+    }
+
+    // Sort anything app.js may already have rendered.
+    scheduleDailySort();
+
+    // Re-sort after refreshes / new results / tab rendering.
+    const observer = new MutationObserver(() => {
+      if (!sorting) scheduleDailySort();
+    });
+    observer.observe(box, { childList: true });
+
+    // Also sort when the wall tab is opened or refresh is pressed.
+    document.querySelector('[data-tab="wall"]')?.addEventListener('click', () => {
+      setTimeout(scheduleDailySort, 0);
+      setTimeout(scheduleDailySort, 150);
+    });
+    document.getElementById('refreshBtn')?.addEventListener('click', () => {
+      setTimeout(scheduleDailySort, 0);
+      setTimeout(scheduleDailySort, 250);
+      setTimeout(scheduleDailySort, 800);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installDailyWallSorter, { once: true });
+  } else {
+    installDailyWallSorter();
   }
 })();
 </script>
