@@ -620,12 +620,12 @@ zeroRunEndurance:{
 
   limitedGymL6:{
     id:'limitedGymL6',
-    label:'HYROX Conditioning',
-    duration:'約 45–55 分鐘',
+    label:'有限器材 × 促進代謝 × 無跑',
+    duration:'約 40–50 分鐘',
     intensity:6,
-    description:'四輪場地限制版 HYROX conditioning。用橢圓機維持持續心肺，swing 變化、push press、核心與少量 reverse lunge 建立疲勞下全身輸出；不使用 Sled、Sandbag、Wall Ball 或 Farmers Carry。',
-    equipment:'橢圓機／壺鈴／瑜珈球／自體重量',
-    total:'Elliptical：16 min｜4 rounds｜全身 conditioning',
+    description:'有限器材下的無跑全身代謝訓練。以 Bike 穿插輕重量、高次數與自體重量動作，維持心率並訓練全身肌耐力與核心耐力；重點是持續輸出與整體活動量，而不是追求大重量。',
+    equipment:'腳踏車機／壺鈴／TRX／瑜珈球／自體重量',
+    total:'Bike：16 min｜4 rounds｜全身代謝耐力＋核心',
     build(){
       const item=(round,name,detail,distance_m=null)=>({
         name,detail,distance_m,
@@ -634,30 +634,29 @@ zeroRunEndurance:{
         block_rest:'—'
       });
       return [
-        item(1,'Elliptical','4 min'),
-        item(1,'Kettlebell Swing','20 reps · 10–14 kg'),
-        item(1,'Kettlebell Push Press','12 reps · 6–10 kg'),
-        item(1,'Plank Drag','10 reps / side'),
-        item(1,'Stability Ball Knee Tuck','12 reps'),
+        item(1,'Bike','4 min'),
+        item(1,'Goblet Squat','30 reps'),
+        item(1,'Assisted Pull-Up','30 reps'),
+        item(1,'Wall Sit','1 min'),
+        item(1,'Plank Reach','40 reps'),
 
-        item(2,'Elliptical','4 min'),
-        item(2,'Alternating-Hand Kettlebell Swing','20 reps · 10–14 kg'),
-        item(2,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
-        item(2,'Kettlebell Push Press','12 reps · 6–10 kg'),
-        item(2,'Stability Ball Knee Tuck','12 reps'),
+        item(2,'Bike','4 min'),
+        item(2,'Kettlebell Swing','30 reps'),
+        item(2,'Kettlebell Row','30 reps'),
+        item(2,'Plank','1 min'),
+        item(2,'Russian Twist','40 reps'),
 
-        item(3,'Elliptical','4 min'),
-        item(3,'Double Kettlebell Skier Swing','20 reps'),
-        item(3,'Kettlebell Push Press','12 reps · 6–10 kg'),
-        item(3,'Plank Drag','10 reps / side'),
-        item(3,'Stability Ball Knee Tuck','12 reps'),
+        item(3,'Bike','4 min'),
+        item(3,'Kettlebell Thruster','30 reps'),
+        item(3,'Push-Up','30 reps'),
+        item(3,'Superman Hold','1 min'),
+        item(3,'V-Up','30 reps'),
 
-        item(4,'Elliptical','4 min'),
-        item(4,'Side-to-Side Kettlebell Swing','20 reps · 10–14 kg'),
-        item(4,'Kettlebell Swing + Reverse Lunge','8 reps / side'),
-        item(4,'Kettlebell Push Press','12 reps · 6–10 kg'),
-        item(4,'Plank Drag','10 reps / side'),
-        item(4,'Stability Ball Knee Tuck','12 reps')
+        item(4,'Bike','4 min'),
+        item(4,'Devil Press','30 reps'),
+        item(4,'TRX Row','30 reps'),
+        item(4,'Swiss Ball Glute Bridge','2 min'),
+        item(4,'Side-to-Side Leg Raise','40 reps')
       ];
     }
   },
