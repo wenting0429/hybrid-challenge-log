@@ -867,9 +867,13 @@ syncBuiltinDailyTemplateSelect();
       const key=String(def.index);
       const existing=state.blocks[key];
       if(!existing){
-        state.blocks[key]={remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false};
-      }else if(!Number.isFinite(Number(existing.remaining))){
-        existing.remaining=def.duration;
+        state.blocks[key]={remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false,started:false,manualFinished:false,roundsCompleted:0,resettingRound:false};
+      }else{
+        if(!Number.isFinite(Number(existing.remaining)))existing.remaining=def.duration;
+        if(typeof existing.started!=='boolean')existing.started=!!(existing.running||existing.expired||Number(existing.remaining)<def.duration);
+        if(typeof existing.manualFinished!=='boolean')existing.manualFinished=false;
+        if(!Number.isFinite(Number(existing.roundsCompleted)))existing.roundsCompleted=0;
+        if(typeof existing.resettingRound!=='boolean')existing.resettingRound=false;
       }
     });
     return state;
@@ -896,7 +900,6 @@ syncBuiltinDailyTemplateSelect();
     const style=document.createElement('style');
     style.id='amrapBlockTimerStyles';
     style.textContent=`
-      #trainingModal.amrap-block-session .session-complete-toggle{display:none!important}
       #trainingModal.amrap-block-session .session-item{margin-top:0}
       .amrap-block-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin:14px 0 7px;padding:10px 11px;border:1px solid #344255;border-left:4px solid var(--round-accent,#70ded8);border-radius:11px;background:#111923}
       .amrap-block-copy{min-width:0}.amrap-block-copy strong{display:block;font-size:12px}.amrap-block-copy span{display:block;margin-top:3px;color:#8796aa;font-size:9px}
@@ -937,7 +940,7 @@ syncBuiltinDailyTemplateSelect();
         header.innerHTML=`
           <div class="amrap-block-copy">
             <strong>BLOCK ${def.index} · AMRAP ${minutesLabel(def.duration)}</strong>
-            <span>依序循環下列動作，直到 Block 計時結束</span>
+            <span data-amrap-meta="${def.index}">依序循環下列動作 · 目前第 1 輪</span>
           </div>
           <div class="amrap-block-actions">
             <button type="button" class="amrap-block-timer" data-amrap-toggle="${def.index}">▶ ${fmt(def.duration)}</button>
@@ -958,17 +961,29 @@ syncBuiltinDailyTemplateSelect();
         btn.classList.toggle('running',!!bs?.running);
         btn.classList.toggle('expired',!!bs?.expired);
       }
+      const meta=list.querySelector(`[data-amrap-meta="${def.index}"]`);
+      if(meta){
+        const rounds=Math.max(0,Number(bs?.roundsCompleted)||0);
+        meta.textContent=(bs?.expired||bs?.manualFinished)
+          ?`Block 結束 · 完成 ${rounds} 輪${rounds===1?'':'s'}`
+          :`依序循環下列動作 · 已完成 ${rounds} 輪 · 目前第 ${rounds+1} 輪`;
+      }
       const complete=list.querySelector(`[data-amrap-complete="${def.index}"]`);
       if(complete){
-        const done=currentBlockDone(s,def);
+        const done=currentBlockDone(s,def)&&(bs?.expired||bs?.manualFinished);
         complete.textContent=done?'✓ Block 完成':'完成 Block';
         complete.disabled=done;
       }
     });
 
-    const doneBlocks=defs.filter(def=>currentBlockDone(s,def)).length;
+    const doneBlocks=defs.filter(def=>{
+      const bs=state.blocks[String(def.index)];
+      return !!(bs?.expired||bs?.manualFinished);
+    }).length;
     const progress=document.getElementById('sessionProgress');
     if(progress)progress.textContent=`${doneBlocks} / ${defs.length} Blocks`;
+    const finish=document.getElementById('finishChallengeBtn');
+    if(finish)finish.disabled=doneBlocks!==defs.length;
   }
   function markBlockDone(blockIndex){
     const s=readSession();
@@ -988,6 +1003,51 @@ syncBuiltinDailyTemplateSelect();
       setTimeout(()=>markBlockDone(blockIndex),25);
     }
   }
+  function clearCompletedRound(blockIndex){
+    const s=readSession();
+    if(!isTargetSession(s))return;
+    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));
+    if(!def)return;
+    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
+
+    // If time ended while the reset was in progress, keep the final state.
+    if(bs.expired||bs.manualFinished||remainingNow(bs)<=0){
+      bs.resettingRound=false;
+      saveState(s,state);
+      return;
+    }
+
+    const modal=document.getElementById('trainingModal');
+    const list=document.getElementById('sessionList');
+    if(!modal?.classList.contains('open')||!list){
+      bs.resettingRound=false;
+      saveState(s,state);
+      return;
+    }
+    const rows=[...list.querySelectorAll('.session-item')];
+    if(rows.length<s.items.length){
+      setTimeout(()=>clearCompletedRound(blockIndex),35);
+      return;
+    }
+
+    // Uncheck one completed exercise at a time. Using the native button keeps
+    // app.js's in-memory session and localStorage perfectly synchronized.
+    const nextIndex=def.itemIndexes.find(i=>!!s.items?.[i]?.done);
+    if(nextIndex==null){
+      bs.resettingRound=false;
+      saveState(s,state);
+      return;
+    }
+    const toggle=rows[nextIndex]?.querySelector('.session-complete-toggle');
+    if(toggle){
+      toggle.click();
+      setTimeout(()=>clearCompletedRound(blockIndex),35);
+    }else{
+      bs.resettingRound=false;
+      saveState(s,state);
+    }
+  }
+
   function signal(){
     try{navigator.vibrate?.([180,90,180])}catch(e){}
     try{
@@ -1012,7 +1072,10 @@ syncBuiltinDailyTemplateSelect();
     if(bs.running){
       bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;
     }else{
-      if(bs.expired||Number(bs.remaining)<=0){bs.remaining=def.duration;bs.expired=false}
+      if(bs.expired||bs.manualFinished||Number(bs.remaining)<=0){
+        bs.remaining=def.duration;bs.expired=false;bs.manualFinished=false;bs.roundsCompleted=0;bs.resettingRound=false;
+      }
+      bs.started=true;
       bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;bs.pausedBySession=false;
     }
     saveState(s,state);
@@ -1021,7 +1084,7 @@ syncBuiltinDailyTemplateSelect();
     const s=readSession();if(!isTargetSession(s))return;
     const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
     const state=loadState(s,defs),bs=state.blocks[String(def.index)];
-    Object.assign(bs,{remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false});
+    Object.assign(bs,{remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false,started:false,manualFinished:false,roundsCompleted:0,resettingRound:false});
     saveState(s,state);
   }
   function completeBlock(blockIndex){
@@ -1029,6 +1092,7 @@ syncBuiltinDailyTemplateSelect();
     const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
     const state=loadState(s,defs),bs=state.blocks[String(def.index)];
     bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;
+    bs.started=true;bs.manualFinished=true;bs.resettingRound=false;
     saveState(s,state);
     markBlockDone(blockIndex);
   }
@@ -1070,24 +1134,37 @@ syncBuiltinDailyTemplateSelect();
     lastSessionId=s.id;
     const defs=blockDefs(s),state=loadState(s,defs);
     let dirty=false;
+    const roundsToClear=[];
     defs.forEach(def=>{
       const bs=state.blocks[String(def.index)];
       if(!s.running&&bs.running){
         bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=true;dirty=true;
-      }else if(s.running&&bs.pausedBySession&&!bs.expired&&Number(bs.remaining)>0){
+      }else if(s.running&&bs.pausedBySession&&!bs.expired&&!bs.manualFinished&&Number(bs.remaining)>0){
         bs.pausedBySession=false;bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;dirty=true;
       }
       if(bs.running){
         bs.remaining=remainingNow(bs);
         if(bs.remaining<=0){
-          bs.remaining=0;bs.running=false;bs.endAt=null;bs.expired=true;bs.pausedBySession=false;dirty=true;
+          bs.remaining=0;bs.running=false;bs.endAt=null;bs.expired=true;bs.pausedBySession=false;bs.resettingRound=false;dirty=true;
           signal();
           setTimeout(()=>markBlockDone(def.index),0);
         }
       }
-      if(bs.expired&&!currentBlockDone(s,def))setTimeout(()=>markBlockDone(def.index),0);
+
+      // AMRAP round tracking: once every exercise in the block is checked and
+      // the block still has time left, count the round and immediately clear
+      // those exercise checks so the next round can be tracked from zero.
+      if(bs.started&&!bs.expired&&!bs.manualFinished&&remainingNow(bs)>0&&currentBlockDone(s,def)&&!bs.resettingRound){
+        bs.roundsCompleted=Math.max(0,Number(bs.roundsCompleted)||0)+1;
+        bs.resettingRound=true;
+        dirty=true;
+        roundsToClear.push(def.index);
+      }
+
+      if((bs.expired||bs.manualFinished)&&!currentBlockDone(s,def))setTimeout(()=>markBlockDone(def.index),0);
     });
     if(dirty)saveState(s,state);
+    roundsToClear.forEach(index=>setTimeout(()=>clearCompletedRound(index),0));
     ensureTrainingDecoration(s,defs,state);
     syncPreview();
   }
