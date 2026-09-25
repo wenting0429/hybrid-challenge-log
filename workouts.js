@@ -710,9 +710,9 @@ zeroRunEndurance:{
     label:'器材有限 × Strength × Conditioning',
     duration:'約 45–55 分鐘',
     intensity:7,
-    description:'4 個 AMRAP Blocks。Block 1 為 15 分鐘，其餘各 10 分鐘；每個 Block 內依序循環指定動作，時間到才完成該 Block。重點是 strength endurance、全身 conditioning 與疲勞下持續輸出。',
+    description:'4 個 AMRAP Blocks。Block 1 為 15 分鐘，其餘各 10 分鐘；每完成一輪會保留該輪紀錄並新增下一輪，不會清空已完成資料。成績以四個 Block 累計完成的 exercise 項目次數為主，完整輪數另行保留。',
     equipment:'壺鈴／輔助引體設備／箱子／自體重量',
-    total:'AMRAP：45 min｜4 timed blocks｜Strength endurance + conditioning',
+    total:'AMRAP：45 min｜Score：完成 exercise 項目總次數｜完整輪數保留',
     build(){
       const item=(block,duration,name,detail)=>({
         name,detail,
@@ -828,22 +828,59 @@ function syncBuiltinDailyTemplateSelect(){
 
 syncBuiltinDailyTemplateSelect();
 
-/* ===== AMRAP BLOCK TIMER BRIDGE · limitedStrengthConditioning =====
-   app.js currently supports countdowns only at item level. This bridge keeps
-   each exercise as a real item while providing one shared timer per AMRAP block.
+/* ===== AMRAP PERSISTENT ROUND CARDS v4 · no-jump stable UI · limitedStrengthConditioning =====
+   Purpose:
+   - Keep completed AMRAP rounds visible instead of clearing checkmarks.
+   - Append a fresh round card only after the current round is fully checked.
+   - Do NOT call app.js's renderSession() on each AMRAP exercise check, which
+     avoids the annoying full-list redraw / visual jump.
+   - Primary score = total completed exercise items across all four blocks.
+   - Full-round counts and partial final rounds are retained as secondary data.
+   - Persist AMRAP score inside stations.amrap_score when the normal result is
+     saved, without changing the database schema.
 */
 (function(){
   const TEMPLATE_ID='limitedStrengthConditioning';
   const ACTIVE_KEY='hybridActiveSession_v1';
-  const STATE_PREFIX='hybridAmrapBlockTimers_v1:';
+  const STATE_PREFIX='hybridAmrapRoundCards_v3:';
+  const LAST_SCORE_KEY='hybridAmrapLastScore_v3';
+  const SCORE_CACHE=new Map();
   let lastSessionId=null;
-  let installing=false;
+  let lastDetailResultId=null;
+  let finalizing=false;
+  let bypassFinish=false;
+  let wallDecorating=false;
+  let installed=false;
 
-  function readSession(){
-    try{return JSON.parse(localStorage.getItem(ACTIVE_KEY)||'null')}catch(e){return null}
+  function readJson(key,fallback=null){
+    try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch(e){return fallback}
   }
+  function writeJson(key,value){
+    try{localStorage.setItem(key,JSON.stringify(value))}catch(e){}
+  }
+  function readSession(){return readJson(ACTIVE_KEY,null)}
   function isTargetSession(s){
     return !!(s&&s.templateId===TEMPLATE_ID&&Array.isArray(s.items)&&s.items.length);
+  }
+  function stateKey(s){return `${STATE_PREFIX}${s?.id||'unknown'}`}
+  function esc(v){
+    return String(v??'').replace(/[&<>"']/g,m=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+  function fmt(sec){
+    const s=Math.max(0,Math.ceil(Number(sec)||0));
+    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  }
+  function fmtLong(sec){
+    const s=Math.max(0,Math.round(Number(sec)||0));
+    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;
+    return h?`${h}:${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
+  }
+  function minutesLabel(sec){return `${Math.round(Number(sec)/60)} min`}
+  function blockStyle(index){
+    const palette=['#64d8d0','#ff9b78','#b894ff','#7ed9a9','#efc96f','#7bb7ff','#f08fc2','#9fd073'];
+    return palette[(Math.max(1,Number(index)||1)-1)%palette.length];
   }
   function blockDefs(s){
     const map=new Map();
@@ -856,203 +893,314 @@ syncBuiltinDailyTemplateSelect();
     });
     return [...map.values()].sort((a,b)=>a.index-b.index);
   }
-  function stateKey(s){return `${STATE_PREFIX}${s.id||'unknown'}`}
+  function emptyRound(def){
+    return {checks:Array(def.itemIndexes.length).fill(false),createdAt:Date.now()};
+  }
+  function normalizeRound(round,def){
+    const checks=Array.isArray(round?.checks)?round.checks.slice(0,def.itemIndexes.length):[];
+    while(checks.length<def.itemIndexes.length)checks.push(false);
+    return {checks:checks.map(Boolean),createdAt:Number(round?.createdAt)||Date.now()};
+  }
   function loadState(s,defs){
-    let state=null;
-    try{state=JSON.parse(localStorage.getItem(stateKey(s))||'null')}catch(e){}
-    if(!state||state.sessionId!==s.id||typeof state.blocks!=='object'){
-      state={sessionId:s.id,blocks:{}};
+    let state=readJson(stateKey(s),null);
+    if(!state||state.version!==3||state.sessionId!==s.id||typeof state.blocks!=='object'){
+      state={version:3,sessionId:s.id,blocks:{},nativeSynced:false};
     }
     defs.forEach(def=>{
       const key=String(def.index);
-      const existing=state.blocks[key];
-      if(!existing){
-        state.blocks[key]={remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false,started:false,manualFinished:false,roundsCompleted:0,resettingRound:false};
-      }else{
-        if(!Number.isFinite(Number(existing.remaining)))existing.remaining=def.duration;
-        if(typeof existing.started!=='boolean')existing.started=!!(existing.running||existing.expired||Number(existing.remaining)<def.duration);
-        if(typeof existing.manualFinished!=='boolean')existing.manualFinished=false;
-        if(!Number.isFinite(Number(existing.roundsCompleted)))existing.roundsCompleted=0;
-        if(typeof existing.resettingRound!=='boolean')existing.resettingRound=false;
+      let bs=state.blocks[key];
+      if(!bs){
+        bs=state.blocks[key]={
+          remaining:def.duration,running:false,endAt:null,expired:false,
+          pausedBySession:false,started:false,manualFinished:false,
+          rounds:[emptyRound(def)]
+        };
       }
+      if(!Number.isFinite(Number(bs.remaining)))bs.remaining=def.duration;
+      bs.running=!!bs.running;
+      bs.expired=!!bs.expired;
+      bs.pausedBySession=!!bs.pausedBySession;
+      bs.started=!!bs.started;
+      bs.manualFinished=!!bs.manualFinished;
+      if(!Array.isArray(bs.rounds)||!bs.rounds.length)bs.rounds=[emptyRound(def)];
+      bs.rounds=bs.rounds.map(r=>normalizeRound(r,def));
     });
     return state;
   }
-  function saveState(s,state){
-    try{localStorage.setItem(stateKey(s),JSON.stringify(state))}catch(e){}
-  }
-  function remainingNow(blockState){
-    if(blockState?.running&&blockState?.endAt){
-      return Math.max(0,Math.ceil((Number(blockState.endAt)-Date.now())/1000));
+  function saveState(s,state){writeJson(stateKey(s),state)}
+  function remainingNow(bs){
+    if(bs?.running&&bs?.endAt){
+      return Math.max(0,Math.ceil((Number(bs.endAt)-Date.now())/1000));
     }
-    return Math.max(0,Math.ceil(Number(blockState?.remaining)||0));
+    return Math.max(0,Math.ceil(Number(bs?.remaining)||0));
   }
-  function fmt(sec){
-    const s=Math.max(0,Math.ceil(Number(sec)||0));
-    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  function ended(bs){return !!(bs?.expired||bs?.manualFinished)}
+  function roundComplete(round){
+    return !!(round&&Array.isArray(round.checks)&&round.checks.length&&round.checks.every(Boolean));
   }
-  function minutesLabel(sec){
-    const min=Math.round(Number(sec)/60);
-    return `${min} min`;
+  function roundCompletedItems(round){
+    return Array.isArray(round?.checks)?round.checks.filter(Boolean).length:0;
   }
+  function blockCompletedItems(bs){
+    return Array.isArray(bs?.rounds)?bs.rounds.reduce((n,r)=>n+roundCompletedItems(r),0):0;
+  }
+  function blockFullRounds(bs){
+    return Array.isArray(bs?.rounds)?bs.rounds.filter(roundComplete).length:0;
+  }
+  function totalCompletedItems(state,defs){
+    return defs.reduce((sum,def)=>sum+blockCompletedItems(state.blocks[String(def.index)]),0);
+  }
+  function totalFullRounds(state,defs){
+    return defs.reduce((sum,def)=>sum+blockFullRounds(state.blocks[String(def.index)]),0);
+  }
+  function sessionElapsedSeconds(s){
+    if(!s?.startedAt)return 0;
+    const now=s.running?Date.now():(Number(s.pausedAt)||Date.now());
+    return Math.max(0,Math.round((now-Number(s.startedAt)-(Number(s.pausedTotal)||0))/1000));
+  }
+  function scoreSnapshot(s,defs,state){
+    return {
+      version:3,
+      score_type:'completed_items',
+      template_id:TEMPLATE_ID,
+      session_id:s.id,
+      total_completed_items:totalCompletedItems(state,defs),
+      total_full_rounds:totalFullRounds(state,defs),
+      total_session_seconds:sessionElapsedSeconds(s),
+      blocks:defs.map(def=>{
+        const bs=state.blocks[String(def.index)];
+        const full=blockFullRounds(bs);
+        const items=blockCompletedItems(bs);
+        const last=bs.rounds[bs.rounds.length-1];
+        return {
+          block:def.index,
+          duration_seconds:def.duration,
+          exercises_per_round:def.itemIndexes.length,
+          completed_items:items,
+          full_rounds:full,
+          partial_items:roundComplete(last)?0:roundCompletedItems(last),
+          rounds_started:bs.rounds.length
+        };
+      }),
+      finished_at:new Date().toISOString()
+    };
+  }
+  function readLastScore(){
+    const x=readJson(LAST_SCORE_KEY,null);
+    if(!x||x.template_id!==TEMPLATE_ID)return null;
+    return x;
+  }
+  function writeScoreSnapshot(s,defs,state){
+    const snap=scoreSnapshot(s,defs,state);
+    writeJson(LAST_SCORE_KEY,snap);
+    return snap;
+  }
+  function blockBreakdown(score){
+    return (score?.blocks||[]).map(b=>{
+      const partial=Number(b.partial_items)||0;
+      return `B${b.block} ${Number(b.full_rounds)||0}輪${partial?`+${partial}項`:''}`;
+    }).join(' · ');
+  }
+
   function installStyles(){
-    if(document.getElementById('amrapBlockTimerStyles'))return;
+    if(document.getElementById('amrapRoundCardsV4Styles'))return;
     const style=document.createElement('style');
-    style.id='amrapBlockTimerStyles';
+    style.id='amrapRoundCardsV4Styles';
     style.textContent=`
-      #trainingModal.amrap-block-session .session-item{margin-top:0}
-      .amrap-block-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin:14px 0 7px;padding:10px 11px;border:1px solid #344255;border-left:4px solid var(--round-accent,#70ded8);border-radius:11px;background:#111923}
+      #trainingModal.amrap-v3-session .session-item.amrap-source-exercise{display:none!important}
+      #trainingModal.amrap-v3-session #sessionList,.amrap-block-shell,.amrap-round-stack,.amrap-round-card,.amrap-round-check{overflow-anchor:none!important}
+      .amrap-round-check{touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline-offset:-2px}
+      .amrap-round-check:active{transform:none!important}
+      .amrap-round-check-status{min-width:3.2em;text-align:right}
+      .amrap-v3-scorebar{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07)}
+      .amrap-v3-scorebar b{font-size:15px;color:#f4f7f9}.amrap-v3-scorebar span{font-size:9px;color:#8492a5}
+      .amrap-v3-score-pill{display:flex;align-items:baseline;gap:5px;padding:5px 8px;border:1px solid #334255;border-radius:8px;background:#0e151e}
+      .amrap-block-shell{margin:14px 0 16px;border:1px solid #314054;border-left:4px solid var(--amrap-accent,#70ded8);border-radius:13px;background:#0d141d;overflow:hidden}
+      .amrap-block-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 11px;border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(90deg,color-mix(in srgb,var(--amrap-accent) 10%,transparent),transparent 48%),#111923}
       .amrap-block-copy{min-width:0}.amrap-block-copy strong{display:block;font-size:12px}.amrap-block-copy span{display:block;margin-top:3px;color:#8796aa;font-size:9px}
       .amrap-block-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
       .amrap-block-timer,.amrap-block-reset,.amrap-block-complete{min-height:31px;border:1px solid #3a4a5f;border-radius:8px;background:#0d151f;color:#dbe4ee;padding:5px 9px;font-size:10px;font-weight:900}
       .amrap-block-timer.running{border-color:#70ded8;color:#9df3ee}.amrap-block-timer.expired{border-color:#efc96f;color:#ffe4a1}
       .amrap-block-complete{border-color:#456653;color:#a9edc6}.amrap-block-reset{padding-inline:8px}
+      .amrap-round-stack{display:grid;gap:8px;padding:9px 10px 11px}
+      .amrap-round-card{border:1px solid #293648;border-radius:10px;background:#0a1017;overflow:hidden}
+      .amrap-round-card.complete{border-color:#3f6b55;background:#0b1512}.amrap-round-card.locked{opacity:.8}
+      .amrap-round-head{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.055);background:#101823}
+      .amrap-round-head strong{font-size:10px;color:var(--amrap-accent,#70ded8)}.amrap-round-head span{font-size:8.5px;color:#7f8d9f}
+      .amrap-round-items{display:grid;gap:1px}
+      .amrap-round-check{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;min-height:42px;padding:7px 9px;border:0;border-top:1px solid rgba(255,255,255,.035);background:transparent;color:#dce4ed;text-align:left}
+      .amrap-round-check:first-child{border-top:0}.amrap-round-check:hover:not(:disabled){background:#121d28}.amrap-round-check.checked{background:rgba(107,214,163,.06)}
+      .amrap-round-check:disabled{cursor:default}.amrap-check-icon{width:24px;height:24px;display:grid;place-items:center;border:1px solid #45556b;border-radius:50%;font-size:11px;font-weight:950;color:#718095}
+      .amrap-round-check.checked .amrap-check-icon{border-color:#6bd6a3;background:#143326;color:#9ff0c3}
+      .amrap-round-exercise b{display:block;font-size:10.5px}.amrap-round-exercise span{display:block;margin-top:2px;font-size:8.5px;color:#7e8b9d}
+      .amrap-round-check-status{font-size:8px;color:#667487;white-space:nowrap}.amrap-round-check.checked .amrap-round-check-status{color:#79cfa2}
+      .amrap-new-round-note{padding:4px 9px 1px;color:#738196;font-size:8px}
+      .amrap-v3-finalize-overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:rgba(7,10,15,.84);backdrop-filter:blur(4px);border-radius:inherit}
+      .amrap-v3-finalize-overlay div{padding:13px 16px;border:1px solid #334255;border-radius:11px;background:#111923;color:#dce6ef;font-size:11px;font-weight:900}
+      .amrap-wall-breakdown{margin-top:4px;font-size:8px;color:#7f8d9f}
       .daily-preview-block.amrap-preview .daily-preview-block-head span,.daily-modal-block.amrap-preview .daily-modal-block-head span{color:#efc96f;font-weight:900}
-      @media(max-width:640px){.amrap-block-header{grid-template-columns:1fr}.amrap-block-actions{justify-content:flex-start}.amrap-block-timer{min-width:92px}}
+      #amrapFinishBreakdown{margin-top:9px;padding:8px 10px;border:1px solid #334255;border-radius:9px;background:#0d141d;color:#96a3b4;font-size:10px;text-align:center}
+      @media(max-width:640px){
+        .amrap-block-header{grid-template-columns:1fr}.amrap-block-actions{justify-content:flex-start}.amrap-block-timer{min-width:92px}
+        .amrap-round-check{grid-template-columns:24px minmax(0,1fr);gap:7px}.amrap-round-check-status{grid-column:2}
+      }
     `;
     document.head.appendChild(style);
   }
-  function blockStyle(index){
-    const palette=['#64d8d0','#ff9b78','#b894ff','#7ed9a9','#efc96f','#7bb7ff','#f08fc2','#9fd073'];
-    return palette[(Math.max(1,index)-1)%palette.length];
+
+  function roundCardHtml(s,def,bs,roundIndex){
+    const round=bs.rounds[roundIndex];
+    const done=roundCompletedItems(round);
+    const full=roundComplete(round);
+    const lock=ended(bs)||!bs.running;
+    return `<div class="amrap-round-card ${full?'complete':''} ${ended(bs)?'locked':''}" data-amrap-round-card="${def.index}:${roundIndex}">
+      <div class="amrap-round-head">
+        <strong>ROUND ${roundIndex+1}</strong>
+        <span data-amrap-round-count="${def.index}:${roundIndex}">${done} / ${def.itemIndexes.length} 項</span>
+      </div>
+      <div class="amrap-round-items">
+        ${def.itemIndexes.map((sessionIndex,itemPos)=>{
+          const item=s.items[sessionIndex]||{};
+          const checked=!!round.checks[itemPos];
+          return `<button type="button" class="amrap-round-check ${checked?'checked':''}"
+            data-amrap-check="${def.index}:${roundIndex}:${itemPos}" ${lock?'disabled':''}>
+            <span class="amrap-check-icon" aria-hidden="true">${checked?'✓':'○'}</span>
+            <span class="amrap-round-exercise"><b>${esc(item.name)}</b><span>${esc(item.detail||'')}</span></span>
+            <span class="amrap-round-check-status">${checked?'完成':'待完成'}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
   }
-  function currentBlockDone(s,def){
-    return def.itemIndexes.every(i=>!!s.items?.[i]?.done);
+  function blockShellHtml(s,def,bs){
+    const rounds=blockFullRounds(bs),items=blockCompletedItems(bs);
+    return `<section class="amrap-block-shell" data-amrap-block-shell="${def.index}" style="--amrap-accent:${blockStyle(def.index)}">
+      <div class="amrap-block-header">
+        <div class="amrap-block-copy">
+          <strong>BLOCK ${def.index} · AMRAP ${minutesLabel(def.duration)}</strong>
+          <span data-amrap-meta="${def.index}">完成 ${items} 項 · ${rounds} 完整輪</span>
+        </div>
+        <div class="amrap-block-actions">
+          <button type="button" class="amrap-block-timer ${bs.running?'running':''} ${bs.expired?'expired':''}" data-amrap-toggle="${def.index}" ${ended(bs)?'disabled':''}>${bs.expired?'時間到':`${bs.running?'Ⅱ':'▶'} ${fmt(remainingNow(bs))}`}</button>
+          <button type="button" class="amrap-block-reset" data-amrap-reset="${def.index}" aria-label="重設 Block ${def.index}">↺</button>
+          <button type="button" class="amrap-block-complete" data-amrap-complete="${def.index}" ${ended(bs)?'disabled':''}>${ended(bs)?'✓ Block 結束':'結束 Block'}</button>
+        </div>
+      </div>
+      <div class="amrap-round-stack" data-amrap-round-stack="${def.index}">
+        ${bs.rounds.map((_,ri)=>roundCardHtml(s,def,bs,ri)).join('')}
+      </div>
+    </section>`;
+  }
+  function setTextStable(el,value){
+    if(!el)return;
+    const next=String(value);
+    if(el.textContent!==next)el.textContent=next;
+  }
+  function ensureScoreBar(state,defs){
+    const box=document.querySelector('#trainingModal .timer-box');
+    if(!box)return;
+    let bar=document.getElementById('amrapV3ScoreBar');
+    if(!bar){
+      bar=document.createElement('div');
+      bar.id='amrapV3ScoreBar';bar.className='amrap-v3-scorebar';
+      bar.innerHTML=`
+        <div class="amrap-v3-score-pill"><span>目前成績</span><b data-amrap-score-items>0</b><span>項</span></div>
+        <div class="amrap-v3-score-pill"><span>完整輪次</span><b data-amrap-score-rounds>0</b></div>
+        <div class="amrap-v3-score-pill"><span>Blocks</span><b data-amrap-score-blocks>0/${defs.length}</b></div>`;
+      box.appendChild(bar);
+    }
+    const completed=totalCompletedItems(state,defs);
+    const rounds=totalFullRounds(state,defs);
+    const endedBlocks=defs.filter(d=>ended(state.blocks[String(d.index)])).length;
+    setTextStable(bar.querySelector('[data-amrap-score-items]'),completed);
+    setTextStable(bar.querySelector('[data-amrap-score-rounds]'),rounds);
+    setTextStable(bar.querySelector('[data-amrap-score-blocks]'),`${endedBlocks}/${defs.length}`);
+  }
+  function updateProgress(state,defs){
+    ensureScoreBar(state,defs);
+    const completed=totalCompletedItems(state,defs);
+    const endedBlocks=defs.filter(d=>ended(state.blocks[String(d.index)])).length;
+    const progress=document.getElementById('sessionProgress');
+    if(progress)setTextStable(progress,`${completed} 項 · ${endedBlocks}/${defs.length} Blocks`);
+    const finish=document.getElementById('finishChallengeBtn');
+    if(finish)finish.disabled=finalizing||endedBlocks!==defs.length;
+  }
+  function syncRoundCard(shell,def,bs,roundIndex){
+    const round=bs.rounds[roundIndex];
+    const card=shell.querySelector(`[data-amrap-round-card="${def.index}:${roundIndex}"]`);
+    if(!card)return;
+    const full=roundComplete(round);
+    card.classList.toggle('complete',full);
+    card.classList.toggle('locked',ended(bs));
+    const count=card.querySelector(`[data-amrap-round-count="${def.index}:${roundIndex}"]`);
+    if(count)setTextStable(count,`${roundCompletedItems(round)} / ${def.itemIndexes.length} 項`);
+    round.checks.forEach((checked,itemPos)=>{
+      const btn=card.querySelector(`[data-amrap-check="${def.index}:${roundIndex}:${itemPos}"]`);
+      if(!btn)return;
+      btn.classList.toggle('checked',!!checked);
+      btn.disabled=ended(bs)||!bs.running;
+      const icon=btn.querySelector('.amrap-check-icon');if(icon)setTextStable(icon,checked?'✓':'○');
+      const status=btn.querySelector('.amrap-round-check-status');if(status)setTextStable(status,checked?'完成':'待完成');
+    });
+  }
+  function appendRoundCard(s,def,bs,roundIndex){
+    const shell=document.querySelector(`[data-amrap-block-shell="${def.index}"]`);
+    const stack=shell?.querySelector(`[data-amrap-round-stack="${def.index}"]`);
+    if(!stack||stack.querySelector(`[data-amrap-round-card="${def.index}:${roundIndex}"]`))return;
+    const wrap=document.createElement('div');
+    wrap.innerHTML=roundCardHtml(s,def,bs,roundIndex);
+    const card=wrap.firstElementChild;
+    if(card)stack.appendChild(card);
+  }
+  function updateBlockUi(s,def,bs){
+    const shell=document.querySelector(`[data-amrap-block-shell="${def.index}"]`);
+    if(!shell)return;
+    const btn=shell.querySelector(`[data-amrap-toggle="${def.index}"]`);
+    if(btn){
+      btn.textContent=bs.expired?'時間到':`${bs.running?'Ⅱ':'▶'} ${fmt(remainingNow(bs))}`;
+      btn.classList.toggle('running',!!bs.running);
+      btn.classList.toggle('expired',!!bs.expired);
+      btn.disabled=ended(bs);
+    }
+    const complete=shell.querySelector(`[data-amrap-complete="${def.index}"]`);
+    if(complete){complete.textContent=ended(bs)?'✓ Block 結束':'結束 Block';complete.disabled=ended(bs)}
+    const meta=shell.querySelector(`[data-amrap-meta="${def.index}"]`);
+    if(meta){
+      const items=blockCompletedItems(bs),rounds=blockFullRounds(bs);
+      meta.textContent=ended(bs)?`Block 結束 · 完成 ${items} 項 · ${rounds} 完整輪`:`完成 ${items} 項 · ${rounds} 完整輪 · ROUND ${bs.rounds.length}`;
+    }
+    bs.rounds.forEach((_,ri)=>syncRoundCard(shell,def,bs,ri));
   }
   function ensureTrainingDecoration(s,defs,state){
     const modal=document.getElementById('trainingModal');
     const list=document.getElementById('sessionList');
     if(!modal||!list||!modal.classList.contains('open'))return;
-    modal.classList.add('amrap-block-session');
-    const rows=[...list.querySelectorAll('.session-item')];
+    modal.classList.add('amrap-v3-session');
+    const rows=[...list.querySelectorAll(':scope > .session-item')];
     if(rows.length<s.items.length)return;
-
-    const existing=[...list.querySelectorAll('.amrap-block-header')];
-    if(existing.length!==defs.length){
-      existing.forEach(x=>x.remove());
-      defs.forEach(def=>{
-        const first=rows[def.itemIndexes[0]];
-        if(!first)return;
-        const header=document.createElement('div');
-        header.className='amrap-block-header';
-        header.dataset.amrapBlockHeader=String(def.index);
-        header.style.setProperty('--round-accent',blockStyle(def.index));
-        header.innerHTML=`
-          <div class="amrap-block-copy">
-            <strong>BLOCK ${def.index} · AMRAP ${minutesLabel(def.duration)}</strong>
-            <span data-amrap-meta="${def.index}">依序循環下列動作 · 目前第 1 輪</span>
-          </div>
-          <div class="amrap-block-actions">
-            <button type="button" class="amrap-block-timer" data-amrap-toggle="${def.index}">▶ ${fmt(def.duration)}</button>
-            <button type="button" class="amrap-block-reset" data-amrap-reset="${def.index}" aria-label="重設 Block ${def.index}">↺</button>
-            <button type="button" class="amrap-block-complete" data-amrap-complete="${def.index}">完成 Block</button>
-          </div>`;
-        first.before(header);
-      });
-    }
 
     defs.forEach(def=>{
-      def.itemIndexes.forEach(i=>rows[i]?.classList.add('amrap-block-exercise'));
+      def.itemIndexes.forEach(i=>rows[i]?.classList.add('amrap-source-exercise'));
+      let shell=list.querySelector(`[data-amrap-block-shell="${def.index}"]`);
+      const first=rows[def.itemIndexes[0]];
+      if(!first)return;
+      if(!shell){
+        const holder=document.createElement('div');
+        holder.innerHTML=blockShellHtml(s,def,state.blocks[String(def.index)]);
+        shell=holder.firstElementChild;
+        if(shell)first.before(shell);
+      }
       const bs=state.blocks[String(def.index)];
-      const btn=list.querySelector(`[data-amrap-toggle="${def.index}"]`);
-      if(btn){
-        const remaining=remainingNow(bs);
-        btn.textContent=bs?.expired?'時間到':`${bs?.running?'Ⅱ':'▶'} ${fmt(remaining)}`;
-        btn.classList.toggle('running',!!bs?.running);
-        btn.classList.toggle('expired',!!bs?.expired);
-      }
-      const meta=list.querySelector(`[data-amrap-meta="${def.index}"]`);
-      if(meta){
-        const rounds=Math.max(0,Number(bs?.roundsCompleted)||0);
-        meta.textContent=(bs?.expired||bs?.manualFinished)
-          ?`Block 結束 · 完成 ${rounds} 輪${rounds===1?'':'s'}`
-          :`依序循環下列動作 · 已完成 ${rounds} 輪 · 目前第 ${rounds+1} 輪`;
-      }
-      const complete=list.querySelector(`[data-amrap-complete="${def.index}"]`);
-      if(complete){
-        const done=currentBlockDone(s,def)&&(bs?.expired||bs?.manualFinished);
-        complete.textContent=done?'✓ Block 完成':'完成 Block';
-        complete.disabled=done;
-      }
+      bs.rounds.forEach((_,ri)=>appendRoundCard(s,def,bs,ri));
+      updateBlockUi(s,def,bs);
     });
-
-    const doneBlocks=defs.filter(def=>{
-      const bs=state.blocks[String(def.index)];
-      return !!(bs?.expired||bs?.manualFinished);
-    }).length;
-    const progress=document.getElementById('sessionProgress');
-    if(progress)progress.textContent=`${doneBlocks} / ${defs.length} Blocks`;
-    const finish=document.getElementById('finishChallengeBtn');
-    if(finish)finish.disabled=doneBlocks!==defs.length;
-  }
-  function markBlockDone(blockIndex){
-    const s=readSession();
-    if(!isTargetSession(s))return;
-    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));
-    if(!def)return;
-    const modal=document.getElementById('trainingModal');
-    const list=document.getElementById('sessionList');
-    if(!modal?.classList.contains('open')||!list)return;
-    const rows=[...list.querySelectorAll('.session-item')];
-    if(rows.length<s.items.length)return;
-    const nextIndex=def.itemIndexes.find(i=>!s.items?.[i]?.done);
-    if(nextIndex==null)return;
-    const toggle=rows[nextIndex]?.querySelector('.session-complete-toggle');
-    if(toggle){
-      toggle.click();
-      setTimeout(()=>markBlockDone(blockIndex),25);
-    }
-  }
-  function clearCompletedRound(blockIndex){
-    const s=readSession();
-    if(!isTargetSession(s))return;
-    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));
-    if(!def)return;
-    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
-
-    // If time ended while the reset was in progress, keep the final state.
-    if(bs.expired||bs.manualFinished||remainingNow(bs)<=0){
-      bs.resettingRound=false;
-      saveState(s,state);
-      return;
-    }
-
-    const modal=document.getElementById('trainingModal');
-    const list=document.getElementById('sessionList');
-    if(!modal?.classList.contains('open')||!list){
-      bs.resettingRound=false;
-      saveState(s,state);
-      return;
-    }
-    const rows=[...list.querySelectorAll('.session-item')];
-    if(rows.length<s.items.length){
-      setTimeout(()=>clearCompletedRound(blockIndex),35);
-      return;
-    }
-
-    // Uncheck one completed exercise at a time. Using the native button keeps
-    // app.js's in-memory session and localStorage perfectly synchronized.
-    const nextIndex=def.itemIndexes.find(i=>!!s.items?.[i]?.done);
-    if(nextIndex==null){
-      bs.resettingRound=false;
-      saveState(s,state);
-      return;
-    }
-    const toggle=rows[nextIndex]?.querySelector('.session-complete-toggle');
-    if(toggle){
-      toggle.click();
-      setTimeout(()=>clearCompletedRound(blockIndex),35);
-    }else{
-      bs.resettingRound=false;
-      saveState(s,state);
-    }
+    updateProgress(state,defs);
   }
 
   function signal(){
     try{navigator.vibrate?.([180,90,180])}catch(e){}
     try{
-      const AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC)return;
+      const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
       const ctx=new AC(),now=ctx.currentTime;
       [0,.18].forEach((offset,i)=>{
         const osc=ctx.createOscillator(),gain=ctx.createGain();
@@ -1069,121 +1217,367 @@ syncBuiltinDailyTemplateSelect();
     const s=readSession();if(!isTargetSession(s)||!s.running)return;
     const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
     const state=loadState(s,defs),bs=state.blocks[String(def.index)];
+    if(ended(bs))return;
     if(bs.running){
       bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;
     }else{
-      if(bs.expired||bs.manualFinished||Number(bs.remaining)<=0){
-        bs.remaining=def.duration;bs.expired=false;bs.manualFinished=false;bs.roundsCompleted=0;bs.resettingRound=false;
-      }
-      bs.started=true;
-      bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;bs.pausedBySession=false;
+      bs.started=true;bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;bs.pausedBySession=false;
     }
-    saveState(s,state);
+    saveState(s,state);updateBlockUi(s,def,bs);updateProgress(state,defs);
   }
   function resetBlock(blockIndex){
     const s=readSession();if(!isTargetSession(s))return;
     const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
-    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
-    Object.assign(bs,{remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false,started:false,manualFinished:false,roundsCompleted:0,resettingRound:false});
+    const state=loadState(s,defs);
+    state.blocks[String(def.index)]={remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false,started:false,manualFinished:false,rounds:[emptyRound(def)]};
+    state.nativeSynced=false;
     saveState(s,state);
+    document.querySelector(`[data-amrap-block-shell="${def.index}"]`)?.remove();
+    ensureTrainingDecoration(s,defs,state);
   }
   function completeBlock(blockIndex){
     const s=readSession();if(!isTargetSession(s))return;
     const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
     const state=loadState(s,defs),bs=state.blocks[String(def.index)];
-    bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;
-    bs.started=true;bs.manualFinished=true;bs.resettingRound=false;
-    saveState(s,state);
-    markBlockDone(blockIndex);
+    if(ended(bs))return;
+    bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;bs.started=true;bs.manualFinished=true;
+    state.nativeSynced=false;
+    saveState(s,state);updateBlockUi(s,def,bs);updateProgress(state,defs);
   }
+  function scrollHostFor(el){
+    let node=el?.parentElement||null;
+    while(node&&node!==document.body&&node!==document.documentElement){
+      const st=getComputedStyle(node);
+      if(/auto|scroll|overlay/i.test(st.overflowY||'')&&node.scrollHeight>node.clientHeight+1)return node;
+      node=node.parentElement;
+    }
+    return document.scrollingElement||document.documentElement;
+  }
+  function preserveViewportAround(el){
+    if(!el)return ()=>{};
+    const host=scrollHostFor(el);
+    const docHost=host===document.scrollingElement||host===document.documentElement||host===document.body;
+    const beforeTop=el.getBoundingClientRect().top;
+    const beforeScroll=docHost?Number((document.scrollingElement||document.documentElement).scrollTop||window.scrollY||0):Number(host.scrollTop||0);
+    let cancelled=false;
+    const restore=()=>{
+      if(cancelled||!document.contains(el))return;
+      const afterTop=el.getBoundingClientRect().top;
+      const delta=afterTop-beforeTop;
+      if(Math.abs(delta)>.25){
+        if(docHost)(document.scrollingElement||document.documentElement).scrollTop=Number((document.scrollingElement||document.documentElement).scrollTop||0)+delta;
+        else host.scrollTop=Number(host.scrollTop||0)+delta;
+      }else{
+        const current=docHost?Number((document.scrollingElement||document.documentElement).scrollTop||0):Number(host.scrollTop||0);
+        if(Math.abs(current-beforeScroll)>1){
+          if(docHost)(document.scrollingElement||document.documentElement).scrollTop=beforeScroll;
+          else host.scrollTop=beforeScroll;
+        }
+      }
+    };
+    restore();
+    requestAnimationFrame(()=>{restore();requestAnimationFrame(restore)});
+    setTimeout(restore,60);
+    return ()=>{cancelled=true};
+  }
+  function updateBlockSummaryOnly(def,bs){
+    const shell=document.querySelector(`[data-amrap-block-shell="${def.index}"]`);
+    if(!shell)return;
+    const meta=shell.querySelector(`[data-amrap-meta="${def.index}"]`);
+    if(meta){
+      const items=blockCompletedItems(bs),rounds=blockFullRounds(bs);
+      setTextStable(meta,ended(bs)?`Block 結束 · 完成 ${items} 項 · ${rounds} 完整輪`:`完成 ${items} 項 · ${rounds} 完整輪 · ROUND ${bs.rounds.length}`);
+    }
+  }
+
+  function toggleRoundCheck(token){
+    const [blockNo,roundNo,itemNo]=String(token||'').split(':').map(Number);
+    const s=readSession();if(!isTargetSession(s)||!s.running)return;
+    const defs=blockDefs(s),def=defs.find(x=>x.index===blockNo);if(!def)return;
+    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
+    if(ended(bs)||!bs.running||remainingNow(bs)<=0)return;
+    const round=bs.rounds[roundNo];if(!round||itemNo<0||itemNo>=round.checks.length)return;
+    round.checks[itemNo]=!round.checks[itemNo];
+    state.nativeSynced=false;
+
+    const becameComplete=roundComplete(round);
+    const wasLast=roundNo===bs.rounds.length-1;
+    if(becameComplete&&wasLast&&remainingNow(bs)>0){
+      bs.rounds.push(emptyRound(def));
+    }
+    saveState(s,state);
+
+    const shell=document.querySelector(`[data-amrap-block-shell="${def.index}"]`);
+    if(shell)syncRoundCard(shell,def,bs,roundNo);
+    if(becameComplete&&wasLast)appendRoundCard(s,def,bs,bs.rounds.length-1);
+    updateBlockSummaryOnly(def,bs);
+    updateProgress(state,defs);
+  }
+
+  function allBlocksEnded(state,defs){return defs.length>0&&defs.every(d=>ended(state.blocks[String(d.index)]))}
+  function showFinalizeOverlay(show){
+    const card=document.querySelector('#trainingModal .modal-card');if(!card)return;
+    let overlay=document.getElementById('amrapV4FinalizeOverlay');
+    if(show&&!overlay){
+      overlay=document.createElement('div');overlay.id='amrapV4FinalizeOverlay';overlay.className='amrap-v3-finalize-overlay';
+      overlay.innerHTML='<div>正在整理 AMRAP 成績…</div>';
+      const pos=getComputedStyle(card).position;if(pos==='static')card.style.position='relative';
+      card.appendChild(overlay);
+    }else if(!show&&overlay){overlay.remove()}
+  }
+  function finalizeAndRunNativeFinish(){
+    if(finalizing)return;
+    const s=readSession();if(!isTargetSession(s))return;
+    const defs=blockDefs(s),state=loadState(s,defs);
+    if(!allBlocksEnded(state,defs))return;
+    writeScoreSnapshot(s,defs,state);
+    finalizing=true;showFinalizeOverlay(true);
+
+    function step(){
+      const current=readSession();
+      if(!isTargetSession(current)){finalizing=false;showFinalizeOverlay(false);return}
+      const list=document.getElementById('sessionList');
+      const rows=[...list?.querySelectorAll(':scope > .session-item')||[]];
+      const next=current.items.findIndex(x=>!x.done);
+      if(next>=0){
+        const btn=rows[next]?.querySelector('.session-complete-toggle');
+        if(btn){btn.click();setTimeout(step,22);return}
+      }
+      const currentDefs=blockDefs(current),currentState=loadState(current,currentDefs);
+      currentState.nativeSynced=true;saveState(current,currentState);
+      finalizing=false;showFinalizeOverlay(false);
+      bypassFinish=true;
+      const finish=document.getElementById('finishChallengeBtn');
+      if(finish){finish.disabled=false;finish.click()}
+      setTimeout(decorateFinishModal,30);
+    }
+    step();
+  }
+
   function syncPreview(){
     const select=document.getElementById('raceTemplate');
     if(!select||select.value!==TEMPLATE_ID)return;
-    const t=RACE_TEMPLATES[TEMPLATE_ID];
-    if(!t||typeof t.build!=='function')return;
-    const items=t.build()||[];
-    const durations=[];
-    items.forEach(it=>{
-      const b=Number(it.block_index)||0,d=Number(it.block_duration_seconds)||0;
-      if(b>0&&d>0&&!durations[b-1])durations[b-1]=d;
-    });
+    const t=RACE_TEMPLATES[TEMPLATE_ID];if(!t||typeof t.build!=='function')return;
+    const items=t.build()||[],durations=[];
+    items.forEach(it=>{const b=Number(it.block_index)||0,d=Number(it.block_duration_seconds)||0;if(b>0&&d>0&&!durations[b-1])durations[b-1]=d});
     document.querySelectorAll('#dailyPreviewList .daily-preview-block').forEach((block,i)=>{
-      if(!durations[i])return;
-      block.classList.add('amrap-preview');
-      const meta=block.querySelector('.daily-preview-block-head span');
-      if(meta)meta.textContent=`AMRAP ${minutesLabel(durations[i])} · 依序循環`;
+      if(!durations[i])return;block.classList.add('amrap-preview');
+      const meta=block.querySelector('.daily-preview-block-head span');if(meta)meta.textContent=`AMRAP ${minutesLabel(durations[i])} · 輪次保留 · Score = 完成項目數`;
     });
     document.querySelectorAll('#dailyModalBlocks .daily-modal-block').forEach((block,i)=>{
-      if(!durations[i])return;
-      block.classList.add('amrap-preview');
-      const meta=block.querySelector('.daily-modal-block-head span');
-      if(meta)meta.textContent=`AMRAP ${minutesLabel(durations[i])} · 依序循環`;
+      if(!durations[i])return;block.classList.add('amrap-preview');
+      const meta=block.querySelector('.daily-modal-block-head span');if(meta)meta.textContent=`AMRAP ${minutesLabel(durations[i])} · 輪次保留 · Score = 完成項目數`;
     });
   }
+
   function tick(){
     const s=readSession();
     if(!isTargetSession(s)){
-      if(lastSessionId){
-        try{localStorage.removeItem(`${STATE_PREFIX}${lastSessionId}`)}catch(e){}
-        lastSessionId=null;
-      }
-      document.getElementById('trainingModal')?.classList.remove('amrap-block-session');
+      document.getElementById('trainingModal')?.classList.remove('amrap-v3-session');
+      document.getElementById('amrapV3ScoreBar')?.remove();
       syncPreview();
       return;
     }
-    lastSessionId=s.id;
+    if(lastSessionId!==s.id){
+      lastSessionId=s.id;
+      const old=readLastScore();
+      if(old&&old.session_id!==s.id){try{localStorage.removeItem(LAST_SCORE_KEY)}catch(e){}}
+    }
     const defs=blockDefs(s),state=loadState(s,defs);
-    let dirty=false;
-    const roundsToClear=[];
+    let dirty=false,justEnded=false;
     defs.forEach(def=>{
       const bs=state.blocks[String(def.index)];
       if(!s.running&&bs.running){
         bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=true;dirty=true;
-      }else if(s.running&&bs.pausedBySession&&!bs.expired&&!bs.manualFinished&&Number(bs.remaining)>0){
+      }else if(s.running&&bs.pausedBySession&&!ended(bs)&&Number(bs.remaining)>0){
         bs.pausedBySession=false;bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;dirty=true;
       }
       if(bs.running){
         bs.remaining=remainingNow(bs);
         if(bs.remaining<=0){
-          bs.remaining=0;bs.running=false;bs.endAt=null;bs.expired=true;bs.pausedBySession=false;bs.resettingRound=false;dirty=true;
-          signal();
-          setTimeout(()=>markBlockDone(def.index),0);
+          bs.remaining=0;bs.running=false;bs.endAt=null;bs.expired=true;bs.pausedBySession=false;dirty=true;justEnded=true;signal();
         }
       }
-
-      // AMRAP round tracking: once every exercise in the block is checked and
-      // the block still has time left, count the round and immediately clear
-      // those exercise checks so the next round can be tracked from zero.
-      if(bs.started&&!bs.expired&&!bs.manualFinished&&remainingNow(bs)>0&&currentBlockDone(s,def)&&!bs.resettingRound){
-        bs.roundsCompleted=Math.max(0,Number(bs.roundsCompleted)||0)+1;
-        bs.resettingRound=true;
-        dirty=true;
-        roundsToClear.push(def.index);
-      }
-
-      if((bs.expired||bs.manualFinished)&&!currentBlockDone(s,def))setTimeout(()=>markBlockDone(def.index),0);
     });
     if(dirty)saveState(s,state);
-    roundsToClear.forEach(index=>setTimeout(()=>clearCompletedRound(index),0));
     ensureTrainingDecoration(s,defs,state);
+    if(justEnded)defs.forEach(d=>updateBlockUi(s,d,state.blocks[String(d.index)]));
+    if(allBlocksEnded(state,defs))writeScoreSnapshot(s,defs,state);
     syncPreview();
   }
+
+  /* Persist score inside the existing JSONB `stations` column. Because
+     workouts.js loads before app.js, this fetch wrapper is installed in time
+     to see both result POSTs and result-list GETs. */
+  function installFetchScoreBridge(){
+    if(typeof window.fetch!=='function'||window.fetch.__amrapV3Wrapped)return;
+    const original=window.fetch.bind(window);
+    const wrapped=async function(input,init={}){
+      const url=typeof input==='string'?input:String(input?.url||'');
+      const isResults=/\/rest\/v1\/training_results(?:\?|$)/.test(url);
+      let nextInit=init;
+      if(isResults&&String(init?.method||'GET').toUpperCase()==='POST'&&typeof init?.body==='string'){
+        try{
+          const row=JSON.parse(init.body);
+          if(row?.stations?.challenge_template?.id===TEMPLATE_ID){
+            const score=readLastScore();
+            if(score&&Date.now()-Date.parse(score.finished_at||0)<12*60*60*1000){
+              row.stations={...(row.stations||{}),amrap_score:score};
+              nextInit={...init,body:JSON.stringify(row)};
+            }
+          }
+        }catch(e){}
+      }
+      const response=await original(input,nextInit);
+      if(isResults){
+        try{
+          response.clone().json().then(data=>{
+            const rows=Array.isArray(data)?data:[data];
+            rows.filter(Boolean).forEach(r=>{if(r?.id)SCORE_CACHE.set(String(r.id),r)});
+            scheduleWallDecoration();
+          }).catch(()=>{});
+        }catch(e){}
+      }
+      return response;
+    };
+    wrapped.__amrapV3Wrapped=true;
+    window.fetch=wrapped;
+  }
+
+  function scoreFromResult(r){
+    const score=r?.stations?.amrap_score;
+    return score&&score.score_type==='completed_items'?score:null;
+  }
+  function decorateOneWallRow(el,row){
+    const score=scoreFromResult(row);if(!score)return;
+    const result=el.querySelector('.wall-entry-result');
+    if(result){
+      const label=result.querySelector('span'),strong=result.querySelector('strong');
+      if(label)label.textContent='完成項目';
+      if(strong)strong.textContent=`${Number(score.total_completed_items)||0} 次`;
+      result.title=`運動時間 ${fmtLong(row.total_seconds)}`;
+    }
+    const core=el.querySelector('.wall-entry-core');
+    if(core){
+      let sub=core.querySelector('.amrap-wall-breakdown');
+      if(!sub){sub=document.createElement('div');sub.className='amrap-wall-breakdown';core.appendChild(sub)}
+      sub.textContent=blockBreakdown(score);
+    }
+  }
+  function decorateWall(){
+    if(wallDecorating)return;
+    const box=document.getElementById('dailyResults');if(!box)return;
+    const els=[...box.querySelectorAll('.daily-limitedStrengthConditioning[data-result-id]')];
+    if(!els.length)return;
+    const data=els.map(el=>({el,row:SCORE_CACHE.get(String(el.dataset.resultId))})).filter(x=>scoreFromResult(x.row));
+    if(!data.length)return;
+    wallDecorating=true;
+    data.forEach(x=>decorateOneWallRow(x.el,x.row));
+    data.sort((a,b)=>{
+      const sa=Number(scoreFromResult(a.row)?.total_completed_items)||0;
+      const sb=Number(scoreFromResult(b.row)?.total_completed_items)||0;
+      if(sa!==sb)return sb-sa;
+      return (Number(a.row?.total_seconds)||0)-(Number(b.row?.total_seconds)||0);
+    });
+    let prevScore=null,rank=0;
+    data.forEach((x,i)=>{
+      const score=Number(scoreFromResult(x.row)?.total_completed_items)||0;
+      if(prevScore===null||score!==prevScore)rank=i+1;
+      prevScore=score;
+      const label=x.el.querySelector('.wall-entry-rank span');
+      const strong=x.el.querySelector('.wall-entry-rank strong');
+      if(label)label.textContent='同項排名';
+      if(strong)strong.textContent=`#${String(rank).padStart(2,'0')}`;
+    });
+    if(data.length>1){
+      const first=data.map(x=>x.el).sort((a,b)=>[...box.children].indexOf(a)-[...box.children].indexOf(b))[0];
+      if(first){
+        const placeholder=document.createComment('amrap-score-order');first.before(placeholder);
+        const frag=document.createDocumentFragment();data.forEach(x=>frag.appendChild(x.el));
+        placeholder.after(frag);placeholder.remove();
+      }
+    }
+    setTimeout(()=>{wallDecorating=false},0);
+  }
+  let wallTimer=null;
+  function scheduleWallDecoration(){
+    clearTimeout(wallTimer);wallTimer=setTimeout(decorateWall,40);
+  }
+  function installWallObserver(){
+    const setup=()=>{
+      const box=document.getElementById('dailyResults');
+      if(!box){setTimeout(setup,100);return}
+      new MutationObserver(()=>{if(!wallDecorating)scheduleWallDecoration()}).observe(box,{childList:true,subtree:false});
+      scheduleWallDecoration();
+    };
+    setup();
+  }
+
+  function decorateDetailModal(){
+    const row=SCORE_CACHE.get(String(lastDetailResultId||''));
+    const score=scoreFromResult(row);if(!score)return;
+    const modal=document.getElementById('workoutDetailModal');if(!modal?.classList.contains('open'))return;
+    const meta=document.getElementById('workoutDetailMeta');
+    if(meta)meta.textContent=[row.nickname||'未命名選手',row.session_date||'',`AMRAP 成績 ${score.total_completed_items} 項`,`運動時間 ${fmtLong(row.total_seconds)}`].filter(Boolean).join(' · ');
+    const summary=document.getElementById('workoutDetailSummary');
+    if(summary)summary.textContent=`完成項目 ${score.total_completed_items} 次｜完整輪次 ${score.total_full_rounds}｜${blockBreakdown(score)}`;
+  }
+  function decorateFinishModal(){
+    const modal=document.getElementById('finishModal');if(!modal?.classList.contains('open'))return;
+    const score=readLastScore();if(!score)return;
+    const time=document.getElementById('finishTime');
+    if(time){time.textContent=String(score.total_completed_items);const label=time.parentElement?.querySelector('span');if(label)label.textContent='完成項目（次）'}
+    const items=document.getElementById('finishItems');
+    if(items){items.textContent=String(score.total_full_rounds);const label=items.parentElement?.querySelector('span');if(label)label.textContent='完整輪次合計'}
+    const summary=document.querySelector('#finishModal .finish-summary');
+    if(summary){
+      let extra=document.getElementById('amrapFinishBreakdown');
+      if(!extra){extra=document.createElement('div');extra.id='amrapFinishBreakdown';summary.insertAdjacentElement('afterend',extra)}
+      extra.textContent=`${blockBreakdown(score)}｜運動時間 ${fmtLong(score.total_session_seconds)}`;
+    }
+  }
+
   function bindActions(){
     document.addEventListener('click',e=>{
+      const check=e.target.closest?.('[data-amrap-check]');
+      if(check){
+        e.preventDefault();e.stopPropagation();
+        const release=preserveViewportAround(check);
+        toggleRoundCheck(check.dataset.amrapCheck);
+        if(Number(e.detail)>0)check.blur();
+        setTimeout(release,120);
+        return;
+      }
       const toggle=e.target.closest?.('[data-amrap-toggle]');
-      if(toggle){e.preventDefault();toggleBlock(toggle.dataset.amrapToggle);return}
+      if(toggle){e.preventDefault();e.stopPropagation();toggleBlock(toggle.dataset.amrapToggle);return}
       const reset=e.target.closest?.('[data-amrap-reset]');
-      if(reset){e.preventDefault();resetBlock(reset.dataset.amrapReset);return}
+      if(reset){e.preventDefault();e.stopPropagation();resetBlock(reset.dataset.amrapReset);return}
       const complete=e.target.closest?.('[data-amrap-complete]');
-      if(complete){e.preventDefault();completeBlock(complete.dataset.amrapComplete)}
-    });
+      if(complete){e.preventDefault();e.stopPropagation();completeBlock(complete.dataset.amrapComplete);return}
+      const result=e.target.closest?.('.daily-limitedStrengthConditioning[data-result-id]');
+      if(result){lastDetailResultId=result.dataset.resultId;setTimeout(decorateDetailModal,20)}
+    },true);
+
+    document.addEventListener('click',e=>{
+      const finish=e.target.closest?.('#finishChallengeBtn');if(!finish)return;
+      const s=readSession();if(!isTargetSession(s))return;
+      if(bypassFinish){bypassFinish=false;return}
+      const defs=blockDefs(s),state=loadState(s,defs);
+      if(!allBlocksEnded(state,defs)){e.preventDefault();e.stopImmediatePropagation();return}
+      e.preventDefault();e.stopImmediatePropagation();finalizeAndRunNativeFinish();
+    },true);
+
+    const finishModal=document.getElementById('finishModal');
+    if(finishModal)new MutationObserver(()=>{if(finishModal.classList.contains('open'))setTimeout(decorateFinishModal,0)}).observe(finishModal,{attributes:true,attributeFilter:['class']});
   }
+
   function install(){
-    if(installing)return;installing=true;
-    installStyles();bindActions();
-    setInterval(tick,250);
-    tick();
+    if(installed)return;installed=true;
+    installStyles();bindActions();installWallObserver();
+    setInterval(tick,250);tick();
   }
+
+  installFetchScoreBridge();
   if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});
   else setTimeout(install,0);
 })();
