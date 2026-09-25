@@ -705,6 +705,44 @@ zeroRunEndurance:{
     }
   },
 
+  limitedStrengthConditioning:{
+    id:'limitedStrengthConditioning',
+    label:'器材有限 × Strength × Conditioning',
+    duration:'約 45–55 分鐘',
+    intensity:7,
+    description:'4 個 AMRAP Blocks。Block 1 為 15 分鐘，其餘各 10 分鐘；每個 Block 內依序循環指定動作，時間到才完成該 Block。重點是 strength endurance、全身 conditioning 與疲勞下持續輸出。',
+    equipment:'壺鈴／輔助引體設備／箱子／自體重量',
+    total:'AMRAP：45 min｜4 timed blocks｜Strength endurance + conditioning',
+    build(){
+      const item=(block,duration,name,detail)=>({
+        name,detail,
+        block_index:block,
+        block_rounds:1,
+        block_rest:'—',
+        block_duration_seconds:duration,
+        block_amrap:true
+      });
+      return [
+        item(1,900,'Goblet Squat','20 reps'),
+        item(1,900,'Heavy KB Swing','20 reps'),
+        item(1,900,'Push-Up','20 reps'),
+        item(1,900,'Leg Raise','20 reps'),
+
+        item(2,600,'Assisted Pull-Up','10 reps'),
+        item(2,600,'Reverse Lunge','20 reps total'),
+        item(2,600,'Plank Reach','30 reps total'),
+
+        item(3,600,'KB Row','20 reps total'),
+        item(3,600,'Forward / Walking Lunge','20 reps total'),
+        item(3,600,'Mountain Climber','30 reps total'),
+
+        item(4,600,'Weighted Step-Up','10 reps / side'),
+        item(4,600,'Devil Press','12 reps'),
+        item(4,600,'Superman Hold','40-sec hold')
+      ];
+    }
+  },
+
   limitedGymL7:{
     id:'limitedGymL7',
     label:'Hybrid Endurance',
@@ -789,3 +827,287 @@ function syncBuiltinDailyTemplateSelect(){
 }
 
 syncBuiltinDailyTemplateSelect();
+
+/* ===== AMRAP BLOCK TIMER BRIDGE · limitedStrengthConditioning =====
+   app.js currently supports countdowns only at item level. This bridge keeps
+   each exercise as a real item while providing one shared timer per AMRAP block.
+*/
+(function(){
+  const TEMPLATE_ID='limitedStrengthConditioning';
+  const ACTIVE_KEY='hybridActiveSession_v1';
+  const STATE_PREFIX='hybridAmrapBlockTimers_v1:';
+  let lastSessionId=null;
+  let installing=false;
+
+  function readSession(){
+    try{return JSON.parse(localStorage.getItem(ACTIVE_KEY)||'null')}catch(e){return null}
+  }
+  function isTargetSession(s){
+    return !!(s&&s.templateId===TEMPLATE_ID&&Array.isArray(s.items)&&s.items.length);
+  }
+  function blockDefs(s){
+    const map=new Map();
+    (s?.items||[]).forEach((it,itemIndex)=>{
+      const index=Math.max(0,Number(it?.block_index)||0);
+      const duration=Math.max(0,Number(it?.block_duration_seconds)||0);
+      if(!index||!duration)return;
+      if(!map.has(index))map.set(index,{index,duration,itemIndexes:[]});
+      map.get(index).itemIndexes.push(itemIndex);
+    });
+    return [...map.values()].sort((a,b)=>a.index-b.index);
+  }
+  function stateKey(s){return `${STATE_PREFIX}${s.id||'unknown'}`}
+  function loadState(s,defs){
+    let state=null;
+    try{state=JSON.parse(localStorage.getItem(stateKey(s))||'null')}catch(e){}
+    if(!state||state.sessionId!==s.id||typeof state.blocks!=='object'){
+      state={sessionId:s.id,blocks:{}};
+    }
+    defs.forEach(def=>{
+      const key=String(def.index);
+      const existing=state.blocks[key];
+      if(!existing){
+        state.blocks[key]={remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false};
+      }else if(!Number.isFinite(Number(existing.remaining))){
+        existing.remaining=def.duration;
+      }
+    });
+    return state;
+  }
+  function saveState(s,state){
+    try{localStorage.setItem(stateKey(s),JSON.stringify(state))}catch(e){}
+  }
+  function remainingNow(blockState){
+    if(blockState?.running&&blockState?.endAt){
+      return Math.max(0,Math.ceil((Number(blockState.endAt)-Date.now())/1000));
+    }
+    return Math.max(0,Math.ceil(Number(blockState?.remaining)||0));
+  }
+  function fmt(sec){
+    const s=Math.max(0,Math.ceil(Number(sec)||0));
+    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  }
+  function minutesLabel(sec){
+    const min=Math.round(Number(sec)/60);
+    return `${min} min`;
+  }
+  function installStyles(){
+    if(document.getElementById('amrapBlockTimerStyles'))return;
+    const style=document.createElement('style');
+    style.id='amrapBlockTimerStyles';
+    style.textContent=`
+      #trainingModal.amrap-block-session .session-complete-toggle{display:none!important}
+      #trainingModal.amrap-block-session .session-item{margin-top:0}
+      .amrap-block-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin:14px 0 7px;padding:10px 11px;border:1px solid #344255;border-left:4px solid var(--round-accent,#70ded8);border-radius:11px;background:#111923}
+      .amrap-block-copy{min-width:0}.amrap-block-copy strong{display:block;font-size:12px}.amrap-block-copy span{display:block;margin-top:3px;color:#8796aa;font-size:9px}
+      .amrap-block-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+      .amrap-block-timer,.amrap-block-reset,.amrap-block-complete{min-height:31px;border:1px solid #3a4a5f;border-radius:8px;background:#0d151f;color:#dbe4ee;padding:5px 9px;font-size:10px;font-weight:900}
+      .amrap-block-timer.running{border-color:#70ded8;color:#9df3ee}.amrap-block-timer.expired{border-color:#efc96f;color:#ffe4a1}
+      .amrap-block-complete{border-color:#456653;color:#a9edc6}.amrap-block-reset{padding-inline:8px}
+      .daily-preview-block.amrap-preview .daily-preview-block-head span,.daily-modal-block.amrap-preview .daily-modal-block-head span{color:#efc96f;font-weight:900}
+      @media(max-width:640px){.amrap-block-header{grid-template-columns:1fr}.amrap-block-actions{justify-content:flex-start}.amrap-block-timer{min-width:92px}}
+    `;
+    document.head.appendChild(style);
+  }
+  function blockStyle(index){
+    const palette=['#64d8d0','#ff9b78','#b894ff','#7ed9a9','#efc96f','#7bb7ff','#f08fc2','#9fd073'];
+    return palette[(Math.max(1,index)-1)%palette.length];
+  }
+  function currentBlockDone(s,def){
+    return def.itemIndexes.every(i=>!!s.items?.[i]?.done);
+  }
+  function ensureTrainingDecoration(s,defs,state){
+    const modal=document.getElementById('trainingModal');
+    const list=document.getElementById('sessionList');
+    if(!modal||!list||!modal.classList.contains('open'))return;
+    modal.classList.add('amrap-block-session');
+    const rows=[...list.querySelectorAll('.session-item')];
+    if(rows.length<s.items.length)return;
+
+    const existing=[...list.querySelectorAll('.amrap-block-header')];
+    if(existing.length!==defs.length){
+      existing.forEach(x=>x.remove());
+      defs.forEach(def=>{
+        const first=rows[def.itemIndexes[0]];
+        if(!first)return;
+        const header=document.createElement('div');
+        header.className='amrap-block-header';
+        header.dataset.amrapBlockHeader=String(def.index);
+        header.style.setProperty('--round-accent',blockStyle(def.index));
+        header.innerHTML=`
+          <div class="amrap-block-copy">
+            <strong>BLOCK ${def.index} · AMRAP ${minutesLabel(def.duration)}</strong>
+            <span>依序循環下列動作，直到 Block 計時結束</span>
+          </div>
+          <div class="amrap-block-actions">
+            <button type="button" class="amrap-block-timer" data-amrap-toggle="${def.index}">▶ ${fmt(def.duration)}</button>
+            <button type="button" class="amrap-block-reset" data-amrap-reset="${def.index}" aria-label="重設 Block ${def.index}">↺</button>
+            <button type="button" class="amrap-block-complete" data-amrap-complete="${def.index}">完成 Block</button>
+          </div>`;
+        first.before(header);
+      });
+    }
+
+    defs.forEach(def=>{
+      def.itemIndexes.forEach(i=>rows[i]?.classList.add('amrap-block-exercise'));
+      const bs=state.blocks[String(def.index)];
+      const btn=list.querySelector(`[data-amrap-toggle="${def.index}"]`);
+      if(btn){
+        const remaining=remainingNow(bs);
+        btn.textContent=bs?.expired?'時間到':`${bs?.running?'Ⅱ':'▶'} ${fmt(remaining)}`;
+        btn.classList.toggle('running',!!bs?.running);
+        btn.classList.toggle('expired',!!bs?.expired);
+      }
+      const complete=list.querySelector(`[data-amrap-complete="${def.index}"]`);
+      if(complete){
+        const done=currentBlockDone(s,def);
+        complete.textContent=done?'✓ Block 完成':'完成 Block';
+        complete.disabled=done;
+      }
+    });
+
+    const doneBlocks=defs.filter(def=>currentBlockDone(s,def)).length;
+    const progress=document.getElementById('sessionProgress');
+    if(progress)progress.textContent=`${doneBlocks} / ${defs.length} Blocks`;
+  }
+  function markBlockDone(blockIndex){
+    const s=readSession();
+    if(!isTargetSession(s))return;
+    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));
+    if(!def)return;
+    const modal=document.getElementById('trainingModal');
+    const list=document.getElementById('sessionList');
+    if(!modal?.classList.contains('open')||!list)return;
+    const rows=[...list.querySelectorAll('.session-item')];
+    if(rows.length<s.items.length)return;
+    const nextIndex=def.itemIndexes.find(i=>!s.items?.[i]?.done);
+    if(nextIndex==null)return;
+    const toggle=rows[nextIndex]?.querySelector('.session-complete-toggle');
+    if(toggle){
+      toggle.click();
+      setTimeout(()=>markBlockDone(blockIndex),25);
+    }
+  }
+  function signal(){
+    try{navigator.vibrate?.([180,90,180])}catch(e){}
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return;
+      const ctx=new AC(),now=ctx.currentTime;
+      [0,.18].forEach((offset,i)=>{
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.frequency.value=i?660:880;
+        gain.gain.setValueAtTime(.0001,now+offset);
+        gain.gain.exponentialRampToValueAtTime(.11,now+offset+.01);
+        gain.gain.exponentialRampToValueAtTime(.0001,now+offset+.12);
+        osc.connect(gain);gain.connect(ctx.destination);osc.start(now+offset);osc.stop(now+offset+.13);
+      });
+      setTimeout(()=>ctx.close?.(),800);
+    }catch(e){}
+  }
+  function toggleBlock(blockIndex){
+    const s=readSession();if(!isTargetSession(s)||!s.running)return;
+    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
+    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
+    if(bs.running){
+      bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;
+    }else{
+      if(bs.expired||Number(bs.remaining)<=0){bs.remaining=def.duration;bs.expired=false}
+      bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;bs.pausedBySession=false;
+    }
+    saveState(s,state);
+  }
+  function resetBlock(blockIndex){
+    const s=readSession();if(!isTargetSession(s))return;
+    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
+    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
+    Object.assign(bs,{remaining:def.duration,running:false,endAt:null,expired:false,pausedBySession:false});
+    saveState(s,state);
+  }
+  function completeBlock(blockIndex){
+    const s=readSession();if(!isTargetSession(s))return;
+    const defs=blockDefs(s),def=defs.find(x=>x.index===Number(blockIndex));if(!def)return;
+    const state=loadState(s,defs),bs=state.blocks[String(def.index)];
+    bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=false;
+    saveState(s,state);
+    markBlockDone(blockIndex);
+  }
+  function syncPreview(){
+    const select=document.getElementById('raceTemplate');
+    if(!select||select.value!==TEMPLATE_ID)return;
+    const t=RACE_TEMPLATES[TEMPLATE_ID];
+    if(!t||typeof t.build!=='function')return;
+    const items=t.build()||[];
+    const durations=[];
+    items.forEach(it=>{
+      const b=Number(it.block_index)||0,d=Number(it.block_duration_seconds)||0;
+      if(b>0&&d>0&&!durations[b-1])durations[b-1]=d;
+    });
+    document.querySelectorAll('#dailyPreviewList .daily-preview-block').forEach((block,i)=>{
+      if(!durations[i])return;
+      block.classList.add('amrap-preview');
+      const meta=block.querySelector('.daily-preview-block-head span');
+      if(meta)meta.textContent=`AMRAP ${minutesLabel(durations[i])} · 依序循環`;
+    });
+    document.querySelectorAll('#dailyModalBlocks .daily-modal-block').forEach((block,i)=>{
+      if(!durations[i])return;
+      block.classList.add('amrap-preview');
+      const meta=block.querySelector('.daily-modal-block-head span');
+      if(meta)meta.textContent=`AMRAP ${minutesLabel(durations[i])} · 依序循環`;
+    });
+  }
+  function tick(){
+    const s=readSession();
+    if(!isTargetSession(s)){
+      if(lastSessionId){
+        try{localStorage.removeItem(`${STATE_PREFIX}${lastSessionId}`)}catch(e){}
+        lastSessionId=null;
+      }
+      document.getElementById('trainingModal')?.classList.remove('amrap-block-session');
+      syncPreview();
+      return;
+    }
+    lastSessionId=s.id;
+    const defs=blockDefs(s),state=loadState(s,defs);
+    let dirty=false;
+    defs.forEach(def=>{
+      const bs=state.blocks[String(def.index)];
+      if(!s.running&&bs.running){
+        bs.remaining=remainingNow(bs);bs.running=false;bs.endAt=null;bs.pausedBySession=true;dirty=true;
+      }else if(s.running&&bs.pausedBySession&&!bs.expired&&Number(bs.remaining)>0){
+        bs.pausedBySession=false;bs.running=true;bs.endAt=Date.now()+Number(bs.remaining)*1000;dirty=true;
+      }
+      if(bs.running){
+        bs.remaining=remainingNow(bs);
+        if(bs.remaining<=0){
+          bs.remaining=0;bs.running=false;bs.endAt=null;bs.expired=true;bs.pausedBySession=false;dirty=true;
+          signal();
+          setTimeout(()=>markBlockDone(def.index),0);
+        }
+      }
+      if(bs.expired&&!currentBlockDone(s,def))setTimeout(()=>markBlockDone(def.index),0);
+    });
+    if(dirty)saveState(s,state);
+    ensureTrainingDecoration(s,defs,state);
+    syncPreview();
+  }
+  function bindActions(){
+    document.addEventListener('click',e=>{
+      const toggle=e.target.closest?.('[data-amrap-toggle]');
+      if(toggle){e.preventDefault();toggleBlock(toggle.dataset.amrapToggle);return}
+      const reset=e.target.closest?.('[data-amrap-reset]');
+      if(reset){e.preventDefault();resetBlock(reset.dataset.amrapReset);return}
+      const complete=e.target.closest?.('[data-amrap-complete]');
+      if(complete){e.preventDefault();completeBlock(complete.dataset.amrapComplete)}
+    });
+  }
+  function install(){
+    if(installing)return;installing=true;
+    installStyles();bindActions();
+    setInterval(tick,250);
+    tick();
+  }
+  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});
+  else setTimeout(install,0);
+})();
+
