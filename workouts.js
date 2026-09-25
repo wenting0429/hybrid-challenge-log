@@ -828,7 +828,7 @@ function syncBuiltinDailyTemplateSelect(){
 
 syncBuiltinDailyTemplateSelect();
 
-/* ===== AMRAP PERSISTENT ROUND CARDS v4 · no-jump stable UI · limitedStrengthConditioning =====
+/* ===== AMRAP PERSISTENT ROUND CARDS v5 · click-safe stable UI · limitedStrengthConditioning =====
    Purpose:
    - Keep completed AMRAP rounds visible instead of clearing checkmarks.
    - Append a fresh round card only after the current round is fully checked.
@@ -1003,9 +1003,9 @@ syncBuiltinDailyTemplateSelect();
   }
 
   function installStyles(){
-    if(document.getElementById('amrapRoundCardsV4Styles'))return;
+    if(document.getElementById('amrapRoundCardsV5Styles'))return;
     const style=document.createElement('style');
-    style.id='amrapRoundCardsV4Styles';
+    style.id='amrapRoundCardsV5Styles';
     style.textContent=`
       #trainingModal.amrap-v3-session .session-item.amrap-source-exercise{display:none!important}
       #trainingModal.amrap-v3-session #sessionList,.amrap-block-shell,.amrap-round-stack,.amrap-round-card,.amrap-round-check{overflow-anchor:none!important}
@@ -1052,7 +1052,7 @@ syncBuiltinDailyTemplateSelect();
     const round=bs.rounds[roundIndex];
     const done=roundCompletedItems(round);
     const full=roundComplete(round);
-    const lock=ended(bs)||!bs.running;
+    const lock=ended(bs);
     return `<div class="amrap-round-card ${full?'complete':''} ${ended(bs)?'locked':''}" data-amrap-round-card="${def.index}:${roundIndex}">
       <div class="amrap-round-head">
         <strong>ROUND ${roundIndex+1}</strong>
@@ -1138,7 +1138,7 @@ syncBuiltinDailyTemplateSelect();
       const btn=card.querySelector(`[data-amrap-check="${def.index}:${roundIndex}:${itemPos}"]`);
       if(!btn)return;
       btn.classList.toggle('checked',!!checked);
-      btn.disabled=ended(bs)||!bs.running;
+      btn.disabled=ended(bs);
       const icon=btn.querySelector('.amrap-check-icon');if(icon)setTextStable(icon,checked?'✓':'○');
       const status=btn.querySelector('.amrap-round-check-status');if(status)setTextStable(status,checked?'完成':'待完成');
     });
@@ -1253,6 +1253,7 @@ syncBuiltinDailyTemplateSelect();
     }
     return document.scrollingElement||document.documentElement;
   }
+  // Legacy viewport helper kept for compatibility; V5 no longer calls it on checkbox clicks.
   function preserveViewportAround(el){
     if(!el)return ()=>{};
     const host=scrollHostFor(el);
@@ -1295,7 +1296,16 @@ syncBuiltinDailyTemplateSelect();
     const s=readSession();if(!isTargetSession(s)||!s.running)return;
     const defs=blockDefs(s),def=defs.find(x=>x.index===blockNo);if(!def)return;
     const state=loadState(s,defs),bs=state.blocks[String(def.index)];
-    if(ended(bs)||!bs.running||remainingNow(bs)<=0)return;
+    if(ended(bs)||remainingNow(bs)<=0)return;
+    // Clicking an exercise starts/resumes this AMRAP block automatically.
+    // This avoids a dead UI where all exercise buttons are disabled before
+    // the user manually presses the block timer.
+    if(!bs.running){
+      bs.started=true;
+      bs.running=true;
+      bs.endAt=Date.now()+Number(bs.remaining)*1000;
+      bs.pausedBySession=false;
+    }
     const round=bs.rounds[roundNo];if(!round||itemNo<0||itemNo>=round.checks.length)return;
     round.checks[itemNo]=!round.checks[itemNo];
     state.nativeSynced=false;
@@ -1538,25 +1548,21 @@ syncBuiltinDailyTemplateSelect();
   }
 
   function bindActions(){
+    // Bubble-phase delegation only. These are custom AMRAP controls, so there
+    // is no need to capture the event or stop propagation before the button
+    // itself receives the click. This keeps the controls genuinely clickable.
     document.addEventListener('click',e=>{
       const check=e.target.closest?.('[data-amrap-check]');
-      if(check){
-        e.preventDefault();e.stopPropagation();
-        const release=preserveViewportAround(check);
-        toggleRoundCheck(check.dataset.amrapCheck);
-        if(Number(e.detail)>0)check.blur();
-        setTimeout(release,120);
-        return;
-      }
+      if(check){toggleRoundCheck(check.dataset.amrapCheck);return}
       const toggle=e.target.closest?.('[data-amrap-toggle]');
-      if(toggle){e.preventDefault();e.stopPropagation();toggleBlock(toggle.dataset.amrapToggle);return}
+      if(toggle){toggleBlock(toggle.dataset.amrapToggle);return}
       const reset=e.target.closest?.('[data-amrap-reset]');
-      if(reset){e.preventDefault();e.stopPropagation();resetBlock(reset.dataset.amrapReset);return}
+      if(reset){resetBlock(reset.dataset.amrapReset);return}
       const complete=e.target.closest?.('[data-amrap-complete]');
-      if(complete){e.preventDefault();e.stopPropagation();completeBlock(complete.dataset.amrapComplete);return}
+      if(complete){completeBlock(complete.dataset.amrapComplete);return}
       const result=e.target.closest?.('.daily-limitedStrengthConditioning[data-result-id]');
       if(result){lastDetailResultId=result.dataset.resultId;setTimeout(decorateDetailModal,20)}
-    },true);
+    });
 
     document.addEventListener('click',e=>{
       const finish=e.target.closest?.('#finishChallengeBtn');if(!finish)return;
