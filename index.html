@@ -468,6 +468,33 @@
 #wall .wall-menu-color .wall-entry-result strong{color:var(--wall-display-accent)!important}
 #wall .wall-menu-color{box-shadow:inset 3px 0 0 var(--wall-display-accent)!important}
 @media(max-width:420px){#wall .wall-sort-controls button{padding:3px 7px;font-size:9px}}
+
+/* Consistent score wall on desktop and mobile; no other app layout changes. */
+#wall .ranking-scroll{
+  height:min(430px,62vh)!important;
+  max-height:430px!important;
+  overflow-y:auto!important;
+  padding:10px!important;
+}
+#wall .wall-menu-color{
+  border-left:3px solid var(--wall-display-accent)!important;
+  box-shadow:none!important;
+}
+#wall .wall-menu-color .wall-entry-rank strong,
+#wall .wall-menu-color .wall-entry-title,
+#wall .wall-menu-color .wall-entry-result strong{
+  color:var(--wall-display-accent)!important;
+}
+@media(max-width:760px){
+  #wall .ranking-scroll{height:min(430px,62vh)!important;max-height:430px!important;padding:10px!important}
+  #wall .ranking-card .score-row{margin-bottom:9px!important}
+  #wall .ranking-card-head{align-items:center}
+  #wall .wall-sort-controls{flex:0 0 auto;margin-left:auto}
+}
+@media(max-width:380px){
+  #wall .wall-sort-controls button{padding:3px 6px;font-size:9px}
+}
+
 </style>
 <script>
 (function(){
