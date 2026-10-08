@@ -2002,7 +2002,7 @@ function wallNoteText(r){
 function classicResultRow(r,rank,groupKey){
   const typeClass=`classic-${groupKey.replace('standard-','')}`;
   const note=wallNoteText(r);
-  return `<div class="score-row classic-score-row ${typeClass} ${rankToneClass(rank)}" data-result-id="${esc(String(r.id||''))}" role="button" tabindex="0" title="點一下查看菜單內容" aria-label="查看 ${esc(cleanStoredTitle(r))} 菜單內容">
+  return `<div class="score-row classic-score-row ${typeClass} ${rankToneClass(rank)}" data-result-id="${esc(String(r.id||''))}" data-created-at="${esc(String(r.created_at||''))}" data-total-seconds="${Number(r.total_seconds)||0}" role="button" tabindex="0" title="點一下查看菜單內容" aria-label="查看 ${esc(cleanStoredTitle(r))} 菜單內容">
     <div class="wall-entry">
       <div class="wall-entry-rank" aria-label="第 ${rank} 名">
         <span>名次</span><strong>${rankText(rank)}</strong>
@@ -2027,7 +2027,7 @@ function dailyResultRow(r,templateRank){
   const id=simulationTemplateIdForRow(r);
   const t=RACE_TEMPLATES[id]||RACE_TEMPLATES.easyHybrid;
   const note=wallNoteText(r);
-  return `<div class="score-row daily-score-row daily-${esc(id)} ${rankToneClass(templateRank)}" data-result-id="${esc(String(r.id||''))}" role="button" tabindex="0" title="點一下查看菜單內容" aria-label="查看 ${esc(t.label)} 菜單內容">
+  return `<div class="score-row daily-score-row daily-${esc(id)} ${rankToneClass(templateRank)}" data-result-id="${esc(String(r.id||''))}" data-created-at="${esc(String(r.created_at||''))}" data-total-seconds="${Number(r.total_seconds)||0}" role="button" tabindex="0" title="點一下查看菜單內容" aria-label="查看 ${esc(t.label)} 菜單內容">
     <div class="wall-entry">
       <div class="wall-entry-rank" aria-label="同項訓練第 ${templateRank} 名">
         <span>同項排名</span><strong>${rankText(templateRank)}</strong>

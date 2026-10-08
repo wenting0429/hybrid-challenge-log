@@ -456,122 +456,110 @@
 <script src="./workouts.js"></script>
 <script src="./app.js"></script>
 
-<!-- Daily score wall visual sorting patch · 2026-09-24
-     Display order only:
-     1) Level high -> low
-     2) Same Level -> workout name descending
-     3) Same workout -> rank #01 -> #02 -> #03
-     HYROX / TYRUN are untouched. -->
+<!-- Score wall: per-card date/score sorting and stable workout colors; display only. -->
+<style>
+#wall .wall-sort-controls{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin-left:auto}
+#wall .wall-sort-controls button{width:auto;min-height:24px;padding:3px 9px;border:1px solid #354458;border-radius:999px;background:#141e2b;color:#9daec0;font-size:10px;font-weight:750;line-height:1.25;white-space:nowrap}
+#wall .wall-sort-controls button[aria-pressed="true"]{border-color:#60cfc8;background:rgba(96,207,200,.14);color:#a9f1ec}
+#wall .ranking-card-head{flex-wrap:wrap;align-items:center}
+#wall .wall-menu-color .wall-entry-rank strong{color:var(--wall-menu-accent)!important}
+#wall .wall-menu-color .wall-entry-title{color:var(--wall-menu-accent)!important}
+#wall .wall-menu-color{box-shadow:inset 3px 0 0 var(--wall-menu-accent)!important}
+@media(max-width:420px){#wall .wall-sort-controls button{padding:3px 7px;font-size:9px}}
+</style>
 <script>
 (function(){
-  const DAILY_BOX_ID = 'dailyResults';
-  let sorting = false;
-  let scheduled = false;
-
-  function parseDailyRow(row, originalIndex){
-    const titleEl = row.querySelector('.wall-entry-title');
-    const rankEl = row.querySelector('.wall-entry-rank strong');
-    const title = String(titleEl?.textContent || '').trim();
-    const rankText = String(rankEl?.textContent || '').trim();
-
-    const levelMatch = title.match(/\bLevel\s*(\d+)\b/i);
-    const level = levelMatch ? Number(levelMatch[1]) : -1;
-
-    // dailyResultRow renders: "Level N: workout name"
-    const name = title
-      .replace(/^\s*Level\s*\d+\s*[:：|｜-]?\s*/i, '')
-      .trim();
-
-    const rankMatch = rankText.match(/(\d+)/);
-    const rank = rankMatch ? Number(rankMatch[1]) : Number.MAX_SAFE_INTEGER;
-
-    return { row, level, name, rank, originalIndex };
-  }
-
-  function compareDailyRows(a, b){
-    // 1. Higher Level first.
-    if (a.level !== b.level) return b.level - a.level;
-
-    // 2. Same Level: workout name descending.
-    // Requested example: xxx before bbb.
-    const nameCompare = b.name.localeCompare(a.name, 'zh-Hant', {
-      numeric: true,
-      sensitivity: 'base'
-    });
-    if (nameCompare !== 0) return nameCompare;
-
-    // 3. Same Level + same workout: #01, #02, #03 ...
-    if (a.rank !== b.rank) return a.rank - b.rank;
-
-    // Stable fallback.
-    return a.originalIndex - b.originalIndex;
-  }
-
-  function sortDailyWallNow(){
-    if (sorting) return;
-    const box = document.getElementById(DAILY_BOX_ID);
-    if (!box) return;
-
-    const rows = Array.from(box.children).filter(el => el.classList?.contains('daily-score-row'));
-    if (rows.length < 2) return;
-
-    const sorted = rows
-      .map((row, i) => parseDailyRow(row, i))
-      .sort(compareDailyRows)
-      .map(x => x.row);
-
-    const alreadySorted = sorted.every((row, i) => row === rows[i]);
-    if (alreadySorted) return;
-
-    sorting = true;
-    const frag = document.createDocumentFragment();
-    sorted.forEach(row => frag.appendChild(row));
-    box.appendChild(frag);
-    sorting = false;
-  }
-
-  function scheduleDailySort(){
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      sortDailyWallNow();
-    });
-  }
-
-  function installDailyWallSorter(){
-    const box = document.getElementById(DAILY_BOX_ID);
-    if (!box) {
-      setTimeout(installDailyWallSorter, 100);
-      return;
-    }
-
-    // Sort anything app.js may already have rendered.
-    scheduleDailySort();
-
-    // Re-sort after refreshes / new results / tab rendering.
-    const observer = new MutationObserver(() => {
-      if (!sorting) scheduleDailySort();
-    });
-    observer.observe(box, { childList: true });
-
-    // Also sort when the wall tab is opened or refresh is pressed.
-    document.querySelector('[data-tab="wall"]')?.addEventListener('click', () => {
-      setTimeout(scheduleDailySort, 0);
-      setTimeout(scheduleDailySort, 150);
-    });
-    document.getElementById('refreshBtn')?.addEventListener('click', () => {
-      setTimeout(scheduleDailySort, 0);
-      setTimeout(scheduleDailySort, 250);
-      setTimeout(scheduleDailySort, 800);
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', installDailyWallSorter, { once: true });
-  } else {
-    installDailyWallSorter();
-  }
+ 'use strict';
+ const colors=['#70d8d2','#f6ae71','#ba9df7','#89d7a1','#ee97bf','#e8cd7b','#95b8f7','#c49bde','#f29b89','#79c9ba','#d0a7ed','#a5cf80','#f4bb9a','#88c8ea','#eaa3a3','#b6cfaa','#ddaeed'];
+ const collator=new Intl.Collator('zh-Hant',{numeric:true,sensitivity:'base'});
+ const cards=[...document.querySelectorAll('#wall .ranking-card[data-wall-card]')];
+ const states=new Map();
+ let sorting=false,scheduled=false;
+ function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0)%colors.length}
+ function rowsOf(container){return [...container.children].filter(x=>x.matches('.score-row[data-result-id]'))}
+ function rowInfo(row,index){
+   const title=(row.querySelector('.wall-entry-title')?.textContent||'').trim();
+   const found=title.match(/^Level\s*(\d+)\s*[:：|｜-]?\s*(.*)$/i);
+   const level=found?Number(found[1]):0;
+   const name=(found?found[2]:title).trim();
+   const created=Date.parse(row.dataset.createdAt||'');
+   const time=Number(row.dataset.totalSeconds);
+   return {row,index,name,level,created:Number.isFinite(created)?created:-Infinity,seconds:Number.isFinite(time)&&time>0?time:Infinity};
+ }
+ function byTime(a,b){return b.created-a.created || collator.compare(a.name,b.name) || a.seconds-b.seconds || a.index-b.index}
+ function byScore(a,b){return b.level-a.level || collator.compare(a.name,b.name) || a.seconds-b.seconds || b.created-a.created || a.index-b.index}
+ function sortRows(container,mode){
+   const rows=rowsOf(container);if(!rows.length)return;
+   const infos=rows.map(rowInfo);
+   for(const x of infos){
+     const card=x.row.closest('[data-wall-card]');
+     const key=card?.dataset.wallCard||'';
+     // Daily uses the actual template identity, classic uses the race division & workout label.
+     const workout=key==='daily'?(x.row.className.match(/\bdaily-([\w-]+)/)?.[1]||x.name):x.name;
+     const color=colors[hash(key+'|'+workout)];
+     x.row.style.setProperty('--wall-menu-accent',color);
+     x.row.classList.add('wall-menu-color');
+   }
+   const ordered=infos.sort(mode==='time'?byTime:byScore).map(x=>x.row);
+   if(ordered.every((row,i)=>row===rows[i]))return;
+   sorting=true;
+   const fragment=document.createDocumentFragment();ordered.forEach(row=>fragment.appendChild(row));
+   container.appendChild(fragment);
+   sorting=false;
+ }
+ function apply(card){
+   const st=states.get(card);if(!st)return;
+   const box=st.box;
+   // Any refresh rebuilds the app's original subgroup nodes. Discard stale references.
+   if(st.flat && st.flat.parentNode!==box){st.flat=null;st.originalParents=null;}
+   const groups=[...box.querySelectorAll(':scope > .classic-subgroup')];
+   if(groups.length){
+     if(st.mode==='time'){
+       if(!st.flat){
+         st.originalParents=new Map();
+         st.flat=document.createElement('div');st.flat.className='wall-time-flat';
+         const all=groups.flatMap(group=>rowsOf(group).map(row=>({row,group})));
+         sorting=true;
+         for(const {row,group} of all){st.originalParents.set(row,group);st.flat.appendChild(row);}
+         groups.forEach(g=>{g.hidden=true});box.appendChild(st.flat);
+         sorting=false;
+       }
+       sortRows(st.flat,'time');
+     }else{
+       if(st.flat){
+         sorting=true;
+         for(const row of rowsOf(st.flat)){const home=st.originalParents?.get(row);if(home&&home.parentNode===box)home.appendChild(row);}
+         st.flat.remove();st.flat=null;st.originalParents=null;
+         groups.forEach(g=>{g.hidden=false});
+         sorting=false;
+       }
+       groups.forEach(group=>sortRows(group,'score'));
+       const levels={Pro:3,Open:2,Scaled:1};
+       const ordered=[...groups].sort((a,b)=>(levels[b.querySelector('.classic-subgroup-head span')?.textContent?.trim()]||0)-(levels[a.querySelector('.classic-subgroup-head span')?.textContent?.trim()]||0));
+       if(!ordered.every((g,i)=>g===groups[i])){sorting=true;ordered.forEach(g=>box.appendChild(g));sorting=false;}
+     }
+   }else sortRows(box,st.mode);
+ }
+ function refresh(){scheduled=false;if(sorting)return;cards.forEach(apply)}
+ function requestRefresh(){if(!scheduled){scheduled=true;requestAnimationFrame(refresh)}}
+ function init(){
+   cards.forEach(card=>{
+     const box=card.querySelector('.ranking-scroll'),head=card.querySelector('.ranking-card-head');if(!box||!head)return;
+     const st={box,mode:'time',flat:null,originalParents:null};states.set(card,st);
+     const controls=document.createElement('div');controls.className='wall-sort-controls';controls.setAttribute('role','group');controls.setAttribute('aria-label','成績排序方式');
+     for(const [mode,label] of [['time','時間'],['score','成績']]){
+       const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.setAttribute('aria-pressed',String(st.mode===mode));
+       btn.addEventListener('click',()=>{st.mode=mode;controls.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String((i===0?'time':'score')===mode)));apply(card)});
+       controls.appendChild(btn);
+     }
+     head.appendChild(controls);
+     new MutationObserver(mutations=>{if(!sorting&&mutations.some(m=>m.addedNodes.length||m.removedNodes.length))requestRefresh()}).observe(box,{childList:true,subtree:true});
+   });
+   requestRefresh();
+   document.querySelector('[data-tab="wall"]')?.addEventListener('click',requestRefresh);
+   document.getElementById('refreshBtn')?.addEventListener('click',requestRefresh);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 
